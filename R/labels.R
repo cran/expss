@@ -105,6 +105,9 @@ set_var_lab.data.frame = function(x,value){
 set_var_lab.default = function(x,value){
     if (length(value)==0){
         attr(x,"label")=NULL
+        if(length(val_lab(x))==0){
+            class(x)=setdiff(class(x), "labelled")
+        }
         return(x)
     }
     attr(x,"label")=value
@@ -160,8 +163,8 @@ unvr.list=function(x){
 #' \item{\code{add_val_lab<-}}{ add value labels to already existing value labels.} 
 #' \item{\code{unvl}}{ drops value labels.}
 #' \item{\code{make_labels}}{ makes named vector from text for usage as value labels.}
-#' \item{\code{ml_left} and \code{ml_right}}{ are shortcuts for \code{make_labels}
-#' with \code{code_postion} 'left' and 'right' accordingly.}
+#' \item{\code{ml_left}, \code{ml_right} and  \code{ml_autonum}}{ are shortcuts for \code{make_labels}
+#' with \code{code_postion} 'left', 'right' and 'autonum' accordingly.}
 #' }
 #' @param x Variable(s). Vector/data.frame/list.
 #' @param value Named vector. Names of vector are labels for the
@@ -170,8 +173,8 @@ unvr.list=function(x){
 #'   Deafult is FALSE - we completely replace old values. If TRUE new value
 #'   labels will be combined with old value labels.
 #' @param text text that should be converted to named vector
-#' @param code_position Possible values "left" or "right" - position of numeric code in
-#' \code{text}.
+#' @param code_position Possible values "left", "right" - position of numeric code in
+#' \code{text}. "autonum" - makes codes by autonumbering lines of \code{text}.
 #' @return \code{val_lab} return value labels (named vector). If labels doesn't 
 #'   exist it return NULL . \code{val_lab<-} and \code{set_val_lab} return 
 #'   variable (vector x) of class "labelled" with attribute "labels" which
@@ -299,6 +302,7 @@ add_val_lab = function(x, value) set_val_lab(x, value, add = TRUE)
 
 #' @export
 set_val_lab.default = function(x,value, add = FALSE){
+    stopif(!is.null(value) && is.null(names(value)), "Labels should be named vector.")
     stopif(anyDuplicated(value),"duplicated values in labels: ",paste(value[duplicated(value)],collapse=" "))
     names_vallab = names(value)
     # This warning was removed because it was generated too often for third party *.sav files.
@@ -309,7 +313,11 @@ set_val_lab.default = function(x,value, add = FALSE){
     if (add) value = combine_labels(value,val_lab(x))
     if (length(value)==0) value=NULL else value=sort(value)
     attr(x,"labels")=value
-    class(x)=union("labelled",class(x))
+    if(is.null(value) && is.null(var_lab(x))){
+        class(x)=setdiff(class(x), "labelled")
+    } else {
+        class(x)=union("labelled",class(x))
+    }
     x
 }
 
@@ -346,7 +354,7 @@ unvl=function(x){
 
 #' @export
 #' @rdname val_lab
-make_labels=function(text, code_position=c("left","right")){
+make_labels=function(text, code_position=c("left","right", "autonum")){
     split="\n"
     if (length(text)>1) text = paste(text,collapse=split) 
     res = unlist(strsplit(text,split=split))
@@ -354,22 +362,29 @@ make_labels=function(text, code_position=c("left","right")){
     res = gsub("^([\\s\\t]+)|([\\s\\t]+)$","",res,perl = TRUE)
     res = res[res!=""]
     code_position = match.arg(code_position)
-    if (code_position == "left") {
-        pattern = "^(-*)([\\d\\.]+)([\\.\\s\\t]*)(.*?)$"
-        code_pattern = "\\1\\2"
-        label_pattern = "\\4"
+    if(code_position %in% c("left", "right")){
+        if (code_position == "left") {
+            pattern = "^(-*)([\\d\\.]+)([\\.\\s\\t]*)(.*?)$"
+            code_pattern = "\\1\\2"
+            label_pattern = "\\4"
+        } else {
+            pattern = "^(.*?)([\\s\\t]*)(-*)([\\d\\.]+)$"
+            code_pattern = "\\3\\4"
+            label_pattern = "\\1"
+            
+        }
+        stopif(!all(grepl(pattern, res,perl=TRUE)), "Incorrect pattern for labels:\n", paste(res[!grepl(pattern, res,perl=TRUE)], collapse = "\n"))
+        code=as.numeric(gsub(pattern,code_pattern,res,perl=TRUE))
+        #     if (!any(abs(floor(code)-code)>0)) code = as.integer(code)
+        lab=gsub(pattern,label_pattern,res,perl=TRUE)
+        code = code[!(lab %in% "")]
+        lab = lab[!(lab %in% "")]
     } else {
-        pattern = "^(.*?)([\\s\\t]*)(-*)([\\d\\.]+)$"
-        code_pattern = "\\3\\4"
-        label_pattern = "\\1"
-        
+        lab = res
+        lab = lab[!(lab %in% "")]
+        code = seq_along(res)
     }
-    stopif(!all(grepl(pattern, res,perl=TRUE)), "Incorrect pattern for labels:\n", paste(res[!grepl(pattern, res,perl=TRUE)], collapse = "\n"))
-    code=as.numeric(gsub(pattern,code_pattern,res,perl=TRUE))
-    #     if (!any(abs(floor(code)-code)>0)) code = as.integer(code)
-    lab=gsub(pattern,label_pattern,res,perl=TRUE)
-    code = code[!(lab %in% "")]
-    lab = lab[!(lab %in% "")]
+    
     if(length(lab)>0){
         structure(code,names=lab)
     } else {
@@ -383,6 +398,9 @@ ml_left = function(text) make_labels(text = text, code_position = "left")
 #' @export
 #' @rdname val_lab
 ml_right = function(text) make_labels(text = text, code_position = "right")
+#' @export
+#' @rdname val_lab
+ml_autonum = function(text) make_labels(text = text, code_position = "autonum")
 
 #' Drop variable label and value labels
 #' 
@@ -425,6 +443,63 @@ unlab.list=function(x){
 
 
 
+
+
+
+
+#' Recode vector into integer vector with value labels 
+#'
+#' @param x numeric vector/character vector/factor 
+#' @param label optional variable label
+#'
+#' @return integer vector with labels
+#' @export
+#' @examples
+#' character_vector = c("one", "two",  "two", "three")
+#' as.labelled(character_vector, label = "Numbers")
+#' 
+#'
+as.labelled = function(x, label = NULL){
+    UseMethod("as.labelled")
+}
+
+#' @export
+as.labelled.default = function(x, label = NULL){
+    labels = sort(unique(x), na.last = NA)
+    values = seq_along(labels)
+    res = match(x, labels)
+    names(values) = as.character(labels)
+    val_lab(res) = values
+    if(!is.null(label)) var_lab(res) = label
+    res
+}
+
+#' @export
+as.labelled.factor = function(x, label = NULL){
+    values = seq_along(levels(x))
+    names(values) = levels(x)
+    x = as.numeric(x)
+    val_lab(x) = values
+    var_lab(x) = label
+    x
+    
+}
+
+#' @export
+as.labelled.labelled = function(x, label = NULL){
+    if(is.null(val_lab(x))){
+        labels = sort(unique(x), na.last = NA)
+        names(labels) = as.character(labels)
+        val_lab(x) = labels
+    } 
+    if(!is.null(label)) var_lab(x) = label
+    x
+    
+}
+
+
+################
+
 combine_labels = function(...){
     args = list(...)
     new_lab = Reduce(`%u%`, args)
@@ -435,24 +510,7 @@ labelled_and_unlabelled = function(uniqs,vallab){
     if (length(uniqs)>0) {
         uniqs=uniqs[!is.na(uniqs)]
         names(uniqs) = uniqs
-    }    
+    }
     vallab = vallab %u% uniqs
     if (length(vallab)>1) sort(vallab) else vallab
-}
-
-as.labelled = function(x){
-    UseMethod("as.labelled")
-}
-
-as.labelled.default = function(x){
-    x
-}
-
-as.labelled.factor = function(x){
-    labels = seq_along(levels(x))
-    names(labels) = levels(x)
-    x = as.numeric(x)
-    val_lab(x) = labels
-    x
-    
 }

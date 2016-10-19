@@ -1,36 +1,116 @@
 context("if_val simple vector")
 
-expect_identical(if_val(1:5, 1~-1), c(-1, 2, 3, 4, 5))
-expect_identical(if_val(1:5, 1~-1, 2 ~ NA), c(-1, NA, 3, 4, 5))
-expect_identical(if_val(1:5, gt(2)~99), c(1, 2, 99, 99, 99))
-expect_identical(if_val(1:5, gt(2)~99, . ~ 0), c(0, 0, 99, 99, 99))
-expect_identical(if_val(1:5, 1:3 ~ 1, . ~ NA), c(1, 1, 1, NA, NA))
-expect_identical(if_val(1:5, 1:3 ~ 1, 2:5 ~ 2), c(1, 1, 1, 2, 2))
-expect_identical(if_val(1:5, lt(2) ~ 10, lt(3) ~ 11, lt(4) ~ 12, . ~ NA), c(10, 11, 12, NA, NA))
 
-expect_identical(if_val(1:5, 4 ~ "four", (function(x) (x-1)<2) ~-1), c(-1, -1, 3, "four", 5) )
+expect_error(if_val(1, 42))
+expect_error(if_val(1, ~ 42))
+
+
+expect_identical(if_val(1:5, 1~-1), c(-1, NA, NA, NA, NA))
+expect_identical(if_val(1:5, 1~-1, other ~ copy), c(-1, 2, 3, 4, 5))
+b = 1:5
+if_val(b) = 1~-1
+expect_identical(b, c(-1, 2, 3, 4, 5))
+
+expect_identical(if_val(1:5, 1~-1, 2 ~ NA), c(-1, NA, NA, NA, NA))
+expect_identical(if_val(1:5, 1~-1, 2 ~ NA, other ~ copy), c(-1, NA, 3, 4, 5))
+
+b = 1:5
+if_val(b) = c(1~-1, 2 ~ NA)
+expect_identical(b, c(-1, NA, 3, 4, 5))
+
+expect_identical(if_val(1:5, gt(2)~99, other ~ copy), c(1, 2, 99, 99, 99))
+expect_identical(if_val(1:5, gt(2)~99), c(NA, NA, 99, 99, 99))
+
+b = 1:5
+if_val(b) = gt(2)~99
+expect_identical(b, c(1, 2, 99, 99, 99))
+
+expect_identical(if_val(1:5, gt(2)~99, other ~ 0), c(0, 0, 99, 99, 99))
+
+expect_identical(if_val(1:5, 1:3 ~ 1, other ~ NA), c(1, 1, 1, NA, NA))
+
+expect_identical(if_val(1:5, 1:3 ~ 1, 2:5 ~ 2), c(1, 1, 1, 2, 2))
+
+expect_identical(if_val(1:5, lt(2) ~ 10, lt(3) ~ 11, lt(4) ~ 12, other ~ NA), c(10, 11, 12, NA, NA))
+
+expect_identical(if_val(1:5, 4 ~ "four", (function(x) (x-1)<2) ~-1, other ~ copy), c(-1, -1, 3, "four", 5) )
+expect_identical(if_val(1:5, 4 ~ "four", (function(x) (x-1)<2) ~-1), c(-1, -1, NA, "four", NA) )
+
+b = 1:5
+if_val(b) = c(4 ~ "four", (function(x) (x-1)<2) ~-1)
+expect_identical(b, c(-1, -1, 3, "four", 5) )
 
 x = c(1,3,1,3,NA)
 y = c(8,8,8,9,9)
 z = c(4,4,4,5,5)
 
-expect_identical(if_val(x, gt(2)~y), c(1, 8, 1, 9, NA))
-expect_identical(if_val(x, list(gt(2)~y)), c(1, 8, 1, 9, NA))
-expect_identical(if_val(x, gt(2)~y, lte(2) ~ z), c(4, 8, 4, 9, NA))
-expect_identical(if_val(x, gt(2)~y, lte(2) ~ z, .~99), c(4, 8, 4, 9, 99))
-expect_identical(if_val(x, list(gt(2)~y, lte(2) ~ z, .~99)), c(4, 8, 4, 9, 99))
+expect_identical(if_val(x, gt(2)~y, other ~ copy), c(1, 8, 1, 9, NA))
+expect_identical(if_val(x, gt(2) ~ y), c(NA, 8, NA, 9, NA))
+if_val(x) = gt(2)~y
+expect_identical(x, c(1, 8, 1, 9, NA))
 
-expect_identical(if_val(x, (z>4)~y), c(1, 3, 1, 9, 9))
+
+
+x = c(1,3,1,3,NA)
+y = c(8,8,8,9,9)
+z = c(4,4,4,5,5)
+
+expect_identical(if_val(x, list(gt(2)~y), other ~ copy), c(1, 8, 1, 9, NA))
+expect_identical(if_val(x, list(gt(2)~y, other ~ copy)), c(1, 8, 1, 9, NA))
+
+expect_identical(if_val(x, list(gt(2)~y)), c(NA, 8, NA, 9, NA))
+if_val(x) = list(gt(2)~y)
+expect_identical(x, c(1, 8, 1, 9, NA))
+
+
+x = c(1,3,1,3,NA)
+y = c(8,8,8,9,9)
+z = c(4,4,4,5,5)
+
+
+expect_identical(if_val(x, gt(2)~y, lte(2) ~ z, other ~ copy), c(4, 8, 4, 9, NA))
+expect_identical(if_val(x, gt(2)~y, lte(2) ~ z), c(4, 8, 4, 9, NA))
+
+if_val(x) = c(gt(2)~y, lte(2) ~ z)
+expect_identical(x, c(4, 8, 4, 9, NA))
+
+
+
+x = c(1,3,1,3,NA)
+y = c(8,8,8,9,9)
+z = c(4,4,4,5,5)
+
+expect_identical(if_val(x, gt(2)~y, lte(2) ~ z, other ~ 99), c(4, 8, 4, 9, 99))
+
+if_val(x) = list(gt(2)~y, lte(2) ~ z, other ~ 99)
+expect_identical(x, c(4, 8, 4, 9, 99))
+
+x = c(1,3,1,3,NA)
+y = c(8,8,8,9,9)
+z = c(4,4,4,5,5)
+
+expect_identical(if_val(x, list(gt(2)~y, lte(2) ~ z, other ~99)), c(4, 8, 4, 9, 99))
+if_val(x) = list(gt(2)~y, lte(2) ~ z, other ~99)
+expect_identical(x, c(4, 8, 4, 9, 99))
+
+x = c(1,3,1,3,NA)
+y = c(8,8,8,9,9)
+z = c(4,4,4,5,5)
+expect_identical(if_val(x, (z>4)~y, other ~ copy), c(1, 3, 1, 9, 9))
+expect_identical(if_val(x, (z>4)~y), c(NA, NA, NA, 9, 9))
+
+if_val(x) = (z>4)~y
+expect_identical(x, c(1, 3, 1, 9, 9))
 
 context("if_val dplyr")
-if(FALSE & suppressWarnings(require(dplyr, quietly = TRUE))){
+if(suppressWarnings(require(dplyr, quietly = TRUE))){
     
     
     
     x = c(1,3,1,3,NA)
     y = c(8,8,8,9,9)
     z = c(4,4,4,5,5)
-    
+    # 
     dfs = data.frame(
         x = c(2,4,2,4,NA),
         y = c(18,18,18,19,19),
@@ -39,8 +119,9 @@ if(FALSE & suppressWarnings(require(dplyr, quietly = TRUE))){
     )  %>% tbl_df()
     
     dfs  = dfs %>% mutate(
-        w = if_val(x, gt(2) ~ y)
-        #w = ifelse(x>2, y , x)
+        w = if_val(x, from = c(gt(2), other), to = list(y, copy))
+        # zzz = predict(lm(x ~ y))
+        # w = ifelse(x>2, y , x)
     )
     
     expect_identical(dfs$w, c(2, 18, 2, 19, NA))
@@ -48,9 +129,13 @@ if(FALSE & suppressWarnings(require(dplyr, quietly = TRUE))){
     dfs$x = NULL
     dfs$w = NULL
     dfs  = dfs %>% mutate(
-        w = if_val(x, gt(2)~y)
+        w = if_val(x, from = c(gt(2), other), to = list(y, copy))
     )
     expect_identical(dfs$w, c(1, 18, 1, 19, NA))
+    dfs  = dfs %>% mutate(
+        w = if_val(y, 18 ~ 1, 19 ~ 2)
+    )
+    expect_identical(dfs$w, c(1, 1, 1, 2, 2))
 } else {
     cat("dplyr not found\n")
 }
@@ -68,7 +153,7 @@ dfs = data.frame(
 ) 
 
 dfs  =  modify(dfs, {
-    w = if_val(x, gt(2) ~ y)
+    w = if_val(x, gt(2) ~ y, other ~ copy)
 })
 
 expect_identical(dfs$w, c(2, 18, 2, 19, NA))
@@ -76,7 +161,7 @@ expect_identical(dfs$w, c(2, 18, 2, 19, NA))
 dfs$x = NULL
 dfs$w = NULL
 dfs  =  modify(dfs, { 
-    w = if_val(x, gt(2)~y)
+    w = if_val(x, gt(2)~y, other ~ copy)
 })
 expect_identical(dfs$w, c(1, 18, 1, 19, NA))
 
@@ -84,33 +169,65 @@ dfs$x = NULL
 dfs$y = NULL
 dfs$w = NULL
 dfs  = modify(dfs, { 
-    w = if_val(x, gt(2)~y)
+    w = if_val(x, gt(2)~y, other ~ copy)
 })
 expect_identical(dfs$w, c(1, 8, 1, 9, NA))
 ##########################
 
 context("if_val 'from, to' notation simple vector")
 
-expect_identical(if_val(1:5, from = 1, to = -1), c(-1, 2, 3, 4, 5))
-expect_identical(if_val(1:5, from = 1:2, to =c(-1, NA)), c(-1, NA, 3, 4, 5))
-expect_identical(if_val(1:5, from = list(gt(2)), to=99), c(1, 2, 99, 99, 99))
-expect_identical(if_val(1:5, from = c(gt(2),"."), to = c(99,0)), c(0, 0, 99, 99, 99))
-expect_identical(if_val(1:5, from = list(1:3,"."), to = c(1, NA)), c(1, 1, 1, NA, NA))
-expect_equal(if_val(1:5, from = list(1:3, 2:5),  to =1:2), c(1, 1, 1, 2, 2))
-expect_identical(if_val(1:5, from = list(lt(2), lt(3), lt(4),"."), to =c(10,  11, 12, NA)), c(10, 11, 12, NA, NA))
+expect_identical(if_val(1:5, from = list(1, other), to = list(-1, copy)), c(-1, 2, 3, 4, 5))
+expect_identical(if_val(1:5, from = 1:2, to =c(-1, NA)), c(-1, NA, NA, NA, NA))
 
-expect_identical(if_val(1:5, from = list(4,function(x) (x-1)<2),  to = c("four", -1)), c(-1, -1, 3, "four", 5) )
+expect_identical(if_val(1:5, from = list(1, 2, other), to =list(-1, NA, copy)), c(-1, NA, 3, 4, 5))
+
+expect_identical(if_val(1:5, from = list(gt(2), other), to=list(99, copy)), c(1, 2, 99, 99, 99))
+
+expect_identical(if_val(1:5, from = list(gt(2)), to=99), c(NA, NA, 99, 99, 99))
+
+b = 1:5
+if_val(b, list(gt(2))) = 99 
+expect_identical(b, c(1, 2, 99, 99, 99))
+
+b = 1:5
+if_val(b, gt(2)) = 99 
+expect_identical(b, c(1, 2, 99, 99, 99))
+
+
+
+expect_identical(if_val(1:5, from = c(gt(2),other), to = c(99,0)), c(0, 0, 99, 99, 99))
+
+b = 1:5
+if_val(b, c(gt(2),copy)) = c(99,0)
+expect_identical(b, c(0, 0, 99, 99, 99))
+
+
+
+expect_identical(if_val(1:5, from = list(1:3,other), to = c(1, NA)), c(1, 1, 1, NA, NA))
+
+expect_equal(if_val(1:5, from = list(1:3, 2:5),  to =1:2), c(1, 1, 1, 2, 2))
+
+expect_identical(if_val(1:5, from = list(lt(2), lt(3), lt(4),other), to =c(10,  11, 12, NA)), c(10, 11, 12, NA, NA))
+
+expect_identical(if_val(1:5, from = list(4,function(x) (x-1)<2, other),  to = c("four", -1, copy)), c(-1, -1, 3, "four", 5) )
+expect_identical(if_val(1:5, from = list(4,function(x) (x-1)<2),  to = c("four", -1)), c(-1, -1, NA, "four", NA) )
 
 x = c(1,3,1,3,NA)
 y = c(8,8,8,9,9)
 z = c(4,4,4,5,5)
 
-expect_identical(if_val(x, from = list(gt(2)), to =list(y)), c(1, 8, 1, 9, NA))
-expect_identical(if_val(x, from = list(gt(2)), to = list(y)), c(1, 8, 1, 9, NA))
-expect_identical(if_val(x, from = list(gt(2), lte(2)), to = list(y,z)), c(4, 8, 4, 9, NA))
-expect_identical(if_val(x, from = list(gt(2), lte(2),"."), to = list(y,z,99)), c(4, 8, 4, 9, 99))
+expect_identical(if_val(x, from = list(gt(2)), to =list(y)), c(NA, 8, NA, 9, NA))
+expect_identical(if_val(x, from = list(gt(2), other), to =list(y, copy)), c(1, 8, 1, 9, NA))
 
-expect_identical(if_val(x, from = list(z>4), to = list(y)), c(1, 3, 1, 9, 9))
+
+expect_identical(if_val(x, from = list(gt(2), lte(2)), to = list(y,z)), c(4, 8, 4, 9, NA))
+expect_identical(if_val(x, from = list(gt(2), lte(2), other), to = list(y,z, copy)), c(4, 8, 4, 9, NA))
+
+expect_identical(if_val(x, from = list(gt(2), lte(2),other), to = list(y,z,99)), c(4, 8, 4, 9, 99))
+
+expect_identical(if_val(x, from = list(z>4, other), to = list(y, copy)), c(1, 3, 1, 9, 9))
+
+expect_identical(if_val(x, from = list(z>4), to = list(y)), c(NA, NA, NA, 9, 9))
 
 context("if_val 'from, to' notation dplyr")
 
@@ -128,7 +245,7 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
     )
     
     dfs  = dfs %>% mutate(
-        w = if_val(x, from = list(gt(2)), to = list(y))
+        w = if_val(x, from = list(gt(2), other), to = list(y, copy))
     )
     
     expect_identical(dfs$w, c(2, 18, 2, 19, NA))
@@ -136,7 +253,7 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
     dfs$x = NULL
     dfs$w = NULL
     dfs  = dfs %>% mutate(
-        w = if_val(x, from = list(gt(2)), to = list(y))
+        w = if_val(x, from = list(gt(2), other), to = list(y, copy))
     )
     expect_identical(dfs$w, c(1, 18, 1, 19, NA))
 } else {
@@ -153,7 +270,7 @@ v_test[v1 == 0] = 1
 v_test[v1 == 1] = 0
 v_test[v1 %in% 2:3] = -1
 v_test[v1 == 9 ] = 9
-if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, . ~ NA)
+if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, other ~ NA)
 expect_identical(
     v1
     , v_test)
@@ -167,10 +284,10 @@ qvar_test[qvar %in% 1:5] = 1
 qvar_test[qvar %in% 6:10] = 2
 qvar_test[qvar >= 11] = 3
 expect_identical(
-    if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, gte(11) ~ 3, . ~ 0),
+    if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, gte(11) ~ 3, other ~ 0),
     qvar_test
 )
-if_val(qvar) = c(1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% Inf ~ 3, . ~ 0)
+if_val(qvar) = c(1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% Inf ~ 3, other ~ 0)
 expect_identical(
     qvar,
     qvar_test
@@ -184,7 +301,7 @@ letters_test[] = " "
 letters_test[LETTERS %in% c('A','B','C')] = 'A'
 letters_test[LETTERS %in% c('D','E','F')] = 'B'
 expect_identical(
-    if_val(strngvar, c('A','B','C') ~ 'A', c('D','E','F') ~ 'B', . ~ ' '),
+    if_val(strngvar, c('A','B','C') ~ 'A', c('D','E','F') ~ 'B', other ~ ' '),
     letters_test
 )
 
@@ -210,7 +327,7 @@ v_test[v1 == 0] = 1
 v_test[v1 == 1] = 0
 v_test[v1 %in% 2:3] = -1
 v_test[v1 == 9 ] = 9
-fr = list(0, 1, 2:3, 9, ".")
+fr = list(0, 1, 2:3, 9, other)
 to = list(1, 0, -1, 9, NA)
 if_val(v1, from = fr) = to
 expect_identical(
@@ -226,7 +343,7 @@ qvar_test[qvar %in% 1:5] = 1
 qvar_test[qvar %in% 6:10] = 2
 qvar_test[qvar >= 11] = 3
 
-fr = list(1 %thru% 5, 6 %thru% 10, gte(11), ".")
+fr = list(1 %thru% 5, 6 %thru% 10, gte(11), other)
 to = list(1, 2, 3, 0)
 expect_identical(
     if_val(qvar, from = fr, to = to),
@@ -240,7 +357,7 @@ letters_test = strngvar
 letters_test[] = " "
 letters_test[LETTERS %in% c('A','B','C')] = 'A'
 letters_test[LETTERS %in% c('D','E','F')] = 'B'
-fr = list(c('A','B','C'), c('D','E','F') , ".")
+fr = list(c('A','B','C'), c('D','E','F') , other)
 to = list("A", "B", " ")
 expect_identical(
     if_val(strngvar, from = fr, to = to),
@@ -307,5 +424,78 @@ expect_error(
     ifs(cbind(c(T,T), c(F,F)) ~ 1)
 )
 
+
+context("if_val type")
+
+a = 1:3
+var_lab(a) = "aadad"
+if_val(a) = 1 ~ "bah"
+expect_identical(class(a), c("labelled", "character"))
+
+a = factor(letters[1:4])
+if_val(a) = "a" ~ "z"
+res = factor(c("z", "b", "c", "d"), levels = c("a", "b", "c", "d", "z"))
+expect_identical(a, res)
+
+a = factor(letters[1:4])
+var_lab(a) = "factor"
+if_val(a) = "a" ~ "z"
+var_lab(res) = "factor"
+expect_identical(a, res)
+
+
+a = as.POSIXct("2016-10-01")
+
+b = if_val(a, "2016-10-01" ~ "2016-10-02")
+
+expect_equal(b, as.POSIXct("2016-10-02"))
+
+if_val(a) = c("2016-10-01" ~ "2016-10-02")
+
+expect_identical(a, as.POSIXct("2016-10-02"))
+
+context("dot notation")
+
+a = 1:5
+
+expect_identical(if_val(a, 1:4 ~ NA, 5 ~ copy), c(NA, NA, NA, NA, 5L))
+
+context("type conversion")
+
+expect_identical(if_val("a", "a" ~ 1), 1)
+
+context("if_val to function")
+expect_identical(if_val(letters, other ~ toupper), LETTERS)
+
+letters2 = letters
+if_val(letters2) = c(other ~ toupper)
+expect_identical(letters2, LETTERS)
+
+context("ifs incorrect from to")
+
+expect_error(ifs(letters, from= c("a", "b")))
+expect_error(ifs(letters, from= c("a", "b"), to = c("aa")))
+
+
+context("if_val list")
+
+mk_emtpy_obj = expss:::make_empty_object
+data(iris)
+a = 1:4
+b = 4:1
+ab = list(a,b, iris)
+names(ab) = c("a", "b", "c")
+empty_iris = iris
+
+empty_iris[[1]] = NA
+empty_iris[[2]] = NA
+empty_iris[[3]] = NA
+empty_iris[[4]] = NA
+empty_iris[[5]] = NA
+rownames(empty_iris) = as.character(1:150)
+res = list(rep(NA, 4), rep(NA, 4), empty_iris)
+names(res) = c("a", "b", "c")
+
+expect_identical(mk_emtpy_obj(ab), res)
 
 

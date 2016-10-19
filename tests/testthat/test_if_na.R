@@ -22,9 +22,12 @@ a[3] = NA
 b[3] = 2
 expect_identical(if_na(a, 2), b)
 
+expect_identical(a %if_na% 2, b)
+
 b[1] = 4
 b[3] = 2
 expect_identical(if_na(a, 4:1), as.integer(b))
+expect_identical(a %if_na% 4:1, as.integer(b))
 
 expect_error(if_na(a, 1:2))
 expect_error(if_na(a, t(1:2)))
@@ -49,16 +52,16 @@ expect_equal(if_na(a, 2), b)
 b[1,1] = 4
 b[4,1] = 1
 
-expect_equal(if_na(a, 4:1), b)
+expect_equal(if_na(a, c(4:2,1.0)), b)
 
 a[1,3] = NA
 b[1,3] = 4
-expect_equal(if_na(a, 4:1), b)
+expect_equal(if_na(a, c(4:2,1.0)), b)
 
 b[1,1] = 3
 b[4,1] = 3
 b[1,3] = 1
-expect_equal(if_na(a, t(3:1)), b)
+expect_equal(if_na(a, t(c(3:2,1.0))), b)
 expect_error(if_na(a, t(3:2)))
 expect_error(if_na(a, 3:2))
 
@@ -99,6 +102,7 @@ b[1,1] = 3
 b[4,1] = 3
 b[1,3] = 1
 expect_equal(if_na(a, t(3:1)), b)
+expect_equal(a  %if_na% t(3:1), b)
 expect_error(if_na(a, t(3:2)))
 expect_error(if_na(a, 3:2))
 
@@ -288,4 +292,17 @@ df_test = within(df_test, {
 
 
 expect_identical(df, df_test)
+
+context("if_na factor")
+
+fac = factor(c("a","b",NA))
+
+expect_identical(if_na(fac, "c"), factor(c("a","b","c")))
+expect_identical(if_na(fac, "a"), factor(c("a","b","a")))
+
+context("if_na POSIXct")
+
+ct = c(as.POSIXct("2016-09-24"), NA)
+expect_equal(if_na(ct, "2016-09-25"), as.POSIXct(c("2016-09-24", "2016-09-25")))
+
 

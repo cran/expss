@@ -3,36 +3,39 @@
 #' \code{if_val} change, rearrange or consolidate the values of an existing 
 #' variable based on conditions. Design of this function inspired by RECODE from
 #' SPSS. Sequence of recodings provided in the form of formulas. For example, 
-#' 1:2 ~ 1 means that all 1 and 2 will be replaced with 1. Each value recoded 
-#' only once. Values which doesn't meet any condition remain unchanged. As a 
-#' condition one can use just values or more sophisticated logical values and 
-#' functions. There are several special functions for usage as criteria - for 
-#' details see \link{criteria}. Simple common usage looks like: \code{if_val(x, 
-#' 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}. For more information, see details and 
-#' examples. 
+#' 1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will
+#' recoded only once. In the assignment form \code{if_val(...) = ...} of this
+#' function values which doesn't meet any condition remain unchanged. In case of
+#' the usual form \code{... = if_val(...)} values which doesn't meet any
+#' condition will be replaced with NA. As a condition one can use just values or
+#' more sophisticated logical values and functions. There are several special
+#' functions for usage as criteria - for details see \link{criteria}. Simple
+#' common usage looks like: \code{if_val(x, 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}.
+#' For more information, see details and examples.
 #' The \code{ifs} function checks whether one or more conditions are met and
 #' returns a value that corresponds to the first TRUE condition. \code{ifs} can
-#' take the place of multiple nested \code{ifelse} statements, and is much
+#' take the place of multiple nested \code{ifelse} statements and is much
 #' easier to read with multiple conditions. \code{ifs} works in the same manner
-#' as \code{if_val} - e. g. with formula or from/to notation. But conditions
+#' as \code{if_val} - e. g. with formulas or with from/to notation. But conditions
 #' should be only logical and it doesn't operate on multicolumn objects.
 #' 
 #' @details 
-#' Input conditions: possible values for left hand side (LHS) of formula or element of \code{from} list:
+#' Input conditions - possible values for left hand side (LHS) of formula or
+#' element of \code{from} list:
 #' \itemize{
-#' \item{vector/single value}{ All values in \code{x} which equal to elements of vector in LHS will be replaced with RHS.}
-#' \item{function}{ Values for which function gives TRUE will be replaced
-#' with RHS. There are some special functions for convenience - see
-#' \link{criteria}.}
+#' \item{vector/single value}{ All values in \code{x} which equal to elements of
+#' vector in LHS will be replaced with RHS.}
+#' \item{function}{ Values for which function gives TRUE will be replaced with 
+#' RHS. There are some special functions for convenience - see \link{criteria}.
+#' One of special functions is \code{other}. It means all other unrecoded values
+#' (ELSE in SPSS RECODE). All other unrecoded values will be changed to RHS
+#' of formula or appropriate element of \code{to}.}
 #' \item{logical vector/matrix/data.frame}{ Values for which LHS equals to TRUE 
 #' will be recoded. Logical vector will be recycled across all columns of 
 #' \code{x}. If LHS is matrix/data.frame then column from this matrix/data.frame
 #' will be used for corresponding column/element of \code{x}.}
-#' \item{.}{ Dot in LHS/\code{from} means all other unrecoded values (ELSE in SPSS RECODE). So all
-#' other unrecoded values will be changed to RHS of formula or appropriate
-#' element of \code{to}.}
 #' }
-#' Output values: possible values for right hand side (RHS) of formula or element of \code{to} list:
+#' Output values - possible values for right hand side (RHS) of formula or element of \code{to} list:
 #' \itemize{
 #' \item{value}{ replace elements of \code{x}. This value will be
 #' recycled across rows and columns of \code{x}.}
@@ -42,16 +45,19 @@
 #' \item{list/matrix/data.frame}{ Element of list/column of matrix/data.frame
 #' will be used as a replacement value for corresponding column/element of
 #' \code{x}.}
-#' \item{function}{ This function will be applied to values of \code{x} which satisfy recoding condition.}
-#' \item{.}{ Dot in RHS/\code{to} means copy old value (COPY in SPSS RECODE).
-#' In most cases there is no need for this option because by default
-#' \code{if_val} doesn't modify values which don't satisfy any of conditions.}
-#' }
+#' \item{function}{ This function will be applied to values of \code{x} which 
+#' satisfy recoding condition.There is special auxiliary function \code{copy} 
+#' which just returns its argument. So in the \code{if_val} it just copies old 
+#' value (COPY in SPSS RECODE).  See examples. \code{copy} is useful in the
+#' usual form of \code{if_val} and doesn't do anything in the case of the
+#' assignment form \code{if_val() = ...} because this form don't modify values
+#' which are not satisfying any of the conditions.}}
 #' \code{lo} and \code{hi} are shortcuts for \code{-Inf} and \code{Inf}. They
 #' can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\% hi}.
 #' 
 #' @param x vector/matrix/data.frame/list
-#' @param ... sequence of formulas which describe recodings. Only used when \code{from}/\code{to} arguments are not provided. 
+#' @param ... sequence of formulas which describe recodings. They are used when
+#'   \code{from}/\code{to} arguments are not provided.
 #' @param value list with formulas which describe recodings in assignment form
 #'   of function/\code{to} list if \code{from}/\code{to} notation is used.
 #' @param from list of conditions for values which should be recoded (in the same format as LHS of formulas). 
@@ -64,7 +70,7 @@
 #' # `ifs` examples
 #' a = 1:5
 #' b = 5:1
-#' ifs(b>3 ~ 1)                     # c(1, 1, NA, NA, NA)
+#' ifs(b>3 ~ 1)                       # c(1, 1, NA, NA, NA)
 #' ifs(b>3 ~ 1, default = 3)          # c(1, 1, 3, 3, 3)
 #' ifs(b>3 ~ 1, a>4 ~ 7, default = 3) # c(1, 1, 3, 3, 7)
 #' ifs(b>3 ~ a, default = 42)         # c(1, 2, 42, 42, 42)
@@ -72,19 +78,19 @@
 #' # RECODE V1 TO V3 (0=1) (1=0) (2, 3=-1) (9=9) (ELSE=SYSMIS)
 #' set.seed(123)
 #' v1  = sample(c(0:3, 9, 10), 20, replace = TRUE)
-#' if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, . ~ NA)
+#' if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, other ~ NA)
 #' v1
 #' 
 #' # RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
 #' set.seed(123)
 #' qvar = sample((-5):20, 50, replace = TRUE)
-#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, . ~ 0)
+#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, other ~ 0)
 #' # the same result
-#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, gte(11) ~ 3, . ~ 0)
+#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, gte(11) ~ 3, other ~ 0)
 #'
 #' # RECODE STRNGVAR ('A', 'B', 'C'='A')('D', 'E', 'F'='B')(ELSE=' '). 
 #' strngvar = LETTERS
-#' if_val(strngvar, c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', . ~ ' ')
+#' if_val(strngvar, c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', other ~ ' ')
 #'
 #' # RECODE AGE (MISSING=9) (18 THRU HI=1) (0 THRU 18=0) INTO VOTER. 
 #' set.seed(123)
@@ -96,10 +102,10 @@
 #' set.seed(123)
 #' a = rnorm(20)
 #' # if a<(-0.5) we change it to absolute value of a (abs function)
-#' if_val(a, lt(-0.5) ~ abs) 
+#' if_val(a, lt(-0.5) ~ abs, other ~ copy) 
 #' 
 #' # the same example with logical criteria
-#' if_val(a, a<(-.5) ~ abs) 
+#' if_val(a, a<(-.5) ~ abs, other ~ copy) 
 #' 
 #' # replace with specific value for each column
 #' # we replace values greater than 0.75 with column max and values less than 0.25 with column min
@@ -115,29 +121,34 @@
 #' dfs = data.frame(x1, x2, x3)
 #' 
 #' #replacement. Note the necessary transpose operation
-#' if_val(dfs, lt(0.25) ~ t(min_col(dfs)), gt(0.75) ~ t(max_col(dfs)), NA ~ t(mean_col(dfs)))
+#' if_val(dfs, 
+#'         lt(0.25) ~ t(min_col(dfs)), 
+#'         gt(0.75) ~ t(max_col(dfs)), 
+#'         NA ~ t(mean_col(dfs)), 
+#'         other ~ copy
+#'       )
 #' 
 #' # replace NA with row means
-#' # some row which contain all NaN remain unchanged because mean_row for them also is NaN
-#' if_val(dfs, NA ~ mean_row(dfs)) 
+#' # some rows which contain all NaN remain unchanged because mean_row for them also is NaN
+#' if_val(dfs, NA ~ mean_row(dfs), other ~ copy) 
 #' 
 #' # some of the above examples with from/to notation
 #' 
 #' set.seed(123)
 #' v1  = sample(c(0:3,9,10), 20, replace = TRUE)
 #' # RECODE V1 TO V3 (0=1) (1=0) (2,3=-1) (9=9) (ELSE=SYSMIS)
-#' fr = list(0, 1, 2:3, 9, ".")
+#' fr = list(0, 1, 2:3, 9, other)
 #' to = list(1, 0, -1, 9, NA)
 #' if_val(v1, from = fr) = to
 #' v1
 #' 
 #' # RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
-#' fr = list(1 %thru% 5, 6 %thru% 10, gte(11), ".")
+#' fr = list(1 %thru% 5, 6 %thru% 10, gte(11), other)
 #' to = list(1, 2, 3, 0)
 #' if_val(qvar, from = fr, to = to)
 #' 
 #' # RECODE STRNGVAR ('A','B','C'='A')('D','E','F'='B')(ELSE=' ').
-#' fr = list(c('A','B','C'), c('D','E','F') , ".")
+#' fr = list(c('A','B','C'), c('D','E','F') , other)
 #' to = list("A", "B", " ")
 #' if_val(strngvar, from = fr, to = to)
 #' 
@@ -156,26 +167,23 @@ if_val = function(x, ..., from = NULL, to = NULL){
 #' @export
 #' @rdname if_val
 "if_val<-" = function(x, from = NULL, value){
-    if (is.null(from)){
-        if_val(x, value)
-    } else {
-        if_val(x, from = from, to = value)
-    }
+    UseMethod("if_val<-")
 }
 
-
 #' @export
-if_val.default = function(x, ..., from = NULL, to = NULL){
-    if (is.null(from) && is.null(to)){
-        recoding_list = lapply(unlist(list(...)), parse_formula)
+"if_val<-.default" = function(x, from = NULL, value){
+    if (!is.null(from)){
+        if(is.function(from)) from = list(from)
+        if(is.function(value)) value = list(value)
+        stopif(length(from)!=length(value), 
+               "length(value) should be equal to length(from) but length(from) = ", length(from),
+               " and length(value) = ", length(value))
+        recoding_list = mapply(function(x,y) list(from = x, to = y), from, value, SIMPLIFY = FALSE)
     } else {
-        stopif(is.null(from) || is.null(to), "Both 'from' and 'to' arguments should be not NULL.")
-        stopif(length(from)!=length(to), 
-               "length(to) should be equal to length(from) but length(from)=", length(from),
-               " and length(to)=", length(to))
-        
-        recoding_list = mapply(function(x,y) list(from = x, to = y), from, to, SIMPLIFY = FALSE)
+        if(inherits(value, what = "formula")) value = list(value)
+        recoding_list = lapply(value, parse_formula)
     }
+    
     recoded = matrix(FALSE, nrow = NROW(x), ncol = NCOL(x))
     dfs_x = as.data.frame(x,
                           stringsAsFactors = FALSE,
@@ -184,15 +192,13 @@ if_val.default = function(x, ..., from = NULL, to = NULL){
     for (from_to in recoding_list){
         if (all(recoded)) break # if all values were recoded
         from = from_to$from
-        if (all_other(from)){
-            # dot is considered as all other non-recoded values ("else" from SPSS)
-            cond = !recoded
-        } else {
-            #if (identical(from, NA)) from = as.numeric(NA)
-            cond = build_criterion(from, dfs_x)
-            cond = cond & !recoded # we don't recode already recoded value
-        }
+        
+        #if (identical(from, NA)) from = as.numeric(NA)
+        cond = build_criterion(from, dfs_x)
+        cond = cond & !recoded # we don't recode already recoded value
+        
         to = from_to$to
+        
         if (!is.function(to)) check_conformance(cond, to)
         # dot in `to` means copy (simply doesn't change values that meet condition - "copy" from SPSS ) 
         if(!is.list(to) || is.data.frame(to) || is.function(to)){
@@ -219,45 +225,106 @@ if_val.default = function(x, ..., from = NULL, to = NULL){
             }     
             
         }
+        
         recoded = recoded | (cond & !is.na(cond)) # we don't recode already recoded value
     }
     
     x
 }
 
+#' @export
+"if_val<-.list" = function(x, from = NULL, value){
+    
+    for(each in seq_along(x)){
+        if_val(x[[each]], from = from) = value
+    }
+    x
+}
+
+#' @export
+if_val.default = function(x, ..., from = NULL, to = NULL){
+    if (is.null(from) && is.null(to)){
+        recoding_list = lapply(unlist(list(...)), parse_formula)
+    } else {
+        stopif(is.null(from) || is.null(to), "Both 'from' and 'to' arguments should be not NULL.")
+        stopif(length(from)!=length(to), 
+               "length(to) should be equal to length(from) but length(from)=", length(from),
+               " and length(to)=", length(to))
+        
+        recoding_list = mapply(function(x,y) list(from = x, to = y), from, to, SIMPLIFY = FALSE)
+    }
+    recoded = matrix(FALSE, nrow = NROW(x), ncol = NCOL(x))
+    res = make_empty_object(x)
+    x = as.data.frame(x,
+                      stringsAsFactors = FALSE,
+                      check.names = FALSE)
+    
+    for (from_to in recoding_list){
+        if (all(recoded)) break # if all values were recoded
+        from = from_to$from
+        #if (identical(from, NA)) from = as.numeric(NA)
+        cond = build_criterion(from, x)
+        cond = cond & !recoded # we don't recode already recoded value
+        
+        to = from_to$to
+        
+        if (!is.function(to)) check_conformance(cond, to)
+        # dot in `to` means copy (simply doesn't change values that meet condition - "copy" from SPSS ) 
+        if(!is.list(to) || is.data.frame(to) || is.function(to)){
+            if(is.function(to)){
+                # to: function
+                for (each_col in seq_len(NCOL(x))){
+                    curr_cond = column(cond, each_col)
+                    if (any(curr_cond)) column(res, each_col, curr_cond) = to(column(x, each_col, curr_cond))
+                }
+                
+                
+            } else {
+                # to: matrix, data.frame, vector
+                for (each_col in seq_len(NCOL(x))){
+                    curr_cond = column(cond, each_col)
+                    if (any(curr_cond)) column(res, each_col, curr_cond) = column(to, each_col, curr_cond)
+                }
+            }
+        } else {
+            # to: list
+            for (each_col in seq_len(NCOL(x))){
+                curr_cond = column(cond, each_col)
+                if (any(curr_cond))  if_val(column(res, each_col), from = list(curr_cond)) = list(column(to, each_col))
+            }     
+            
+        }
+        
+        recoded = recoded | (cond & !is.na(cond)) # we don't recode already recoded value
+    }
+    
+    res
+}
+
+
+
 
 
 
 #' @export
 if_val.list = function(x, ..., from = NULL, to = NULL){
-    if (is.null(from) && is.null(to)){
-        for(each in seq_along(x)){
-            if_val(x[[each]]) = list(...)
-        }
-        
-    } else {
-        for(each in seq_along(x)){
-            if_val(x[[each]], from = from) = to
-        }
-    }
-
-    x
+    lapply(x, if_val, ..., from = from, to = to)
 }
 
-all_other = function(cond){
-    identical(cond, as.symbol(".")) || identical(cond, ".")
-}
+
 
 
 
 parse_formula = function(elementary_recoding){
     # strange behavior with parse_formula.formula - it doesn't work with formulas so we use default method and check argument type
-    stopif(!inherits(elementary_recoding, what = "formula"),"All recodings should be formula but:",elementary_recoding)
+    stopif(!inherits(elementary_recoding, what = "formula"),"All recodings should be formula but: ", elementary_recoding)
+    stopif(length(elementary_recoding)!=3,"All formulas should have left and right parts but: ",
+           paste(elementary_recoding, collapse = " "))
     formula_envir = environment(elementary_recoding)
-    formula_list = as.list(elementary_recoding)
-    from = formula_list[[2]]
-    if (!all_other(from)) from = eval(from, envir = formula_envir)
-    to = eval(formula_list[[3]], envir = formula_envir)
+    from = elementary_recoding[[2]]
+    to = elementary_recoding[[3]]
+    from = eval(from, envir = formula_envir)
+    to = eval(to, envir = formula_envir)
     list(from = from, to = to)
 }
 
@@ -286,7 +353,7 @@ ifs = function(... , from = NULL, to = NULL, default = NA){
     stopif(!all(from_rows %in% c(1, max_rows)), "All values should have the same number of rows or have length 1.")
     res = rep(NA, max_rows)
     if_na(from) = FALSE
-    from = c(from, ".")
+    from = c(from, other)
     to = c(to, default)
     if_val(res, from = from, to = to)
 }
@@ -299,6 +366,41 @@ lo = -Inf
 #' @rdname if_val
 hi = Inf
 
+#' @export
+#' @rdname if_val
+copy = function(x) x
+
+
+# make object with the same shape as its argument but filled with NA and logical type
+# for unknown reasons methods don't work when unexported
+make_empty_object = function(x){
+    if(is.data.frame(x)){
+        res = as.dtfrm(lapply(x, make_empty_object))
+        row.names(res) = row.names(x)
+        colnames(res) = colnames(x)
+    } else {
+        if(is.list(x)){
+            res = lapply(x, make_empty_object)
+            names(res) = names(x)
+        } else {
+            if(is.matrix(x)){
+                res = matrix(NA, nrow = nrow(x), ncol = ncol(x))
+                rownames(res) = rownames(x) 
+                colnames(res) = colnames(x)
+            }   else {
+                if("POSIXct" %in% class(x)){
+                    res = as.POSIXct(rep(NA, length(x)))
+                    names(res) = names(x)
+                } else {
+                    res = rep(NA, length(x))
+                    names(res) = names(x)
+                }
+            } 
+        }
+    }
+    res
+    
+}
 
 
 

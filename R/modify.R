@@ -77,7 +77,11 @@ modify.data.frame = function (data, expr) {
     eval(substitute(expr), e)
     rm(".n", "set", envir = e)
     l = as.list(e, all.names = TRUE)
-    
+    l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
+    del = setdiff(names(data), names(l))
+    if(length(del)){
+        data[, del] = NULL
+    }
     nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
     stopif(any(nrows!=1L & nrows!=nrow(data)),"Bad number of rows")
     new_vars = rev(names(l)[!(names(l) %in% names(data))])
@@ -86,6 +90,30 @@ modify.data.frame = function (data, expr) {
     data
 }
 
+
+#' @export
+#' @rdname modify
+'%modify%' = function (data, expr) {
+    # based on 'within' from base R by R Core team
+    parent = parent.frame()
+    e = evalq(environment(), data, parent)
+    e$.n = nrow(data)
+    e$set = set_generator(e$.n)
+    eval(substitute(expr), e)
+    rm(".n", "set", envir = e)
+    l = as.list(e, all.names = TRUE)
+    l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
+    del = setdiff(names(data), names(l))
+    if(length(del)){
+        data[, del] = NULL
+    }
+    nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
+    stopif(any(nrows!=1L & nrows!=nrow(data)),"Bad number of rows")
+    new_vars = rev(names(l)[!(names(l) %in% names(data))])
+    nl = c(names(data), new_vars)
+    data[nl] = l[nl]
+    data
+}
 
 
 #' @export
@@ -97,7 +125,7 @@ modify_if = function (data, cond, expr){
 
 
 #' @export
-modify_if = function (data, cond, expr) {
+modify_if.data.frame = function (data, cond, expr) {
     # based on 'within' from base R by R Core team
     parent = parent.frame()
     cond = substitute(cond)
@@ -112,6 +140,11 @@ modify_if = function (data, cond, expr) {
     eval(substitute(expr), e)
     rm(".n", "set", envir = e)
     l = as.list(e, all.names = TRUE)
+    l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
+    del = setdiff(names(data), names(l))
+    if(length(del)){
+        data[, del] = NULL
+    }
     
     nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
     stopif(any(nrows!=1L & nrows!=nrow(new_data)),"Bad number of rows")

@@ -45,6 +45,15 @@ expect_identical(
     result_dfs
 )
 
+set.seed(1)
+expect_identical(
+    dfs %modify% {
+        a_total = sum_row(vars_range("a_1", "a_5"))
+        b_total = sum_row(vars_range("b_1", "b_5"))
+        random_numer = runif(.n)
+    }, 
+    result_dfs
+)
 
 result_dfs$random_numer = NULL
 expect_identical(
@@ -52,6 +61,15 @@ expect_identical(
         a_total = sum_row(a_1 %to% a_5)
         b_total = sum_row(b_1 %to% b_5)
     }), 
+    result_dfs
+)
+
+result_dfs$random_numer = NULL
+expect_identical(
+    dfs %modify% {
+        a_total = sum_row(a_1 %to% a_5)
+        b_total = sum_row(b_1 %to% b_5)
+    }, 
     result_dfs
 )
 
@@ -115,6 +133,9 @@ expect_identical(
     result_dfs2
 )
 
+
+
+
 expect_error(
     modify_if(dfs2, test %in% 2:4,
               {
@@ -150,6 +171,17 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
     cat("dplyr not found\n")
 }
 
+
+result_dfs2$b_total = NULL
+expect_identical(
+    modify_if(dfs2, test %in% 2:4,
+              {
+                  b_total = NULL
+                  aa = aa + 1
+              }), 
+    result_dfs2
+)
+
 context("modify labels")
 
 result_dfs3 = dfs
@@ -168,6 +200,30 @@ expect_identical(
     result_dfs3
 )
 
+expect_identical(
+    dfs %modify% {
+        b_total = sum_row(b_1, b_2, b_4, b_5)
+        var_lab(aa) = "my label"
+        val_lab(aa) = c(one = 1, two = 2)
+        
+        
+    },
+    result_dfs3
+)
+
+
+result_dfs3$b_total = NULL
+result_dfs3$aa = 1
+expect_identical(
+    modify(dfs, {
+        b_total = NULL
+        aa = 1
+        
+        
+    }),
+    result_dfs3
+)
+
 # doesn't work
 # result_dfs3$b_total = NULL
 # expect_identical(
@@ -180,8 +236,25 @@ expect_identical(
 #     result_dfs3
 # )
 
+data(iris)
 
+iris2 = iris
 
+iris2 = modify(iris2, {Species = NULL})
+
+expect_identical(iris2, iris[,-5])
+
+iris2 = iris
+
+iris2 = iris2 %modify% {Species = NULL}
+
+expect_identical(iris2, iris[,-5])
+
+iris2 = iris
+
+iris2 = modify_if(iris2, Sepal.Length<5, {Species = NULL})
+
+expect_identical(iris2, iris[,-5])
 
 
 

@@ -23,6 +23,7 @@ test_test_ds = test_ds
 for (each in seq_along(test_test_ds)) var_lab(test_test_ds[[each]]) = "Age group"
 
 expect_identical(set_var_lab(test_ds, "Age group"), test_test_ds)
+expect_identical(test_ds, unvr(test_test_ds))
 
 context("val_lab")
 
@@ -252,6 +253,111 @@ add_val_lab(dfs) = c(d=4)
 add_val_lab(dfs) = c(e=5)
 
 expect_identical(dfs, dfs1)
+
+
+context("labels NULL")
+a = 1:3
+b = a
+val_lab(b) = c(a=1)
+expect_identical(set_val_lab(b, NULL), a)
+
+var_lab(b) = "bbb"
+expect_identical(set_val_lab(b, NULL), set_var_lab(a, "bbb"))
+expect_identical(set_var_lab(b, NULL), set_val_lab(a, c(a=1)))
+expect_identical(set_val_lab(set_var_lab(b, NULL), NULL), a)
+val_lab(b) = NULL
+expect_identical(b, set_var_lab(a, "bbb"))
+var_lab(b) = NULL
+expect_identical(b, a)
+
+context("make_labels autonum")
+
+expect_identical(
+ make_labels(
+"
+male
+
+
+female
+             ", code_position = "autonum"),
+c(male = 1L, female = 2L)
+)
+
+expect_identical(
+    make_labels(
+        "male
+        female      ", code_position = "autonum"),
+    c(male = 1L, female = 2L)
+    )
+
+expect_identical(
+    make_labels(
+        "
+
+        female      ", code_position = "autonum"),
+    c(female = 1L)
+    )
+
+expect_identical(
+    make_labels(
+        "
+        
+              ", code_position = "autonum"),
+    NULL
+    )
+
+expect_identical(
+    ml_autonum(
+        "
+        male
+        
+        
+        female
+        "),
+    c(male = 1L, female = 2L)
+    )
+
+
+context("as.labelled")
+
+expect_error()
+
+character_vector = c("one", "two",  "two", "three")
+res = c(1L, 3L, 3L, 2L)
+
+expect_error(set_val_lab(res, character_vector))
+
+val_lab(res) = c("one" = 1L, "three" = 2L, "two" = 3L)
+var_lab(res) = "Numbers"
+expect_identical(
+    as.labelled(character_vector, label = "Numbers"),
+    res
+)
+
+data(iris)
+species = rep(1:3, each = 50) * 1.0
+val_lab(species) = c("setosa" = 1L, "versicolor" = 2L, "virginica" = 3L) 
+
+expect_identical(as.labelled(iris$Species), species)
+
+
+dat = as.POSIXct(c("2016-09-25", "2016-09-26"))
+
+res = 1:2
+val_lab(res) = setNames(1:2, as.character(dat))
+expect_identical(as.labelled(dat), res)
+
+a = 1:2
+val_lab(a) = c("a"=1, "b" = 2)
+expect_identical(as.labelled(a), a)
+var_lab(a) = "ssdds"
+expect_identical(as.labelled(a), a)
+expect_identical(as.labelled(a, "new"), set_var_lab(a, "new"))
+a = 1:2
+var_lab(a) = "ssdds"
+expect_identical(as.labelled(a), set_val_lab(a, c("1" = 1L, "2" = 2L)))
+
+
 
 
 

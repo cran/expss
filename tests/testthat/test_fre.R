@@ -30,6 +30,10 @@ mtcars$am[1:2] = NA
 
 expect_equal_to_reference(fre(mtcars$am), "rds/fre2.5.rds")
 
+
+expect_equal_to_reference(fre(mtcars$am)[,"Count"], "rds/fre2.6.rds")
+expect_equal_to_reference(fre(mtcars$am)[2, ], "rds/fre2.7.rds")
+
 expect_equal_to_reference(with(mtcars, expss:::elementary_freq(vs, am)), "rds/elem_fre3.rds")
 
 expect_equal_to_reference(with(mtcars, expss:::elementary_freq(am)), "rds/elem_fre4.rds")
@@ -184,6 +188,9 @@ mtcars = modify(mtcars,{
 expect_equal_to_reference(fre(mtcars$vs), "rds/fre_ex1.rds")
 expect_equal_to_reference(with(mtcars, cro(am, vs)), "rds/fre_ex2.rds")
 expect_equal_to_reference(with(mtcars, cro_cpct(am, vs)), "rds/fre_ex3.rds")
+expect_equal_to_reference(with(mtcars, cro_cpct(am, vs))[, '#Total'], "rds/fre_ex3.1.rds")
+expect_equal_to_reference(with(mtcars, cro_cpct(am, vs))[3, ], "rds/fre_ex3.2.rds")
+expect_equal_to_reference(with(mtcars, cro_cpct(am, vs))[['#Total']], "rds/fre_ex3.3.rds")
 
 # multiple-choise variable
 # brands - multiple response question
@@ -209,8 +216,18 @@ val_lab(score) = make_labels("
                              ")
 
 expect_equal_to_reference(fre(brands), "rds/fre_ex4.rds")
+mat_brands = as.matrix(brands)
+var_lab(mat_brands) = var_lab(brands)
+val_lab(mat_brands) = val_lab(brands)
+
+expect_equal_to_reference(fre(mat_brands), "rds/fre_ex4.rds")
 expect_equal_to_reference(cro(brands, score), "rds/fre_ex5.rds")
 expect_equal_to_reference(cro_cpct(brands, score), "rds/fre_ex6.rds")
+
+expect_output_file(print(fre(brands)), "rds/fre_out.txt")
+expect_output_file(print(fre(brands), round_digits = NULL), "rds/fre_out_unrounded.txt")
+expect_equal_to_reference(cro(brands, score), "rds/fre_ex5.rds")
+
 
 context("fre and cro some special cases")
 
@@ -291,6 +308,11 @@ expect_equal_to_reference(cro_fun(b, a, fun = mean), "rds/cro_fun2.rds")
 weight = rep(1, 5)
 expect_equal_to_reference(cro_fun(b, a, weight = weight, fun = function(x, weight){
     weighted.mean(x, w = weight)
+    
+}), "rds/cro_fun3.rds")
+
+expect_equal_to_reference(cro_fun_df(b, a, weight = weight, fun = function(x, weight){
+    setNames(weighted.mean(x[[1]], w = weight), names(x))
     
 }), "rds/cro_fun3.rds")
 
@@ -425,12 +447,98 @@ expect_equal_to_reference(cro_sum(b, a, weight = weight), "rds/cro_sum6.rds")
 
 expect_equal_to_reference(cro_median(iris[,-5], iris$Species), "rds/cro_median8.rds")
 expect_equal_to_reference(cro_mean(iris[,-5], iris$Species), "rds/cro_mean8.rds")
+
+expect_output_file(print(cro_mean(iris[,-5], iris$Species)), "rds/cro_mean_out.txt")
+
 expect_equal_to_reference(cro_sum(iris[,-5], iris$Species), "rds/cro_sum8.rds")
 
-expect_equal_to_reference(cro_fun_df(iris[,-5], iris$Species, fun = mean_col), "rds/cro_mean8.rds")
+expect_equal_to_reference(cro_fun(iris[,-5], iris$Species, fun = mean), "rds/cro_mean8.rds")
 
 expect_equal_to_reference(cro_fun_df(iris[,-5], iris$Species, fun = mean_col), "rds/cro_mean8.rds")
+
+#####
+expect_equal_to_reference(cro_median(as.list(iris[,-5]), iris$Species), "rds/cro_median8.rds")
+expect_equal_to_reference(cro_mean(as.list(iris[,-5]), iris$Species), "rds/cro_mean8.rds")
+expect_equal_to_reference(cro_sum(as.list(iris[,-5]), iris$Species), "rds/cro_sum8.rds")
+
+expect_equal_to_reference(cro_fun(as.list(iris[,-5]), iris$Species, fun = mean), "rds/cro_mean8.rds")
+
+expect_equal_to_reference(cro_fun_df(as.list(iris[,-5]), iris$Species, fun = mean_col), "rds/cro_mean8.rds")
+
+#####
+expect_equal_to_reference(cro_median(as.matrix(iris[,-5]), iris$Species), "rds/cro_median8.rds")
+expect_equal_to_reference(cro_mean(as.matrix(iris[,-5]), iris$Species), "rds/cro_mean8.rds")
+expect_equal_to_reference(cro_sum(as.matrix(iris[,-5]), iris$Species), "rds/cro_sum8.rds")
+
+expect_equal_to_reference(cro_fun(as.matrix(iris[,-5]), iris$Species, fun = mean), "rds/cro_mean8.rds")
+
+expect_equal_to_reference(cro_fun_df(as.list(iris[,-5]), iris$Species, fun = mean_col), "rds/cro_mean8.rds")
+
+############
 
 expect_equal_to_reference(cro_fun_df(iris[,-5], iris$Species, fun = function(x) cor(x)[,1]), "rds/cro_fun_df1.rds")
 expect_equal_to_reference(cro_fun_df(iris[,-5], iris$Species, fun = summary), "rds/cro_fun_df2.rds")
+
+context("datetime")
+
+aaa = rep(c(as.POSIXct("2016-09-22 02:28:39"), as.POSIXct("2016-09-22 03:28:39")), 10)
+bbb = rep(c(as.POSIXct("2016-09-22 03:28:39"), as.POSIXct("2016-09-22 02:28:39")), 10)
+total = rep("total", 20)
+
+aaa_str = as.character(aaa)
+var_lab(aaa_str) = "aaa"
+bbb_str = as.character(bbb)
+var_lab(bbb_str) = "bbb"
+
+expect_identical(fre(aaa), fre(aaa_str))
+
+expect_identical(cro(aaa, bbb), cro(aaa_str, bbb_str))
+expect_identical(cro_cpct(aaa, bbb), cro_cpct(aaa_str, bbb_str)) 
+expect_identical(cro_rpct(aaa, total),cro_rpct(aaa_str, total)) 
+expect_identical(cro_tpct(total, bbb), cro_tpct(total, bbb_str)) 
+
+context("cro duplicated names")
+
+data(iris)
+ex_iris = iris[,-5]
+correct_iris = iris[,-5]
+colnames(ex_iris) = c("a", "a", "a", "a")
+colnames(correct_iris) = c("v1", "v2", "v3", "v4")
+
+var_lab(ex_iris[[1]]) = "v1"
+var_lab(ex_iris[[2]]) = "v2"
+var_lab(ex_iris[[3]]) = "v3"
+var_lab(ex_iris[[4]]) = "v4"
+
+expect_identical(cro_mean(ex_iris, iris$Species), cro_mean(correct_iris, iris$Species))
+expect_identical(cro_sum(ex_iris, iris$Species), cro_sum(correct_iris, iris$Species))
+expect_identical(cro_median(ex_iris, iris$Species), cro_median(correct_iris, iris$Species))
+expect_identical(cro_fun(ex_iris, iris$Species, fun = mean), cro_fun(correct_iris, iris$Species, fun = mean))
+expect_identical(cro_fun_df(ex_iris, iris$Species, fun = mean_col), 
+                 cro_fun_df(correct_iris, iris$Species, fun = mean_col))
+
+data(iris)
+# ex_iris = iris[,-5]
+lst_iris = as.list(ex_iris)
+names(lst_iris) = NULL
+
+expect_identical(cro_mean(lst_iris, iris$Species), cro_mean(correct_iris, iris$Species))
+expect_identical(cro_sum(lst_iris, iris$Species), cro_sum(correct_iris, iris$Species))
+expect_identical(cro_median(lst_iris, iris$Species), cro_median(correct_iris, iris$Species))
+expect_identical(cro_fun(lst_iris, iris$Species, fun = mean), cro_fun(correct_iris, iris$Species, fun = mean))
+expect_identical(cro_fun_df(lst_iris, iris$Species, fun = mean_col), 
+                 cro_fun_df(correct_iris, iris$Species, fun = mean_col))
+
+
+data(iris)
+lst_iris = as.list(iris[,-5])
+names(lst_iris) = NULL
+colnames(correct_iris) = c("V1", "V2", "V3", "V4")
+expect_identical(cro_mean(lst_iris, iris$Species), cro_mean(correct_iris, iris$Species))
+expect_identical(cro_sum(lst_iris, iris$Species), cro_sum(correct_iris, iris$Species))
+expect_identical(cro_median(lst_iris, iris$Species), cro_median(correct_iris, iris$Species))
+expect_identical(cro_fun(lst_iris, iris$Species, fun = mean), cro_fun(correct_iris, iris$Species, fun = mean))
+expect_identical(cro_fun_df(lst_iris, iris$Species, fun = mean_col), 
+                 cro_fun_df(correct_iris, iris$Species, fun = mean_col))
+
 

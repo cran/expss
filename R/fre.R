@@ -383,19 +383,8 @@ print.summary_table = function(x, ...,  row.names = FALSE){
 #' @rdname fre
 cro_mean = function(x, predictor, weight = NULL){
     if(!is.data.frame(x)){
-        if (is.matrix(x)) {
-            varlab0 = var_lab(x)
-            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
-            if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
-        } else {
-            if (is.list(x)){
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-            } else {
-                possible_name = deparse(substitute(x))
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-                colnames(x) = possible_name    
-            }
-        }
+        possible_name = deparse(substitute(x))
+        x = prepare_dataframe(x, possible_name)
     }
     stopif(NROW(x)!=length(predictor), "predictor should have the same number of rows as x.")
     stopif(NCOL(predictor)>1, "predictor should have only one column.")
@@ -415,19 +404,8 @@ cro_mean = function(x, predictor, weight = NULL){
 #' @rdname fre
 cro_sum = function(x, predictor, weight = NULL){
     if(!is.data.frame(x)){
-        if (is.matrix(x)) {
-            varlab0 = var_lab(x)
-            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
-            if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
-        } else {
-            if (is.list(x)){
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-            } else {
-                possible_name = deparse(substitute(x))
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-                colnames(x) = possible_name    
-            }
-        }
+        possible_name = deparse(substitute(x))
+        x = prepare_dataframe(x, possible_name)
     }
     stopif(NROW(x)!=length(predictor), "predictor should have the same number of rows as x.")
     stopif(NCOL(predictor)>1, "predictor should have only one column.")
@@ -457,19 +435,8 @@ cro_sum = function(x, predictor, weight = NULL){
 #' @rdname fre
 cro_median = function(x, predictor){
     if(!is.data.frame(x)){
-        if (is.matrix(x)) {
-            varlab0 = var_lab(x)
-            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
-            if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
-        } else {
-            if (is.list(x)){
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-            } else {
-                possible_name = deparse(substitute(x))
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-                colnames(x) = possible_name    
-            }
-        }
+        possible_name = deparse(substitute(x))
+        x = prepare_dataframe(x, possible_name)
     }
     stopif(NROW(x)!=length(predictor), "predictor should have the same number of rows as x.")
     stopif(NCOL(predictor)>1, "predictor should have only one column.")
@@ -515,19 +482,8 @@ prepare_result = function(list_of_results){
 cro_fun = function(x, predictor, fun, ..., weight = NULL){
     fun = match.fun(fun)
     if(!is.data.frame(x)){
-        if (is.matrix(x)) {
-            varlab0 = var_lab(x)
-            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
-            if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
-        } else {
-            if (is.list(x)){
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-            } else {
-                possible_name = deparse(substitute(x))
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-                colnames(x) = possible_name    
-            }
-        }
+        possible_name = deparse(substitute(x))
+        x = prepare_dataframe(x, possible_name)
     }
     stopif(NROW(x)!=length(predictor), "predictor should have the same number of rows as x.")
     stopif(NCOL(predictor)>1, "predictor should have only one column.")
@@ -550,13 +506,14 @@ cro_fun = function(x, predictor, fun, ..., weight = NULL){
     column_total = lapply(column_total, function(each) prepare_result(list("#Total" = each)))
     column_total = do.call(rbind, column_total)
     if (colnames(column_total)[1] == "#stat") column_total = column_total[,-1, drop = FALSE]
-    labels = vapply(colnames(x), function(each) {
-        varlab = var_lab(x[[each]])
-        if(is.null(varlab)) varlab = each
+    labels = vapply(x, function(each) {
+        varlab = var_lab(each)
+        if(is.null(varlab)) varlab = NA_character_
         varlab
     }, 
     FUN.VALUE = character(1)
     )
+    if_na(labels) = colnames(x)
     
     predictor = f(unvr(predictor))
     if(is.null(weight)){
@@ -592,19 +549,8 @@ cro_fun = function(x, predictor, fun, ..., weight = NULL){
 cro_fun_df = function(x, predictor, fun, ..., weight = NULL){
     fun = match.fun(fun)
     if(!is.data.frame(x)){
-        if (is.matrix(x)) {
-            varlab0 = var_lab(x)
-            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
-            if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
-        } else {
-            if (is.list(x)){
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-            } else {
-                possible_name = deparse(substitute(x))
-                x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
-                colnames(x) = possible_name    
-            }
-        }
+        possible_name = deparse(substitute(x))
+        x = prepare_dataframe(x, possible_name)
     }
     stopif(NROW(x)!=length(predictor), "predictor should have the same number of rows as x.")
     stopif(NCOL(predictor)>1, "predictor should have only one column.")
@@ -646,4 +592,26 @@ cro_fun_df = function(x, predictor, fun, ..., weight = NULL){
     rownames(res) = NULL
     class(res) = union("summary_table", class(res))
     res
+}
+
+
+prepare_dataframe = function(x, possible_name){
+    if (is.matrix(x)) {
+        varlab0 = var_lab(x)
+        x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
+        if(!is.null(varlab0)) colnames(x) = paste(varlab0, LABELS_SEP,colnames(x))
+    } else {
+        if (is.list(x)){
+            if(is.null(names(x))){
+                names(x) = paste0("V", seq_along(x))
+            }
+            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
+            
+        } else {
+            
+            x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE) 
+            colnames(x) = possible_name    
+        }
+    }
+    x
 }

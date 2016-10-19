@@ -21,7 +21,11 @@
 #' # simple case
 #' a = c(NA, 2, 3, 4, NA)
 #' if_na(a, 99)
-#' # the same thing
+#' 
+#' # the same result
+#' a %if_na% 99
+#' 
+#' # the same result
 #' if_na(a) = 99 
 #' a # c(99, 2, 3, 4, 99)
 #' 
@@ -78,6 +82,13 @@ if_na = function(x, value){
     if_na(x, value)
 }
 
+
+#' @export
+#' @rdname if_na
+'%if_na%' = function(x, value){
+    if_na(x, value)
+}
+
 #' @export
 if_na.default = function(x, value){
     check_conformance(x, value)
@@ -89,6 +100,7 @@ if_na.default = function(x, value){
                 if (any(cond)) column(x, each_col, cond) = column(value, each_col, cond)
             }
         } else {
+            # if 'value' is list - we don't know what is inside element thats why we cannot subset it
             for (each_col in seq_len(NCOL(x))){
                 if_na(column(x, each_col)) = column(value, each_col)
             }            

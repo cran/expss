@@ -3,6 +3,9 @@ context("info")
 vec = c(1:2,NA)
 expect_equal_to_reference(info(vec),"rds/info1.rds")
 
+a = matrix(1:9, 3)
+expect_identical(info(a), info(as.data.frame(a)))
+
 val_lab(vec) = c(a=1,b=2,d=45)
 expect_equal_to_reference(info(vec),"rds/info2.rds")
 var_lab(vec) = "Short vec"
@@ -29,3 +32,7 @@ expect_equal_to_reference(info(vec),"rds/info11.rds")
 
 lst = list(a = c(1:5,NA), b = c(45,NA))
 expect_equal_to_reference(info(lst),"rds/info12.rds")
+
+vec = c(2, 2, 2, 1, NA, NA, NA, 3, 3)
+expect_equal_to_reference(info(vec), "rds/info13.rds")
+

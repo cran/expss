@@ -144,13 +144,13 @@ default_dataset(w)
 #  cnt = count_row_if(c(1:5, NA), a1 %to% a5)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, . ~ NA)
+#  if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, other ~ NA)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  if_val(qvar) = c(1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, . ~ 0)
+#  if_val(qvar) = c(1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, other ~ 0)
 
 ## ---- eval=FALSE---------------------------------------------------------
-#  if_val(strngvar) = c(c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', . ~ ' ')
+#  if_val(strngvar) = c(c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', other ~ ' ')
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  voter = if_val(age, NA ~ 9, 18 %thru% hi ~ 1, 0 %thru% 18 ~ 0)
@@ -228,13 +228,13 @@ codeframe_likes = ml_left("
     c1r = c1
 })
 .do_if(cell == 2, {
-    c1r = if_val(c1, 1 ~ 2, 2 ~ 1)
+    c1r = if_val(c1, 1 ~ 2, 2 ~ 1, other ~ copy)
 })
 .compute({
     # recode age by groups
     age_cat = if_val(s2a, lo %thru% 25 ~ 1, lo %thru% hi ~ 2)
     # counter number of likes
-    # codes 1, 3-98. 2 and 9 are ignored.
+    # codes 1, 3-98. 2 and 99 are ignored.
     h_likes = count_row_if(1 | 3 %thru% 98, h1_1 %to% h1_6) 
     p_likes = count_row_if(1 | 3 %thru% 98, p1_1 %to% p1_6) 
     
@@ -278,8 +278,8 @@ codeframe_likes = ml_left("
 # column percents.
 kable(.fre(c1r))
 # is there significant difference between preferences?
-# '... %d% 3' remove 'hard to say' from vector 
-.with(chisq.test(table(c1r %d% 3))) # yes, it is significant
+# 'na_if(c1r, 3)' remove 'hard to say' from vector 
+.with(chisq.test(table(na_if(c1r, 3)))) # yes, it is significant
 kable(.cro_cpct(c1r, age_cat))
 kable(.cro_cpct(h22, age_cat))
 kable(.cro_cpct(p22, age_cat))

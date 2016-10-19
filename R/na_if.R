@@ -27,8 +27,10 @@
 #' # 99 to NA
 #' na_if(a, 99)    # c(1:5, NA)
 #' 
+#' a %na_if% 99    # same result
+#' 
 #' # values which greater than 5 to NA
-#' na_if(a, gt(5)) # same result
+#' na_if(a, gt(5)) # c(1:5, NA)
 #' 
 #' set.seed(123)
 #' dfs = data.frame(
@@ -49,7 +51,8 @@
 #' na_if(a, -1 %thru% 1)
 #' @export
 na_if = function(x, value){
-    if_val(x, from=list(value), to = list(NA))
+    if_val(x, from=list(value)) = list(NA)
+    x
 }
 
 #' @rdname na_if
@@ -57,3 +60,11 @@ na_if = function(x, value){
 'na_if<-' = function(x, value){
     na_if(x, value)
 }
+
+#' @rdname na_if
+#' @export
+'%na_if%' = function(x, value){
+    na_if(x, value)    
+}
+
+

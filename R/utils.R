@@ -29,8 +29,14 @@ build_criterion.function = function(criterion,dfs){
 
 
 build_criterion.default = function(criterion,dfs){
-    
-    build_criterion.function(function(x) x %in% criterion,dfs)
+    criterion
+    build_criterion.function(function(x) {
+        if(("POSIXct" %in% class(x)) & !("POSIXct" %in% class(criterion))){
+            criterion = as.POSIXct(criterion)
+        }
+        x %in% criterion
+        },
+        dfs)
 }
 
 
@@ -143,8 +149,8 @@ column.matrix = function(x, column_num, condition = NULL){
 
 
 column.list = function(x, column_num, condition = NULL){
-    stopif(column_num>length(x) && length(x)>1, "Too large column_num:",column_num, " but only ", ncol(x), " elements in the list.")
-    stopif(!is.null(condition), "Extract column from list with condition doesn't allowed.")
+    stopif(column_num>length(x) && length(x)>1, "Too large column_num:",column_num, " but only ", length(x), " elements in the list.")
+    # stopif(!is.null(condition), "Extract column from list with condition doesn't allowed.")
     if (length(x)>1) {
         x[[column_num]]
     } else {
@@ -198,6 +204,20 @@ column.default = function(x, column_num, condition = NULL){
 }
 
 "column<-.default" = function(x, column_num, condition = NULL, value){
+    if(is.null(condition)){
+        x[] = value
+    } else {
+        x[condition] = value
+    }     
+    x
+}  
+
+"column<-.factor" = function(x, column_num, condition = NULL, value){
+    fac_levels = levels(x)
+    if(!all(value %in% fac_levels)){
+        fac_levels = union(fac_levels, value)
+        levels(x) = fac_levels
+    }
     if(is.null(condition)){
         x[] = value
     } else {

@@ -5,19 +5,28 @@
 \alias{criteria}
 \alias{eq}
 \alias{fixed}
+\alias{from}
+\alias{ge}
 \alias{gt}
 \alias{gte}
+\alias{le}
 \alias{lt}
 \alias{lte}
+\alias{ne}
 \alias{neq}
+\alias{not_na}
+\alias{other}
 \alias{perl}
 \alias{regex}
 \alias{thru}
+\alias{to}
 \title{Criteria functions}
 \usage{
 eq(x)
 
 neq(x)
+
+ne(x)
 
 lt(x)
 
@@ -25,7 +34,11 @@ gt(x)
 
 lte(x)
 
+le(x)
+
 gte(x)
+
+ge(x)
 
 perl(pattern, ignore.case = FALSE, useBytes = FALSE)
 
@@ -36,6 +49,14 @@ fixed(pattern, ignore.case = FALSE, useBytes = FALSE)
 thru(lower, upper)
 
 lower \%thru\% upper
+
+from(x)
+
+to(x)
+
+not_na(x)
+
+other(x)
 }
 \arguments{
 \item{x}{vector}
@@ -57,20 +78,21 @@ function of class 'criterion' which tests its argument against condition and ret
 }
 \description{
 These functions returns criteria functions which could be used in different 
-situation - see \link{if_val}, \link{na_if}, \link{\%i\%}, \link{\%d\%}, 
-\link{count_if}, \link{match_row} etc. For example, \code{gt(5)} returns
-function which tests whether its argument greater than five. 
+situation - see \link{keep}, \link{except}, \link{if_val}, \link{na_if},
+\link{\%i\%}, \link{\%d\%}, \link{count_if}, \link{match_row} etc. For
+example, \code{gt(5)} returns function which tests whether its argument
+greater than five.
 \code{fixed("apple")} return function which tests whether its argument
 contains "apple". Logical operations (|, &, !, xor) defined for these
 functions.
 List of functions:
 \itemize{
 \item{\code{gt}}{ greater than}
-\item{\code{gte}}{ greater than or equal}
+\item{\code{gte}/\code{ge}}{ greater than or equal}
 \item{\code{eq}}{ equal} 
-\item{\code{neq}}{ not equal} 
+\item{\code{neq}/\code{ne}}{ not equal} 
 \item{\code{lt}}{ less than}
-\item{\code{lte}}{ less than or equal}
+\item{\code{lte}/\code{le}}{ less than or equal}
 \item{\code{thru}}{ checks whether value is inside interval.
 \code{thru(0,1)} is equivalent of \code{x>=0 & x<=1} or \code{gte(0) &
 lte(1)}}
@@ -78,6 +100,14 @@ lte(1)}}
 \item{\code{regex}}{ use POSIX 1003.2 extended regular expressions. For details see \link[base]{grepl}}
 \item{\code{perl}}{ perl-compatible regular expressions. For details see \link[base]{grepl}}
 \item{\code{fixed}}{ pattern is a string to be matched as is. For details see \link[base]{grepl}}
+\item{\code{to}}{ returns function which gives TRUE for all elements of
+vector before the first occurrence of \code{x} and for  \code{x}.}
+\item{\code{from}}{ returns function which gives TRUE for all elements of 
+vector after the first occurrence of \code{x} and for \code{x}. \code{from} and
+\code{to} are intended for usage with \link{keep} and \link{except}.}
+\item{\code{not_na}}{ return TRUE for all non-NA elements of vector.} 
+\item{\code{other}}{ return TRUE for all elements of vector. It is intended
+for usage with \code{if_val}, \code{keep}, \code{except}}
 }
 }
 \examples{
@@ -87,6 +117,14 @@ lte(1)}}
 1:6 \%d\% (1 | gt(4)) # 2:4
 
 letters \%i\% (fixed("a") | fixed("z")) # a, z
+
+letters \%i\% from("w")  # w, x, y, z
+
+letters \%i\% to("c")  # a, b, c
+
+letters \%i\% (from("b") & to("e"))  # b, d, e
+
+c(1, 2, NA, 3) \%i\% other # c(1, 2, 3)
 
 # examples with count_if
 df1 = data.frame(
@@ -113,17 +151,26 @@ count_if(regex("^a"),df1) # 2
 # count_row_if
 count_row_if(regex("^a"),df1) # c(1,0,0,1)
 
+# examples with 'keep' and 'except'
+
+data(iris)
+iris \%keep\% to("Petal.Width") # column 'Species' will be removed 
+ 
+# 'Sepal.Length', 'Sepal.Width' will be left 
+iris \%except\% from("Petal.Length") 
+
 # if_val examples
 # From SPSS: RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
 set.seed(123)
 qvar = sample((-5):20, 50, replace = TRUE)
-if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, 11 \%thru\% Inf ~ 3, . ~ 0)
+if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, 11 \%thru\% hi ~ 3, other ~ 0)
 # the same result
-if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, gte(11) ~ 3, . ~ 0)
+if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, gte(11) ~ 3, other ~ 0)
 
 
 }
 \seealso{
-\link{count_if}, \link{match_row}, \link{if_val}, \link{na_if}, \link{\%i\%}, \link{\%d\%}
+\link{keep}, \link{except}, \link{count_if}, \link{match_row},
+  \link{if_val}, \link{na_if}, \link{\%i\%}, \link{\%d\%}
 }
 

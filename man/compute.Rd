@@ -13,7 +13,6 @@
 \alias{.cro_sum}
 \alias{.cro_tpct}
 \alias{.do_if}
-\alias{.filter}
 \alias{.fre}
 \alias{.if_val}
 \alias{.modify}
@@ -35,8 +34,6 @@
 .do_if(cond, expr)
 
 .compute(expr)
-
-.filter(cond)
 
 .with(expr, ...)
 
@@ -96,7 +93,7 @@ variables.}
 \description{
 Workflow for these functions is rather simple. You should set up default 
 data.frame with \link{default_dataset} and then operate with it without any 
-reference to your data.frame. There are to kind of operations. The first kind
+reference to your data.frame. There are two kinds of operations. The first kind
 modify default dataset, the second kind will be evaluated in the context of
 the default dataset but doesn't modify it. It is not recommended to use one
 of these functions in the scope of another of these functions. By now their
@@ -114,8 +111,8 @@ SPSS COMPUTE operator. See \link{modify}.}
 data.frame. See \link{modify_if}.}
 \item{\code{.do_if}}{ Shortcut for \code{.modify_if}. Name is inspired by
 SPSS DO IF operator. See \link{modify_if}.}
-\item{\code{.filter}}{ Leave subset of default data.frame which meet
-condition. See \link[base]{subset}.}
+\item{\code{.where}}{ Leave subset of default data.frame which meet
+condition. See \link{where}, \link[base]{subset}.}
 \item{\code{.set_var_lab}}{ Set variable label in the default data.frame. See
 \link{set_var_lab}.}
 \item{\code{.set_val_lab}}{ Set value labels for variable in the default
@@ -199,7 +196,7 @@ data(iris)
 
 default_dataset(iris) # set iris as default dataset
 
-.recode(Sepal.Length, lo \%thru\% median(Sepal.Length) ~ "small", . ~ "large")
+.recode(Sepal.Length, lo \%thru\% median(Sepal.Length) ~ "small", other ~ "large")
 
 .fre(Sepal.Length)
 

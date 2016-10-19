@@ -165,7 +165,12 @@ write_labelled_csv = function(x, filename, fileEncoding = "", ...){
 #' @export
 #' @rdname write_labels
 write_labelled_spss = function(x, filename, fileEncoding = "", ...){
-    if (!is.data.frame(x)) x = as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
+    if (!is.data.frame(x)) x = as.data.frame(x, stringsAsFactors = FALSE, check.names = TRUE)
+    cln = colnames(x)
+    if(anyDuplicated(cln)){
+        dupl = duplicated(cln) | duplicated(cln, fromLast = TRUE)
+        colnames(x)[dupl] = make.names(cln[dupl], unique = TRUE)
+    }
     for(each in seq_along(x)){
         if (is.factor(x[[each]])){
             x[[each]] = as.character(x[[each]])
@@ -331,13 +336,13 @@ make_make_labs_spss = function(vars,named_vec){
     
 }
 
-apply_labels_from_file = function(x, filename, fileEncoding = ""){
-    
-    if (file.exists(filename)){
-        source(filename, local = TRUE, encoding = fileEncoding, verbose = FALSE)
-    } else {
-        warning(paste(filename,"file doesn't exists. Labels will not be applied to data."))
-    }
-    x
-    
-}
+# apply_labels_from_file = function(x, filename, fileEncoding = ""){
+#     
+#     if (file.exists(filename)){
+#         source(filename, local = TRUE, encoding = fileEncoding, verbose = FALSE)
+#     } else {
+#         warning(paste(filename,"file doesn't exists. Labels will not be applied to data."))
+#     }
+#     x
+#     
+# }
