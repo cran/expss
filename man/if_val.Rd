@@ -2,12 +2,16 @@
 % Please edit documentation in R/if_val.R
 \docType{data}
 \name{if_val}
-\alias{copy}
-\alias{hi}
 \alias{if_val}
 \alias{if_val<-}
+\alias{recode<-}
+\alias{recode}
 \alias{ifs}
 \alias{lo}
+\alias{hi}
+\alias{copy}
+\alias{\%into\%}
+\alias{.into_helper_}
 \title{Change, rearrange or consolidate the values of an existing/new variable. Inspired by RECODE command from SPSS.}
 \format{An object of class \code{numeric} of length 1.}
 \usage{
@@ -15,13 +19,21 @@ if_val(x, ..., from = NULL, to = NULL)
 
 if_val(x, from = NULL) <- value
 
-ifs(..., from = NULL, to = NULL, default = NA)
+recode(x, from = NULL) <- value
+
+recode(x, ..., from = NULL, to = NULL)
+
+ifs(..., from = NULL, to = NULL)
 
 lo
 
 hi
 
 copy(x)
+
+e1 \%into\% e2
+
+.into_helper_(e1, e2)
 }
 \arguments{
 \item{x}{vector/matrix/data.frame/list}
@@ -29,37 +41,41 @@ copy(x)
 \item{...}{sequence of formulas which describe recodings. They are used when
 \code{from}/\code{to} arguments are not provided.}
 
-\item{from}{list of conditions for values which should be recoded (in the same format as LHS of formulas).}
+\item{from}{list of conditions for values which should be recoded (in the
+same format as LHS of formulas).}
 
-\item{to}{list of values into which old values should be recoded (in the same format as RHS of formulas).}
+\item{to}{list of values into which old values should be recoded (in the same
+format as RHS of formulas).}
 
 \item{value}{list with formulas which describe recodings in assignment form
 of function/\code{to} list if \code{from}/\code{to} notation is used.}
 
-\item{default}{single value or vector. Default value - NA. This value will be
-used for values of result with all conditions FALSE/NA.}
+\item{e1}{object which will be assigned to right-hand side of \code{\%into\%}
+expression.}
+
+\item{e2}{names which will be given to LHS of \code{\%into\%} expression.}
 }
 \value{
 object of same form as \code{x} with recoded values
 }
 \description{
-\code{if_val} change, rearrange or consolidate the values of an existing 
+\code{recode} change, rearrange or consolidate the values of an existing 
 variable based on conditions. Design of this function inspired by RECODE from
 SPSS. Sequence of recodings provided in the form of formulas. For example, 
 1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will
-recoded only once. In the assignment form \code{if_val(...) = ...} of this
+recoded only once. In the assignment form \code{recode(...) = ...} of this
 function values which doesn't meet any condition remain unchanged. In case of
-the usual form \code{... = if_val(...)} values which doesn't meet any
+the usual form \code{... = recode(...)} values which doesn't meet any
 condition will be replaced with NA. As a condition one can use just values or
 more sophisticated logical values and functions. There are several special
 functions for usage as criteria - for details see \link{criteria}. Simple
-common usage looks like: \code{if_val(x, 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}.
+common usage looks like: \code{recode(x, 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}.
 For more information, see details and examples.
 The \code{ifs} function checks whether one or more conditions are met and
 returns a value that corresponds to the first TRUE condition. \code{ifs} can
 take the place of multiple nested \code{ifelse} statements and is much
 easier to read with multiple conditions. \code{ifs} works in the same manner
-as \code{if_val} - e. g. with formulas or with from/to notation. But conditions
+as \code{recode} - e. g. with formulas or with from/to notation. But conditions
 should be only logical and it doesn't operate on multicolumn objects.
 }
 \details{
@@ -69,7 +85,7 @@ element of \code{from} list:
 \item{vector/single value}{ All values in \code{x} which equal to elements of
 vector in LHS will be replaced with RHS.}
 \item{function}{ Values for which function gives TRUE will be replaced with 
-RHS. There are some special functions for convenience - see \link{criteria}.
+RHS. There are some special functions for the convenience - see \link{criteria}.
 One of special functions is \code{other}. It means all other unrecoded values
 (ELSE in SPSS RECODE). All other unrecoded values will be changed to RHS
 of formula or appropriate element of \code{to}.}
@@ -78,7 +94,8 @@ will be recoded. Logical vector will be recycled across all columns of
 \code{x}. If LHS is matrix/data.frame then column from this matrix/data.frame
 will be used for corresponding column/element of \code{x}.}
 }
-Output values - possible values for right hand side (RHS) of formula or element of \code{to} list:
+Output values - possible values for right hand side (RHS) of formula or
+element of \code{to} list:
 \itemize{
 \item{value}{ replace elements of \code{x}. This value will be
 recycled across rows and columns of \code{x}.}
@@ -90,54 +107,75 @@ will be used as a replacement value for corresponding column/element of
 \code{x}.}
 \item{function}{ This function will be applied to values of \code{x} which 
 satisfy recoding condition.There is special auxiliary function \code{copy} 
-which just returns its argument. So in the \code{if_val} it just copies old 
+which just returns its argument. So in the \code{recode} it just copies old 
 value (COPY in SPSS RECODE).  See examples. \code{copy} is useful in the
-usual form of \code{if_val} and doesn't do anything in the case of the
-assignment form \code{if_val() = ...} because this form don't modify values
+usual form of \code{recode} and doesn't do anything in the case of the
+assignment form \code{recode() = ...} because this form don't modify values
 which are not satisfying any of the conditions.}}
+\code{\%into\%} tries to mimic SPSS 'INTO'. Values from left-hand side will 
+be assigned to right-hand side. You can use \code{\%to\%} expression in the 
+RHS of \code{\%into\%}. Characters in the RHS will be expanded as with
+\link{subst}. See examples.
 \code{lo} and \code{hi} are shortcuts for \code{-Inf} and \code{Inf}. They
 can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\% hi}.
+\code{if_val} is an alias for \code{recode}.
 }
 \examples{
 # `ifs` examples
 a = 1:5
 b = 5:1
 ifs(b>3 ~ 1)                       # c(1, 1, NA, NA, NA)
-ifs(b>3 ~ 1, default = 3)          # c(1, 1, 3, 3, 3)
-ifs(b>3 ~ 1, a>4 ~ 7, default = 3) # c(1, 1, 3, 3, 7)
-ifs(b>3 ~ a, default = 42)         # c(1, 2, 42, 42, 42)
+ifs(b>3 ~ 1, TRUE ~ 3)             # c(1, 1, 3, 3, 3)
+ifs(b>3 ~ 1, a>4 ~ 7, TRUE ~ 3)    # c(1, 1, 3, 3, 7)
+ifs(b>3 ~ a, TRUE ~ 42)            # c(1, 2, 42, 42, 42)
 # some examples from SPSS manual
 # RECODE V1 TO V3 (0=1) (1=0) (2, 3=-1) (9=9) (ELSE=SYSMIS)
 set.seed(123)
 v1  = sample(c(0:3, 9, 10), 20, replace = TRUE)
-if_val(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, other ~ NA)
+recode(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, other ~ NA)
 v1
 
 # RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
 set.seed(123)
 qvar = sample((-5):20, 50, replace = TRUE)
-if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, 11 \%thru\% hi ~ 3, other ~ 0)
+recode(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, 11 \%thru\% hi ~ 3, other ~ 0)
 # the same result
-if_val(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, gte(11) ~ 3, other ~ 0)
+recode(qvar, 1 \%thru\% 5 ~ 1, 6 \%thru\% 10 ~ 2, ge(11) ~ 3, other ~ 0)
 
 # RECODE STRNGVAR ('A', 'B', 'C'='A')('D', 'E', 'F'='B')(ELSE=' '). 
 strngvar = LETTERS
-if_val(strngvar, c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', other ~ ' ')
+recode(strngvar, c('A', 'B', 'C') ~ 'A', c('D', 'E', 'F') ~ 'B', other ~ ' ')
 
 # RECODE AGE (MISSING=9) (18 THRU HI=1) (0 THRU 18=0) INTO VOTER. 
 set.seed(123)
 age = sample(c(sample(5:30, 40, replace = TRUE), rep(9, 10)))
-voter = if_val(age, NA ~ 9, 18 \%thru\% hi ~ 1, 0 \%thru\% 18 ~ 0)
+voter = recode(age, NA ~ 9, 18 \%thru\% hi ~ 1, 0 \%thru\% 18 ~ 0)
 voter
+# the same result with '\%into\%'
+recode(age, NA ~ 9, 18 \%thru\% hi ~ 1, 0 \%thru\% 18 ~ 0) \%into\% voter2
+voter2
+
+# multiple assignment with '\%into\%'
+#' set.seed(123)
+x1 = runif(30)
+x2 = runif(30)
+x3 = runif(30)
+# note nessesary brackets around RHS of '\%into\%'
+recode(x1 \%to\% x3, gt(0.5) ~ 1, other ~ 0) \%into\% (x_rec_1 \%to\% x_rec_3)
+fre(x_rec_1)
+# the same operation with characters expansion
+i = 1:3
+recode(x1 \%to\% x3, gt(0.5) ~ 1, other ~ 0) \%into\% 'x_rec2_`i`'
+fre(x_rec2_1)
 
 # example with function in RHS
 set.seed(123)
 a = rnorm(20)
 # if a<(-0.5) we change it to absolute value of a (abs function)
-if_val(a, lt(-0.5) ~ abs, other ~ copy) 
+recode(a, lt(-0.5) ~ abs, other ~ copy) 
 
 # the same example with logical criteria
-if_val(a, a<(-.5) ~ abs, other ~ copy) 
+recode(a, a<(-.5) ~ abs, other ~ copy) 
 
 # replace with specific value for each column
 # we replace values greater than 0.75 with column max and values less than 0.25 with column min
@@ -153,7 +191,7 @@ x3[sample(30, 10)] = NA # place 10 NA's
 dfs = data.frame(x1, x2, x3)
 
 #replacement. Note the necessary transpose operation
-if_val(dfs, 
+recode(dfs, 
         lt(0.25) ~ t(min_col(dfs)), 
         gt(0.75) ~ t(max_col(dfs)), 
         NA ~ t(mean_col(dfs)), 
@@ -162,7 +200,7 @@ if_val(dfs,
 
 # replace NA with row means
 # some rows which contain all NaN remain unchanged because mean_row for them also is NaN
-if_val(dfs, NA ~ mean_row(dfs), other ~ copy) 
+recode(dfs, NA ~ mean_row(dfs), other ~ copy) 
 
 # some of the above examples with from/to notation
 
@@ -171,25 +209,24 @@ v1  = sample(c(0:3,9,10), 20, replace = TRUE)
 # RECODE V1 TO V3 (0=1) (1=0) (2,3=-1) (9=9) (ELSE=SYSMIS)
 fr = list(0, 1, 2:3, 9, other)
 to = list(1, 0, -1, 9, NA)
-if_val(v1, from = fr) = to
+recode(v1, from = fr) = to
 v1
 
 # RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
-fr = list(1 \%thru\% 5, 6 \%thru\% 10, gte(11), other)
+fr = list(1 \%thru\% 5, 6 \%thru\% 10, ge(11), other)
 to = list(1, 2, 3, 0)
-if_val(qvar, from = fr, to = to)
+recode(qvar, from = fr, to = to)
 
 # RECODE STRNGVAR ('A','B','C'='A')('D','E','F'='B')(ELSE=' ').
 fr = list(c('A','B','C'), c('D','E','F') , other)
 to = list("A", "B", " ")
-if_val(strngvar, from = fr, to = to)
+recode(strngvar, from = fr, to = to)
 
 # RECODE AGE (MISSING=9) (18 THRU HI=1) (0 THRU 18=0) INTO VOTER.
 fr = list(NA, 18 \%thru\% hi, 0 \%thru\% 18)
 to = list(9, 1, 0)
-voter = if_val(age, from = fr, to = to)
+voter = recode(age, from = fr, to = to)
 voter
 
 }
 \keyword{datasets}
-

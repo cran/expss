@@ -22,16 +22,9 @@
 #' SPSS DO IF operator. See \link{modify_if}.}
 #' \item{\code{.where}}{ Leave subset of default data.frame which meet
 #' condition. See \link{where}, \link[base]{subset}.}
-#' \item{\code{.set_var_lab}}{ Set variable label in the default data.frame. See
-#' \link{set_var_lab}.}
-#' \item{\code{.set_val_lab}}{ Set value labels for variable in the default
-#' data.frame. See \link{set_val_lab}.}
-#' \item{\code{.add_val_lab}}{ Add value labels for variable in the default
-#' data.frame. See \link{add_val_lab}.}
-#' \item{\code{.if_val}}{ Change, rearrange or consolidate the values of an existing
-#' variable inside default data.frame. See \link{if_val}.}
-#' \item{\code{.recode}}{ Shortcut for \code{.if_val}. Name is inspired by
-#' SPSS RECODE. See \link{if_val}.}
+#' \item{\code{.recode}}{ Change, rearrange or consolidate the values of an existing
+#' variable inside default data.frame. See \link{recode}.}
+#' \item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.}
 #' \item{\code{.set}}{ Set variables values in the default dataset with given 
 #' names filled with \code{value}. It is possible to set multiple variables at 
 #' once. Expressions inside backticks in \code{varnames} will be expanded as
@@ -51,8 +44,8 @@
 #' \item{\code{.cro_mean}/\code{.cro_sum}/\code{.cro_median}/\code{.cro_fun}/\code{.cro_fun_df}}{
 #' Simple crosstabulations of variable in the default data.frame.  See 
 #' \link{cro_fun}.}
-#' \item{\code{.with}}{ Evaluate arbitrary expression in the context of
-#' data.frame.  See \link[base]{with}.}
+#' \item{\code{.calculate}}{ Evaluate arbitrary expression in the context of
+#' data.frame.  See \link{calculate}.}
 #' }
 #' @param x vector/data.frame - variable names in the scope of default dataset
 #' @param expr set of expressions  in curly brackets which will be evaluated in
@@ -73,37 +66,37 @@
 #' # calculate new variables
 #' .compute({
 #'     mpg_by_am = ave(mpg, am, FUN = mean)
-#'     hi_low_mpg = ifs(mpg<mean(mpg) ~ 0, default = 1)    
+#'     hi_low_mpg = ifs(mpg<mean(mpg) ~ 0, TRUE ~ 1)    
 #' })
 #' 
 #' # set labels
-#' .set_var_lab(mpg, "Miles/(US) gallon")
-#' .set_var_lab(cyl, "Number of cylinders")
-#' .set_var_lab(disp, "Displacement (cu.in.)")
-#' .set_var_lab(hp, "Gross horsepower")
-#' .set_var_lab(mpg_by_am, "Average mpg for transimission type")
-#' .set_var_lab(hi_low_mpg, "Miles per gallon")
-#' .set_val_lab(hi_low_mpg, ml_left("
-#'                                   0 Low
-#'                                   1 High
-#'                                   "))
+#' .apply_labels(
+#'     mpg = "Miles/(US) gallon",
+#'     cyl = "Number of cylinders",
+#'     disp = "Displacement (cu.in.)",
+#'     hp = "Gross horsepower",
+#'     mpg_by_am = "Average mpg for transimission type",
+#'     hi_low_mpg = "Miles per gallon",
+#'     hi_low_mpg = num_lab("
+#'                      0 Low
+#'                      1 High
+#'                      "),
 #' 
-#' .set_var_lab(vs, "Engine")
-#' .set_val_lab(vs, ml_left(" 
-#'                           0 V-engine
-#'                           1 Straight engine
-#'                           "))
+#'     vs = "Engine",
+#'     vs = num_lab(" 
+#'                      0 V-engine
+#'                      1 Straight engine
+#'                  "),
 #' 
-#' .set_var_lab(am, "Transmission")
-#' .set_val_lab(am, ml_left(" 
-#'                           0 automatic
-#'                           1 manual
-#'                           "))
-#' 
+#'     am = "Transmission",
+#'     am = num_lab(" 
+#'                      0 Automatic
+#'                      1 Manual
+#'                           ")
+#' )
 #' # calculate frequencies
 #' .fre(hi_low_mpg)
 #' .cro(cyl, hi_low_mpg)
-#' .cro_mean(mpg, am)
 #' .cro_mean(data.frame(mpg, disp, hp), vs)
 #' 
 #' # disable default dataset
@@ -131,68 +124,36 @@
 #' # disable default dataset
 #' default_dataset(NULL)
 #' @export
-#' @name compute
+#' @name experimental
 .modify = function (expr) {
     # based on 'within' from base R by R Core team
     reference = suppressMessages(default_dataset())
     data = ref(reference)
-    parent = parent.frame()
-    e = evalq(environment(), data, parent)
-    e$.n = nrow(data)
-    e$set = set_generator(e$.n)
-    eval(substitute(expr), e)
-    rm(".n", "set", envir = e)
-    l = as.list(e, all.names = TRUE)
-    
-    l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
-    del = setdiff(names(data), names(l))
-    if(length(del)){
-        data[, del] = NULL
-    }
-    nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
-    stopif(any(nrows!=1L & nrows!=nrow(data)),"Bad number of rows")
-    new_vars = rev(names(l)[!(names(l) %in% names(data))])
-    nl = c(names(data), new_vars)
-    data[nl] = l[nl]
+    # expr = substitute(expr)
+    data = eval(substitute(modify(data, expr)),
+                envir = parent.frame(),
+                enclos = baseenv()
+                )
     ref(reference) = data
-    invisible(NULL)
+    invisible(data)
 }
 
 
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .modify_if = function (cond, expr) {
     # based on 'within' from base R by R Core team
-    reference = suppressMessages(default_dataset() )
+    reference = suppressMessages(default_dataset())
     data = ref(reference)
-    parent = parent.frame()
-    cond = substitute(cond)
-    cond = eval(cond, data, parent.frame())
-    if (!is.logical(cond)) 
-        stop("'cond' must be logical")
-    cond = cond & !is.na(cond)
-    new_data = data[cond,, drop = FALSE]
-    e = evalq(environment(), new_data, parent)
-    e$.n = nrow(new_data)
-    e$set = set_generator(e$.n)
-    eval(substitute(expr), e)
-    rm(".n", "set", envir = e)
-    l = as.list(e, all.names = TRUE)
-    l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
-    del = setdiff(names(data), names(l))
-    if(length(del)){
-        data[, del] = NULL
-    }
-    
-    nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
-    stopif(any(nrows!=1L & nrows!=nrow(new_data)),"Bad number of rows")
-    new_vars = rev(names(l)[!(names(l) %in% names(data))])
-    data[cond, names(data)] = l[names(data)]
-    data[, new_vars] = NA
-    data[cond, new_vars] = l[new_vars]
+    # cond = substitute(cond)
+    # expr = substitute(expr)
+    data = eval(substitute(modify_if(data, cond, expr)),
+                envir = parent.frame(),
+                enclos = baseenv()               
+               )
     ref(reference) = data
-    invisible(NULL)
+    invisible(data)
 }
 
 in_place_if_val = function(x, ..., from = NULL, to = NULL){
@@ -206,83 +167,54 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 
 
 
-# doesn't create new variables
-modify_default_dataset_light = function(x, ...){
-    expr = as.character(as.expression(sys.call()))
-    expr = parse(text = gsub("^\\.","", expr, perl = TRUE))
-    for_names = as.expression(substitute(x))
-    reference = suppressMessages(default_dataset() )
-    data = ref(reference)
-    parent = parent.frame()
-    e = evalq(environment(), data, parent)
-    e$.n = nrow(data)
-    if (length(all.vars(for_names, functions = FALSE))==1 & length(all.vars(for_names, functions = TRUE))==1){
-        for_names = as.character(for_names) 
-    } else {
-        for_names = names(eval(for_names, e))
-    }
-    stopif(length(for_names)==0, "Something is going wrong. Variables not found: ", deparse((substitute(x))))
-    res = eval(expr, e)
-    data[, for_names] = res
-    ref(reference) = data
-    invisible(NULL)
-}
-
-
 
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .do_if = .modify_if
 
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .compute = .modify
 
 
 
-#' @export
-#' @rdname compute
-.with = function (expr, ...) {
-    reference = suppressMessages(default_dataset() )
-    data = ref(reference)
-    eval(substitute(expr), data, enclos = parent.frame())
-}    
+ 
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
+.calculate = function (expr, ...) {
+    reference = suppressMessages(default_dataset() )
+    # expr = substitute(expr)
+    data = ref(reference)
+    eval(substitute(calculate(data, expr, ...)), envir = parent.frame(), enclos = baseenv())
+} 
+
+#' @export
+#' @rdname experimental
+.calc = .calculate
+
+#' @export
+#' @rdname experimental
 .val_lab = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .var_lab = eval_in_default_dataset
 
-#' @export
-#' @rdname compute
-.set_var_lab = modify_default_dataset_light
-
 
 #' @export
-#' @rdname compute
-.set_val_lab = modify_default_dataset_light
-
-
-#' @export
-#' @rdname compute
-.add_val_lab = modify_default_dataset_light
-
-#' @export
-#' @rdname compute
+#' @rdname experimental
 .if_val =  function(x, ...){
     expr = as.character(as.expression(sys.call()))
-    expr = parse(text = gsub("^\\.if_val","expss:::in_place_if_val", expr, perl = TRUE))
+    expr = parse(text = gsub("^\\.(if_val|recode)","expss:::in_place_if_val", expr, perl = TRUE))
     for_names = as.expression(substitute(x))
     reference = suppressMessages(default_dataset() )
     data = ref(reference)
     parent = parent.frame()
     e = evalq(environment(), data, parent)
-    e$.n = nrow(data)
+    prepare_env(e, n = nrow(data), column_names = colnames(data))
     if (length(all.vars(for_names, functions = FALSE))==1 & length(all.vars(for_names, functions = TRUE))==1){
         for_names = as.character(for_names) 
     } else {
@@ -292,78 +224,60 @@ modify_default_dataset_light = function(x, ...){
     res = eval(expr, e)
     data[, for_names] = res
     ref(reference) = data
-    invisible(NULL)
+    invisible(data)
 }
 
 
 
 #' @export
-#' @rdname compute
-.recode = function(x, ...){
-    expr = as.character(as.expression(sys.call()))
-    expr = parse(text = gsub("^\\.recode","expss:::in_place_if_val", expr, perl = TRUE))
-    for_names = as.expression(substitute(x))
-    reference = suppressMessages(default_dataset() )
-    data = ref(reference)
-    parent = parent.frame()
-    e = evalq(environment(), data, parent)
-    e$.n = nrow(data)
-    if (length(all.vars(for_names, functions = FALSE))==1 & length(all.vars(for_names, functions = TRUE))==1){
-        for_names = as.character(for_names) 
-    } else {
-        for_names = names(eval(for_names, e))
-    }
-    stopif(length(for_names)==0, "Something is going wrong. Variables not found: ", deparse((substitute(x))))
-    res = eval(expr, e)
-    data[, for_names] = res
-    ref(reference) = data
-    invisible(NULL)
-}
+#' @rdname experimental
+.recode = .if_val 
+    
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .fre = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_cpct = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_rpct = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_tpct = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_mean = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_sum = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_median = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_fun = eval_in_default_dataset
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .cro_fun_df = eval_in_default_dataset
 
 
 
 #' @export
-#' @rdname compute
+#' @rdname experimental
 .set = function(varnames, value = NA){
     reference = suppressMessages(default_dataset() )
     dd_name = all.vars(reference)
@@ -375,14 +289,16 @@ modify_default_dataset_light = function(x, ...){
     d_nrows = NROW(envir[[dd_name]])
     value_nrows = NROW(value)
     value_ncols = NCOL(value)
-    stopif(value_nrows!=1 & value_nrows!= d_nrows, "Incorrect number of rows in 'value': ", value_nrows, 
+    stopif(value_nrows!=1 & value_nrows!= d_nrows, paste(varnames, collapse = ","), 
+           ": incorrect number of rows in 'value': ", value_nrows, 
            " There are ", d_nrows, " rows in default dataset.")
-    stopif(value_ncols!=1 & value_ncols!= num_of_vars, "Incorrect number of columns in 'value': ", value_ncols, 
+    stopif(value_ncols!=1 & value_ncols!= num_of_vars, paste(varnames, collapse = ","),
+           ": incorrect number of columns in 'value': ", value_ncols, 
            " There are ", num_of_vars, " names in 'varnames'.")
     for (each in seq_along(varnames)){
         envir[[dd_name]][, varnames[[each]]] = column(value, each)
     }
-    invisible(NULL)
+    invisible(ref(reference))
 }
 
 set_generator = function(number_of_rows){
@@ -393,9 +309,11 @@ set_generator = function(number_of_rows){
         num_of_vars = length(varnames)
         value_nrows = NROW(value)
         value_ncols = NCOL(value)
-        stopif(value_nrows!=1 & value_nrows!= number_of_rows, "Incorrect number of rows in 'value': ", value_nrows, 
+        stopif(value_nrows!=1 & value_nrows!= number_of_rows, paste(varnames, collapse = ","), 
+               ": incorrect number of rows in 'value': ", value_nrows, 
                " There are ", number_of_rows, " rows in dataset.")
-        stopif(value_ncols!=1 & value_ncols!= num_of_vars, "Incorrect number of columns in 'value': ", value_ncols, 
+        stopif(value_ncols!=1 & value_ncols!= num_of_vars, paste(varnames, collapse = ","), 
+               ": incorrect number of columns in 'value': ", value_ncols, 
                " There are ", num_of_vars, " names in 'varnames'.")
         if(value_nrows==1){
         for (each in seq_along(varnames)){

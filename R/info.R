@@ -19,7 +19,7 @@
 #' data(mtcars)
 #' var_lab(mtcars$am) = "Transmission"
 #' val_lab(mtcars$am) = c("Automatic"=0, "Manual"=1)
-#' info(mtcars,max_levels = 5)                             
+#' info(mtcars, max_levels = 5)                             
 #' @export
 info=function(x, stats = TRUE, frequencies = TRUE, max_levels= 10){
     UseMethod("info")
@@ -57,7 +57,7 @@ info.default=function(x, stats = TRUE, frequencies = TRUE, max_levels= 10){
         }
     } 
     if (frequencies){
-        values=sort(table(x,useNA="ifany"),na.last = TRUE,decreasing = TRUE)
+        values=sort(table(unlab(x),useNA="ifany"),na.last = TRUE,decreasing = TRUE)
         if (NA %in% names(values)) {
             values=c(values[is.na(names(values))], values[!is.na(names(values))])
         }    

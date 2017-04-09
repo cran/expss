@@ -52,9 +52,27 @@ expect_equal_to_reference(a, "rds/add_rows6b.rds")
 
 expect_error(add_rows(a, b, nomatch_columns = "stop"))
 
-class(a) = union(c("table_cases", "ctable"), class(a))
-class(b) = union(c("table_cases", "ctable"), class(b))
-class(d) = union(c("table_cpct", "ctable"), class(d))
+context("add_rows.etable")
+
+a = data.frame(x = 1:5, y = 6:10)
+b = data.frame(y = 6:10, z = 11:15)
+d = data.frame(y = 6:10, w = 16:20)
+e = data.frame(f = 21:25, g = 26:30)
+
+
+class(a) = union(c("etable"), class(a))
+class(b) = union(c("etable"), class(b))
+class(d) = union(c("etable"), class(d))
+
+expect_equal_to_reference(add_rows(a, b), "rds/add_rows7e.rds")
+expect_equal_to_reference(add_rows(a, a), "rds/add_rows7ee.rds")
+expect_equal_to_reference(add_rows(a, b, d), "rds/add_rows8e.rds")
+expect_equal_to_reference(add_rows(a, b, d, e), "rds/add_rows9e.rds")
+
+expect_equal_to_reference(add_rows(a, NA), "rds/add_rows10e.rds")
+expect_equal_to_reference(add_rows(a, 1:2), "rds/add_rows11e.rds")
+
+
 
 context("labels preserving")
 
@@ -80,7 +98,7 @@ val_lab(res$y) = c("yyy" = 1)
 
 expect_identical(add_rows(a, b), res)
 
-context("simple_table")
+context("etable")
 data(mtcars)
 mtcars = modify(mtcars, {
     var_lab(mpg) = "Miles/(US) gallon"
@@ -91,9 +109,9 @@ mtcars = modify(mtcars, {
     var_lab(gear) = "gear"
     var_lab(carb) = "carb"})
 
-tab1 = with(mtcars, cro_mean(mpg, am))
-tab2 = with(mtcars, cro_cpct(vs, am))
-tab3 = with(mtcars, cro_cpct(vs, carb))
+tab1 = with(mtcars, cro_mean(mpg, list(unvr(am), total())))
+tab2 = with(mtcars, cro_cpct(list(unvr(vs)), list(unvr(am), total())))
+tab3 = with(mtcars, cro_cpct(list(unvr(vs)), list(unvr(carb), total())))
 
 
 expect_equal_to_reference(tab1 %add_rows% tab2, "rds/add_rows7.rds")

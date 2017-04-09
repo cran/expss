@@ -2,7 +2,7 @@ SPECIALS = c('row.names', 'rownames', 'names')
 
 #' Look up values in dictionary.
 #' 
-#' This function is inspired by VLOOKUP spreadsheet function. Looks for a
+#' This function is inspired by VLOOKUP spreadsheet function. It looks for a
 #' lookup_value in the lookup_column of the dict, and then returns values in the
 #' same rows from result_column.
 #' 
@@ -22,7 +22,8 @@ SPECIALS = c('row.names', 'rownames', 'names')
 #'   in the row names of dict. If dict is vector then values will be searched in
 #'   names of the dict.
 #'   
-#' @return vlookup always return vector, vlookup_df always returns data.frame.
+#' @return \code{vlookup} always return vector, \code{vlookup_df} always returns
+#'   data.frame.
 #'   
 #' @export
 #' @examples
@@ -158,7 +159,7 @@ vlookup_df = function(lookup_value, dict, result_column = NULL, lookup_column = 
     }
      # calculate index
     if (is.numeric(lookup_column) || is.character(lookup_column)){
-            # data.frame - for tbl_df from dplyr
+            # data.frame 
           ind = match(lookup_value,dict[[lookup_column]],incomparables = NA) 
     } else stop("lookup_column shoud be character or numeric.")
     ### caclulate result

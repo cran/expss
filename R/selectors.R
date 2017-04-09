@@ -1,49 +1,33 @@
-#' Get range of variables/variables by pattern/by name
+#' Get variables by pattern/by name or range of variables.
 #' 
 #' \itemize{
-#' \item{\code{\%to\%}}{ returns all variables with names  in range from
-#' pattern_num1 to pattern_num2 (similar to SPSS 'to'). Result doesn't depend
-#' from order of variables in data.frame. 'num1' and 'num2' should be numbers.
-#' Results are always arranged in ascending order and include all variables with
-#' such pattern even if these variables located in different parts of dataframe.
-#' \code{vars_range} has the same functionality but intended for programming.}
-#' \item{\code{vars_pattern}}{ returns all variables by pattern (regular expression).
-#' Functions with word 'list' in name return lists of variables instead of
-#' dataframes.}
-#' \item{\code{vars}}{ returns all variables by their names. Expressions in backticks
-#' inside characters will be expanded as with \link{subst}.}
-#' }
-#' Functions with word 'list' in name return lists of variables instead of
+#' \item{\code{vars}}{ returns all variables by their names or by criteria (see 
+#' \link{criteria}). Expressions in backticks inside characters will be expanded
+#' as with \link{subst}. \code{a`1:2`} will be translated to \code{'a1', 'a2'}. 
+#' There is no non-standard evaluation in this function by design so use quotes 
+#' for names of your variables or use \link{qc}. The only exception with 
+#' non-standard evaluation is \code{\%to\%}. You can use \code{\%to\%} inside 
+#' \code{vars} or independently.}
+#' \item{\code{\%to\%}}{ returns range of variables between \code{e1} and 
+#' \code{e2} (similar to SPSS 'to'). \link{modify}, \link{modify_if}, 
+#' \link{calculate}, \link{keep}, \link{except} and \link{where} support 
+#' \code{\%to\%}. Inside global environment \link[base]{with},
+#' \link[base]{within} \code{\%to\%} will take range from names of variables
+#' sorted in the alphabetic order.}}
+#' Functions with word 'list' in name return lists of variables instead of 
 #' dataframes.
-#'
-#' @param start character Name of start variable (e. g. a_1)
-#' @param end character Name of start variable (e. g. a_5)
+#' \code{vars_pattern}, \code{vars_pattern_list}, \code{vars_range} and 
+#' \code{vars_range_list} are deprecated and will be removed in the future
+#' version.
+#' \code{.internal_to_} is for internal usage and not documented.
+#' @seealso \link{keep}
+#' @param ... characters names of variables or criteria/logical functions
 #' @param e1 unquoted name of start variable (e. g. a_1)
 #' @param e2 unquoted name of start variable (e. g. a_5) 
-#' @param pattern character pattern of variable(-s) name
-#' @param ... characters names of variables.
 #'
 #' @return  data.frame/list with variables
 #' 
 #' @examples
-#' 
-#' # In global environement
-#' aa = rep(10, 5)
-#' b = rep(20, 5)
-#' a1 = rep(1, 5)
-#' a2 = rep(2, 5)
-#' a3 = rep(3, 5)
-#' a4 = rep(4, 5)
-#' a5 = rep(5, 5)
-#' 
-#' # identical results
-#' vars_range("a1", "a5")
-#' a1 %to% a5
-#' vars("a`1:5`")
-#' vars_pattern("^a[0-9]$")
-#' 
-#' # sum each row
-#' sum_row(a1 %to% a5)
 #' 
 #' # In data.frame
 #' dfs = data.frame(
@@ -56,123 +40,99 @@
 #'     b_5 = rep(15, 5) 
 #' )
 #' 
-#' # all variables that starts with 'b'
-#' with(dfs, vars_pattern("^b"))
-#' 
 #' # calculate sum of b_* variables
-#' modify(dfs,{
+#' modify(dfs, {
 #'     b_total = sum_row(b_1 %to% b_5)
 #'     b_total2 = sum_row(vars("b_`1:5`"))
 #' })
 #' 
+#' # In global environement
+#' aa = rep(10, 5)
+#' b = rep(20, 5)
+#' a1 = rep(1, 5)
+#' a2 = rep(2, 5)
+#' a3 = rep(3, 5)
+#' a4 = rep(4, 5)
+#' a5 = rep(5, 5)
+#' 
+#' # identical results
+#' a1 %to% a5
+#' vars("a`1:5`")
+#' vars(perl("^a[0-9]$"))
+#' 
+#' # sum each row
+#' sum_row(a1 %to% a5)
 #' 
 #' @export
-vars_range = function(start, end){
-    
-    as.data.frame(vars_range_list(start, end), stringsAsFactors = FALSE, check.names = FALSE)
-    
-}
-
-#' @export
-#' @rdname vars_range
-vars_range_list = function(start, end){
-    stopif(length(start)!=1 | length(end)!=1, "Length of 'start' and 'end' arguments shoud be equal to 1. 
-           But length(start)=", length(start), " and length(end) = ", length(end) )
-    stopif(!all(grepl("^(.+?)([\\d]+)$", c(start, end), perl = TRUE)),
-           "'start' or 'end' arguments doesn't have correct pattern: ", start, " ", end)
-    patt1 = gsub("^(.+?)([\\d]+)$", "\\1", start, perl = TRUE)
-    patt2 = gsub("^(.+?)([\\d]+)$", "\\1", end, perl = TRUE)
-    stopif(patt1!=patt2, "Start and end variables begin from different patterns: ", patt1, " ", patt2)
-    digits1 = as.numeric(gsub("^(.+?)([\\d]+)$", "\\2", start, perl = TRUE))
-    digits2 = as.numeric(gsub("^(.+?)([\\d]+)$", "\\2", end, perl = TRUE))
-    stopif(digits1>digits2, "Name of start variables greater than name of end variables: ", start," ",end)
-    
-    scope = 1
-    e = parent.frame(scope)
-    var_names = ls(name = e, pattern = paste0("^", patt1, "[0-9]+$"))
-   
-    while(length(var_names)==0 & !identical(e, globalenv())){
-        scope = scope + 1
-        e = parent.frame(scope)
-        var_names = ls(name = e, pattern = paste0("^", patt1, "[0-9]+$"))  
-    }  
-    
-    stopif(length(var_names)==0, "Variables not found: ", start," ",end)
-    digits = as.numeric(gsub("^(.+?)([\\d]+)$", "\\2", var_names, perl = TRUE))
-    var_names = var_names[order(digits)]
-    digits = digits[order(digits)]
-    var_names = var_names[digits>=digits1 & digits<=digits2] 
-    mget(var_names, envir = e)
-
-}
-
-#' @export
-#' @rdname vars_range
-'%to%' = function(e1, e2){
-    e1 = as.character(substitute(e1))
-    e2 = as.character(substitute(e2))
-    vars_range(e1, e2)
-}
-
-#' @export
-#' @rdname vars_range
-'%to_list%' = function(e1, e2){
-    e1 = as.character(substitute(e1))
-    e2 = as.character(substitute(e2))
-    vars_range_list(e1, e2)
-}
-
-#' @export
-#' @rdname vars_range
-vars_pattern_list = function(pattern){
-    stopif(length(pattern)!=1, "Length of 'pattern' shoud be equal to 1. 
-           But length(pattern)=", length(pattern))
-    scope = 1
-    e = parent.frame(scope)
-    var_names = ls(name = e, pattern = pattern)
-    
-    while(length(var_names)==0 & !identical(e, globalenv())){
-        scope = scope + 1
-        e = parent.frame(scope)
-        var_names = ls(name = e, pattern = pattern)  
-    }  
-    
-    stopif(length(var_names)==0, "Variables not found: ", pattern)
-    mget(var_names, envir = e) 
-    
-} 
-
-#' @export
-#' @rdname vars_range
-vars_pattern = function(pattern){
-    as.data.frame(vars_pattern_list(pattern), stringsAsFactors = FALSE, check.names = FALSE) 
-} 
-
-
-#' @export
-#' @rdname vars_range
-vars_list = function(...){
-    .var_names_ = subst(...)
-    .vars_ = vector(mode = "list", length(.var_names_ ))
-    for(.each_ in seq_along(.vars_ )){
-        .vars_ [[.each_]] = subst(.var_names_[[.each_]]) 
-    }  
-    .var_names_ = c(.vars_, recursive = TRUE)
-    .res_ = vector(mode = "list", length = length(.var_names_))
-    for(.each_ in seq_along(.var_names_)){
-        .res_[[.each_]] = get(.var_names_[.each_], pos = parent.frame(), inherits = TRUE)
-    }
-    stats::setNames(.res_, .var_names_)
-}
-
-#' @export
-#' @rdname vars_range
 vars = function(...){
-    .var_names_ = subst(...)
-    .res_ = vector(mode = "list", length = length(.var_names_))
-    for(.each_ in seq_along(.var_names_)){
-        .res_[[.each_]] = get(.var_names_[.each_], pos = parent.frame(), inherits = TRUE)
+    # args = substitute(list(...))
+    res = eval(substitute(expss::vars_list(...)),
+               envir = parent.frame(),
+               enclos = baseenv()
+    )
+    as.dtfrm(res)
+}
+
+#' @export
+#' @rdname vars
+vars_list = function(...){
+    if(exists(".internal_column_names0", envir = parent.frame())){
+        var_names = internal_ls(parent.frame()[[".internal_column_names0"]], env = parent.frame())
+    } else {
+        var_names = ls(envir = parent.frame())
     }
-    as.dtfrm(stats::setNames(.res_, .var_names_))
+    args = substitute(list(...))
+    args = substitute_symbols(args,
+                              list("%to%" = ".internal_to_")
+    )
+    args = eval(args, envir = parent.frame(),
+                enclos = baseenv())
+    selected_names = keep_helper(var_names, args)
+    mget(var_names[selected_names], envir = parent.frame(), inherits = TRUE)
+}
+
+#' @export
+#' @rdname vars
+'%to%' = function(e1, e2){
+    # e1 = substitute(e1)
+    # e2 = substitute(e2)
+    eval(substitute(expss::vars(e1 %to% e2)),
+         envir = parent.frame(),
+         enclos = baseenv()
+    )
+}
+
+#' @export
+#' @rdname vars
+'%to_list%' = function(e1, e2){
+    # e1 = substitute(e1)
+    # e2 = substitute(e2)
+    eval(substitute(expss::vars_list(e1 %to% e2)),
+         envir = parent.frame(),
+         enclos = baseenv()
+    )
+}
+
+###################################
+
+
+# version of %to% for usage inside 'keep'/'except'/'vars'
+#' @export
+#' @rdname vars
+.internal_to_ = function(e1, e2){
+    e1 = deparse(substitute(e1))
+    e2 = deparse(substitute(e2))
+    res = function(y){
+        first = match(e1, y)[1]
+        stopif(is.na(first), "'",e1, "' not found." )
+        last = match(e2, y)[1]
+        stopif(is.na(last), "'",e2, "' not found." )
+        stopif(last<first, "'",e2, "' located before '",e1,"'. Did you mean '",e2," %to% ",e1,"'?")
+        positions = seq_along(y)
+        (positions>=first) & (positions<=last)         
+    } 
+    class(res) = union("criterion",class(res))
+    res
+    
 }
 

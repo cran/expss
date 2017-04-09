@@ -1,8 +1,8 @@
 #' Set or get variable label
 #' 
-#' These functions set/get/drop variable labels. For utilizing labels in base R 
-#' see \link{f}, \link{names2labels}, \link{values2labels}, \link{unlab}. For
-#' value labels see \link{val_lab}.
+#' These functions set/get/drop variable labels. For 
+#' value labels see \link{val_lab}. For working with entire data.frame see
+#' \link{apply_labels}.
 #' \itemize{
 #' \item{\code{var_lab}}{ returns variable label or NULL if label doesn't 
 #' exist.} 
@@ -33,23 +33,17 @@
 #'                 var_lab(qsec) = "1/4 mile time"
 #'                 var_lab(vs) = "V/S"
 #'                 var_lab(am) = "Transmission (0 = automatic, 1 = manual)"
+#'                 val_lab(am) = c(automatic = 0, manual=1)
 #'                 var_lab(gear) = "Number of forward gears"
 #'                 var_lab(carb) = "Number of carburetors"
 #' })
 #' 
-#' # note: we exclude dependent variable 'mpg' from conversion to use its short name in formula
-#' summary(lm(mpg ~ ., data = n2l(mtcars, exclude = "mpg")))
-#' 
-#' data(mtcars)
-#' 
-#' var_lab(mtcars$am) = "Transmission"
-#' val_lab(mtcars$am) = c(automatic = 0, manual=1)
-#' 
-#' \dontrun{
-#' plot(f(mtcars$am))
-#' }
-#' 
 #' fre(mtcars$am)
+#' 
+#' calculate(mtcars, 
+#'      cro_mean(list(mpg, disp, hp, qsec), list(total(), am))
+#'      ) 
+#' 
 #' 
 var_lab=function(x){
     UseMethod("var_lab")
@@ -64,22 +58,18 @@ var_lab.default=function(x){
 var_lab.data.frame=function(x)
     ## Drop this function???
     ## mainly for multiple choice questions
-    ## if there is no label on the data.frame itself
-    ## we return label from the first variable 
+    ## we return first label 
 {
-    res=var_lab.default(x)
-    if (is.null(res)){
-        all_labs=lapply(x,var_lab)
-        all_labs=all_labs[!sapply(all_labs,is.null)]
-        if (length(all_labs)>0) res=all_labs[[1]] else res=NULL
-    }
+    all_labs=lapply(x,var_lab)
+    all_labs=all_labs[!sapply(all_labs,is.null)]
+    if (length(all_labs)>0) res=all_labs[[1]] else res=NULL
     res
 }
 
 #' @rdname var_lab
 #' @export
 "var_lab<-"=function(x,value){
-    set_var_lab(x,value)
+    set_var_lab(x, value)
 }
 
 #' @rdname var_lab
@@ -90,19 +80,27 @@ set_var_lab=function(x,value){
 
 #' @export
 set_var_lab.list = function(x,value){
-    for (each in seq_along(x)) var_lab(x[[each]]) = value
+    for (each in seq_along(x)) x[[each]] = set_var_lab(x[[each]], value)
     x
 }
 
 #' @export
-set_var_lab.data.frame = function(x,value){
-    for (each in seq_along(x)) var_lab(x[[each]]) = value
+set_var_lab.data.frame = function(x, value){
+    for (each in seq_along(x)) x[[each]] = set_var_lab(x[[each]], value)
     x
+}
+
+#' @export
+set_var_lab.matrix = function(x, value){
+    if(is.null(value)) return(x)
+    stop("Labels on 'matrix' is not implemented.")
 }
 
 
 #' @export
-set_var_lab.default = function(x,value){
+set_var_lab.default = function(x, value){
+    # this conversion is needed to avoid strange bug (incorrect residuals)
+    # with 'lm' with labelled integers 
     if (length(value)==0){
         attr(x,"label")=NULL
         if(length(val_lab(x))==0){
@@ -110,8 +108,11 @@ set_var_lab.default = function(x,value){
         }
         return(x)
     }
-    attr(x,"label")=value
-    class(x)=union("labelled",class(x))
+    if(is.integer(x)) x[] = as.double(x)
+    value = as.character(value)
+    stopif(length(value)>1, "Label should be vector of length 1.")
+    attr(x, "label")=value
+    class(x)=union("labelled", class(x))
     x
 }
 
@@ -127,7 +128,7 @@ unvr=function(x){
 
 #' @export
 unvr.default=function(x){
-    set_var_lab(x,NULL)
+    set_var_lab(x, NULL)
 }
 
 #' @export
@@ -151,10 +152,8 @@ unvr.list=function(x){
 #' If argument \code{x} is data.frame or list then labels applied to all 
 #' elements of data.frame/list. To drop value labels, use \code{val_lab(var) <- 
 #' NULL} or \code{unvl(var)}. \code{make_labels} converts text from the form 
-#' that usually used in questionnaires to named vector. See examples. For 
-#' utilizing labels in base R see \link{f}, \link{names2labels}, 
-#' \link{values2labels}, \link{unlab}, \link{dichotomy}. For variable labels see
-#' \link{var_lab}.
+#' that usually used in questionnaires to named vector. For variable labels see
+#' \link{var_lab}. For working with entire data.frame see \link{apply_labels}.
 #' \itemize{
 #' \item{\code{val_lab}}{ returns value labels or NULL if labels doesn't 
 #' exist.} 
@@ -163,7 +162,7 @@ unvr.list=function(x){
 #' \item{\code{add_val_lab<-}}{ add value labels to already existing value labels.} 
 #' \item{\code{unvl}}{ drops value labels.}
 #' \item{\code{make_labels}}{ makes named vector from text for usage as value labels.}
-#' \item{\code{ml_left}, \code{ml_right} and  \code{ml_autonum}}{ are shortcuts for \code{make_labels}
+#' \item{\code{num_lab}, \code{lab_num} and  \code{autonum}}{ are shortcuts for \code{make_labels}
 #' with \code{code_postion} 'left', 'right' and 'autonum' accordingly.}
 #' }
 #' @param x Variable(s). Vector/data.frame/list.
@@ -183,7 +182,6 @@ unvr.list=function(x){
 #' @details Value labels are stored in attribute "labels" 
 #'   (\code{attr(x,"labels")}). We set variable class to "labelled" for preserving
 #'   labels from dropping during some operations (such as \code{c} and \code{`[`}).
-#'   There are special methods of subsetting and concatenation for this class.
 #' @export
 #' @examples
 #' # toy example
@@ -203,7 +201,7 @@ unvr.list=function(x){
 #' # brands - multiple response question
 #' # Which brands do you use during last three months? 
 #' 
-#' brands = t(replicate(20,sample(c(1:5,NA),4,replace = FALSE)))
+#' brands = as.dtfrm(t(replicate(20,sample(c(1:5,NA),4,replace = FALSE))))
 #'
 #' var_lab(brands) = "Used brands"
 #' val_lab(brands) = make_labels("
@@ -219,33 +217,25 @@ unvr.list=function(x){
 #' fre(brands)
 #' 
 #' # percentage of brands within each score
-#' cro(brands, score)
-#' 
-#' 
-#' aggregate(dichotomy(brands) ~ f(score), FUN = mean)
-#' 
-#' # customer segmentation by used brands
-#' kmeans(dichotomy(brands),3)
-#' 
-#' # model of influence of used brands on evaluation of tested product 
-#' summary(lm(score ~ dichotomy(brands)))
+#' cro_cpct(brands, score)
 #' 
 #' ## make labels from text copied from questionnaire
 #' 
 #' age = c(1, 2, 1, 2)
 #' 
-#' val_lab(age) = make_labels("
+#' val_lab(age) = num_lab("
 #'  1. 18 - 26
 #'  2. 27 - 35
 #' ")
 #' 
-#' f(age)
+#' # note support of value lables in base R
+#' table(age)
 #' 
 #' # or, if in original codes is on the right side
 #' 
 #' products = 1:8
 #' 
-#' val_lab(products) = ml_right("
+#' val_lab(products) = lab_num("
 #'  Chocolate bars    1
 #'  Chocolate sweets (bulk)	2
 #'  Slab chocolate(packed)	3
@@ -256,7 +246,7 @@ unvr.list=function(x){
 #'  Other	8
 #' ")
 #' 
-#' f(products)
+#' table(products)
 val_lab=function(x){
     UseMethod("val_lab")
 }
@@ -265,13 +255,10 @@ val_lab=function(x){
 val_lab.data.frame=function(x)
 {
     
-    res=val_lab.default(x)
-    # strange code below for case when we consider data.frame as multiple response question
-    if (is.null(res)){
-        all_labs=lapply(x, val_lab)
-        all_labs=all_labs[!sapply(all_labs,is.null)]
-        if (length(all_labs)>0) res=do.call(combine_labels, all_labs) else res=NULL
-    }
+    # we consider data.frame as multiple response question
+    all_labs=lapply(x, val_lab)
+    all_labs=all_labs[lengths(all_labs)>0]
+    if (length(all_labs)>0) res=do.call(combine_labels, all_labs) else res=NULL
     res
 }
 
@@ -301,30 +288,43 @@ set_val_lab = function(x, value, add = FALSE){
 add_val_lab = function(x, value) set_val_lab(x, value, add = TRUE) 
 
 #' @export
-set_val_lab.default = function(x,value, add = FALSE){
-    stopif(!is.null(value) && is.null(names(value)), "Labels should be named vector.")
-    stopif(anyDuplicated(value),"duplicated values in labels: ",paste(value[duplicated(value)],collapse=" "))
-    names_vallab = names(value)
-    # This warning was removed because it was generated too often for third party *.sav files.
-    # if (anyDuplicated(names_vallab)){
-    #     duplicates = duplicated(names_vallab)
-    #     warning(paste0("duplicated labels: ", paste(names_vallab[duplicates], collapse = ",")))
-    # }
+set_val_lab.default = function(x, value, add = FALSE){
+     if (length(value)==0){
+        if(!add){
+            attr(x, "labels") = NULL
+        }
+        if(length(val_lab(x)) == 0 && is.null(var_lab(x))){
+            class(x)=setdiff(class(x), "labelled")
+        }
+        return(x)
+     }
+    stopif(is.null(names(value)), "Labels should be named vector.")
+    stopif(anyDuplicated(value), "duplicated values in labels: ",paste(value[duplicated(value)],collapse=" "))
+    
+    # this conversion is needed to avoid strange bug (incorrect residuals)
+    # with 'lm' with labelled integers 
+    if(is.integer(x)) x[] = as.double(x)
     if (add) value = combine_labels(value,val_lab(x))
-    if (length(value)==0) value=NULL else value=sort(value)
-    attr(x,"labels")=value
-    if(is.null(value) && is.null(var_lab(x))){
-        class(x)=setdiff(class(x), "labelled")
-    } else {
-        class(x)=union("labelled",class(x))
-    }
+ 
+    # Warning about dupliction was removed because it was generated too often for third party *.sav files.
+    #    with_warning = "duplicated labels: "
+    names(value) = make_items_unique(names(value))
+    value = sort(value)
+    attr(x, "labels")=value
+    class(x)=union("labelled", class(x))
     x
 }
 
 #' @export
-set_val_lab.data.frame = function(x,value, add = FALSE){
+set_val_lab.data.frame = function(x, value, add = FALSE){
     for (each in seq_along(x)) x[[each]] = set_val_lab(x[[each]], value, add = add)
     x
+}
+
+#' @export
+set_val_lab.matrix = function(x, value, add = FALSE){
+    if(is.null(value)) return(x)
+    stop("Labels on 'matrix' is not implemented.")
 }
 
 #' @export
@@ -392,15 +392,51 @@ make_labels=function(text, code_position=c("left","right", "autonum")){
     }   
 }
 
+##################
+
 #' @export
 #' @rdname val_lab
-ml_left = function(text) make_labels(text = text, code_position = "left")
+drop_unused_labels = function(x){
+    UseMethod("drop_unused_labels")
+}
+
+#' @export
+drop_unused_labels.default = function(x){
+    curr_labs = val_lab(x)
+    curr_values = uniq_elements(x)
+    set_val_lab(x, curr_labs[curr_labs %in% curr_values])
+}
+
+#' @export
+drop_unused_labels.category = function(x){
+    curr_labs = val_lab(x)
+    curr_values = uniq_elements(x)
+    set_val_lab(x, curr_labs[curr_labs %in% curr_values])
+}
+
+#' @export
+drop_unused_labels.list = function(x){
+    lapply(x, drop_unused_labels)
+}
+
+#' @export
+drop_unused_labels.data.frame = function(x){
+    x[] = lapply(x, drop_unused_labels)
+    x
+}
+
+
+##########################    
+
 #' @export
 #' @rdname val_lab
-ml_right = function(text) make_labels(text = text, code_position = "right")
+num_lab = function(text) make_labels(text = text, code_position = "left")
 #' @export
 #' @rdname val_lab
-ml_autonum = function(text) make_labels(text = text, code_position = "autonum")
+lab_num = function(text) make_labels(text = text, code_position = "right")
+#' @export
+#' @rdname val_lab
+autonum = function(text) make_labels(text = text, code_position = "autonum")
 
 #' Drop variable label and value labels
 #' 
@@ -416,14 +452,15 @@ ml_autonum = function(text) make_labels(text = text, code_position = "autonum")
 #' val_lab(var_with_lab) = c("Low"=1,"High"=2)
 #' identical(raw_var,unlab(var_with_lab)) # should be TRUE
 unlab=function(x){
+    if(is.null(x)) return(x)
     UseMethod("unlab")
 }
 
 #' @export
 unlab.default=function(x){
-    var_lab(x) = NULL
-    val_lab(x) = NULL
-    class(x) = setdiff(class(x),"labelled")
+    x = set_var_lab(x, NULL)
+    x = set_val_lab(x, NULL, add = FALSE)
+    class(x) = setdiff(class(x), "labelled")
     x
 }
 
@@ -447,12 +484,12 @@ unlab.list=function(x){
 
 
 
-#' Recode vector into integer vector with value labels 
+#' Recode vector into numeric vector with value labels 
 #'
 #' @param x numeric vector/character vector/factor 
 #' @param label optional variable label
 #'
-#' @return integer vector with labels
+#' @return numeric vector with labels
 #' @export
 #' @examples
 #' character_vector = c("one", "two",  "two", "three")
@@ -475,6 +512,21 @@ as.labelled.default = function(x, label = NULL){
 }
 
 #' @export
+as.labelled.matrix = function(x, label = NULL){
+    stop("Labelled 'matrix' is not implemented.")
+}
+
+#' @export
+as.labelled.data.frame = function(x, label = NULL){
+    stop("Labelled 'data.frame' is not implemented.")
+}
+
+#' @export
+as.labelled.list = function(x, label = NULL){
+    stop("Labelled 'list' is not implemented.")
+}
+
+#' @export
 as.labelled.factor = function(x, label = NULL){
     values = seq_along(levels(x))
     names(values) = levels(x)
@@ -485,10 +537,18 @@ as.labelled.factor = function(x, label = NULL){
     
 }
 
+
+
 #' @export
 as.labelled.labelled = function(x, label = NULL){
+    if(is.factor(x)){
+        ### factor with variable label
+        return(
+            as.labelled.factor(x, label = if_null(label, var_lab(x)))
+            )
+    }
     if(is.null(val_lab(x))){
-        labels = sort(unique(x), na.last = NA)
+        labels = unlab(sort(unique(x), na.last = NA))
         names(labels) = as.character(labels)
         val_lab(x) = labels
     } 
@@ -497,6 +557,11 @@ as.labelled.labelled = function(x, label = NULL){
     
 }
 
+#' @export
+#' @rdname as.labelled
+is.labelled = function(x){
+    inherits(x, "labelled")
+}
 
 ################
 
@@ -507,6 +572,7 @@ combine_labels = function(...){
 }
 
 labelled_and_unlabelled = function(uniqs,vallab){
+    uniqs = unlab(uniqs)
     if (length(uniqs)>0) {
         uniqs=uniqs[!is.na(uniqs)]
         names(uniqs) = uniqs

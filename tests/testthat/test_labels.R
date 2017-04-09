@@ -29,7 +29,10 @@ context("val_lab")
 
 a = 1
 expect_error({val_lab(a) = c(a = 1, b = 1)})
-# expect_warning({val_lab(a) = c(a = 1, a = 2, b = 3, b = 4)})
+val_lab(a) = c(a = 1, a = 2)
+b = set_val_lab(1, c(a = 1, a_1 = 2))
+expect_identical(a, b)
+
 
 
 ## data.frame
@@ -98,7 +101,7 @@ expect_identical(labs2,make_labels("
 
 "))
 
-expect_identical(labs2,ml_left("
+expect_identical(labs2,num_lab("
     1\tBrand1
 
 \t\t2.    Brand2    
@@ -110,7 +113,19 @@ expect_identical(labs2,ml_left("
 
 "))
 
-expect_identical(labs2,ml_right("
+expect_warning(ml_left("
+    1\tBrand1
+
+\t\t2.    Brand2    
+
+3.\t\t    Brand3\t\t
+
+
+4    Brand4
+
+"))
+
+expect_identical(labs2,lab_num("
     Brand1\t      1
 
 \t\t    Brand2   2 
@@ -121,6 +136,19 @@ expect_identical(labs2,ml_right("
 Brand4              4
 
 "))
+
+
+expect_warning(ml_right("
+    Brand1\t      1
+                               
+                               \t\t    Brand2   2 
+                               
+                               \t\t    Brand3\t\t3
+                               
+                               
+                               Brand4              4
+                               
+                               "))
 
 
 expect_identical(labs2_1,make_labels("
@@ -177,6 +205,7 @@ expect_identical(labs4,make_labels("
     
     
     ",code_position="right"))
+
 
 
 expect_identical(labs4,make_labels("
@@ -259,8 +288,8 @@ context("labels NULL")
 a = 1:3
 b = a
 val_lab(b) = c(a=1)
-expect_identical(set_val_lab(b, NULL), a)
-
+expect_identical(set_val_lab(b, NULL), as.double(a))
+a = as.double(a)
 var_lab(b) = "bbb"
 expect_identical(set_val_lab(b, NULL), set_var_lab(a, "bbb"))
 expect_identical(set_var_lab(b, NULL), set_val_lab(a, c(a=1)))
@@ -307,7 +336,7 @@ expect_identical(
     )
 
 expect_identical(
-    ml_autonum(
+    autonum(
         "
         male
         
@@ -317,10 +346,20 @@ expect_identical(
     c(male = 1L, female = 2L)
     )
 
+expect_warning(
+    ml_autonum(
+        "
+        male
+        
+        
+        female
+        ")
+    )
+
 
 context("as.labelled")
 
-expect_error()
+
 
 character_vector = c("one", "two",  "two", "three")
 res = c(1L, 3L, 3L, 2L)
@@ -349,15 +388,47 @@ expect_identical(as.labelled(dat), res)
 
 a = 1:2
 val_lab(a) = c("a"=1, "b" = 2)
-expect_identical(as.labelled(a), a)
+expect_identical(as.labelled(a), as.double(a))
 var_lab(a) = "ssdds"
 expect_identical(as.labelled(a), a)
 expect_identical(as.labelled(a, "new"), set_var_lab(a, "new"))
 a = 1:2
 var_lab(a) = "ssdds"
-expect_identical(as.labelled(a), set_val_lab(a, c("1" = 1L, "2" = 2L)))
+expect_equal(as.labelled(a), set_val_lab(a, c("1" = 1L, "2" = 2L)))
 
+context("as.labelled labelled factor")
+a = factor(c("a", "b", "c"), levels = rev(c("a", "b", "c", "d", "e")))
+b = 5:3
+val_lab(b) = setNames(5:1, letters[1:5])
+expect_identical(as.labelled(a), b)
 
+var_lab(a) = "My 'a' with labels"
+var_lab(b) = "My 'a' with labels"
+expect_identical(as.labelled(a), b)
+var_lab(b) = "New label"
+expect_identical(as.labelled(a, "New label"), b)
 
+context("is.labelled")
 
+a = 1:5
+expect_identical(is.labelled(a), FALSE)
+var_lab(a) = "aaa"
+expect_identical(is.labelled(a), TRUE)
+a = unlab(a)
+expect_identical(is.labelled(a), FALSE)
+val_lab(a) = c(a = 1)
+expect_identical(is.labelled(a), TRUE)
+class(a) = union("new_class", class(a))
+expect_identical(is.labelled(a), TRUE)
 
+context("labelled matrix")
+
+aaa = matrix(1:9, 3)
+
+expect_identical(set_val_lab(aaa, NULL), aaa)
+expect_error(set_val_lab(aaa, c(a = 1)))
+expect_error(set_var_lab(aaa, "matrix"))
+expect_identical(set_var_lab(aaa, NULL), aaa)
+expect_error(as.labelled(aaa, NULL))
+expect_error(as.labelled(as.list(aaa), NULL))
+expect_error(as.labelled(as.data.frame(aaa), NULL))

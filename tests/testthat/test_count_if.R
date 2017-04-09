@@ -27,9 +27,9 @@ expect_equal(count_if(gt(55)|32,df1$b),3L)
 expect_equal(count_if(function(x) x>55 | x==54,df1$b),3L)
 expect_equal(count_if(gt(55)|54,df1$b),3L)
 
-expect_equal(count_if(neq(75),df1$b),3L)
+expect_equal(count_if(ne(75),df1$b),3L)
 
-expect_equal(count_if(gte(32),df1$b),4L)
+expect_equal(count_if(ge(32),df1$b),4L)
 
 
 expect_equal(count_if(gt(32) & lt(86), df1$b),2L)
@@ -79,8 +79,11 @@ context("count_row_if")
 
 expect_equal(count_row_if(function(x) grepl("^a",x),df1),c(1,0,0,1))
 
-expect_equal('apples' %in_row% df1, c(TRUE,FALSE,FALSE,TRUE))
-expect_equal('apples' %in_col% df1, c(a = TRUE, b = FALSE))
+expect_warning('apples' %in_row% df1)
+expect_warning('apples' %in_col% df1)
+
+expect_equal(df1 %row_in% 'apples', c(TRUE,FALSE,FALSE,TRUE))
+expect_equal(df1 %col_in% 'apples', c(a = TRUE, b = FALSE))
 
 # example with dplyr
 context("dplyr count_if")
@@ -100,7 +103,7 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
                     greater = count_row_if(gt(8),V1,V2,V3),
                     range = count_row_if(5:8,V1,V2,V3),
                     na = count_row_if(is.na,V1,V2,V3),
-                    not_na = count_row_if(,V1,V2,V3)),
+                    not_na = count_row_if(not_na,V1,V2,V3)),
                      result)
 
     expect_equal(df2  %>% mutate(exact = count_row_if(8,V1,V2,V3),
@@ -160,7 +163,7 @@ expect_equal(
 )
 
 expect_equal(
-    with(t_df2, unname(count_col_if(,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
+    with(t_df2, unname(count_col_if(not_na,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
     result$not_na
 )
 
@@ -195,7 +198,7 @@ expect_equal(
 
 
 expect_equal(
-    with(df2, unname(count_col_if(,V1,V2,V3))),
+    with(df2, unname(count_col_if(not_na,V1,V2,V3))),
     c(9, 8, 9)
 )
 
@@ -210,7 +213,7 @@ result  = modify(dfs, {
                    greater = count_row_if(gt(8), V1, V2, V3)
                    range = count_row_if(5:8, V1, V2, V3)
                    na = count_row_if(is.na, V1, V2, V3)
-                   not_na = count_row_if(, V1, V2, V3)
+                   not_na = count_row_if(not_na, V1, V2, V3)
                 })  
 result
  

@@ -15,9 +15,9 @@ expect_equal(mean_if(gt(55)|32,df1$b),193/3)
 expect_equal(mean_if(function(x) x>55 | x==54,df1$b),215/3)
 expect_equal(mean_if(gt(55)|54,df1$b),215/3)
 
-expect_equal(mean_if(neq(75),df1$b),172/3)
+expect_equal(mean_if(ne(75),df1$b),172/3)
 
-expect_equal(mean_if(gte(32),df1$b),247/4)
+expect_equal(mean_if(ge(32),df1$b),247/4)
 
 
 expect_equal(mean_if(gt(32) & lt(86),df1$b),(54L + 75L)/2)
@@ -63,7 +63,7 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
                     greater = mean_row_if(gt(8),V1,V2,V3),
                     range = mean_row_if(5:8,V1,V2,V3),
                     na = mean_row_if(is.na,V1,V2,V3),
-                    not_na = mean_row_if(,V1,V2,V3)),
+                    not_na = mean_row_if(not_na,V1,V2,V3)),
                      result)
 } else {
 	cat("dplyr not found\n")
@@ -114,7 +114,7 @@ expect_equal(
 )
 
 expect_equal(
-    with(t_df2, unname(mean_col_if(,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
+    with(t_df2, unname(mean_col_if(not_na,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
     result$not_na
 )
 
@@ -149,7 +149,7 @@ expect_equal(
 
 
 expect_equal(
-    with(df2, unname(mean_col_if(,V1,V2,V3))),
+    with(df2, unname(mean_col_if(not_na,V1,V2,V3))),
     unname(colMeans(df2, na.rm = TRUE))
 )
 
@@ -160,13 +160,28 @@ df2 = as.data.frame(
     matrix(sample(c(1:10,NA),30,replace = TRUE),10)
 )
 
+df2_res = df2
+df2_res[df2_res[[1]] %in% 1:5,1] = NA
+df2_res[df2_res[[2]] %in% 1:5,2] = NA
+df2_res[df2_res[[3]] %in% 1:5,3] = NA
+
+expect_identical(max_row_if(gt(5), df2), do.call(pmax, c(df2_res, list(na.rm = TRUE))))
+expect_identical(min_row_if(gt(5), df2), do.call(pmin, c(df2_res, list(na.rm = TRUE))))
+
+expect_identical(unname(max_col_if(gt(5), df2)), do.call(pmax, c(as.dtfrm(t(df2_res)), list(na.rm = TRUE))))
+expect_identical(unname(min_col_if(gt(5), df2)), do.call(pmin, c(as.dtfrm(t(df2_res)), list(na.rm = TRUE))))
 
 
-expect_identical(max_row_if(gt(0), df2), do.call(pmax, c(df2, list(na.rm = TRUE))))
-expect_identical(min_row_if(gt(0), df2), do.call(pmin, c(df2, list(na.rm = TRUE))))
+#######
 
-expect_identical(unname(max_col_if(gt(0), df2)), do.call(pmax, c(as.dtfrm(t(df2)), list(na.rm = TRUE))))
-expect_identical(unname(min_col_if(gt(0), df2)), do.call(pmin, c(as.dtfrm(t(df2)), list(na.rm = TRUE))))
+data(iris)
+iris$Species = as.character(iris$Species)
+expect_equal(max_row_if(gt("0"), iris), apply(iris, 1, max))
+expect_equal(max_col_if(gt("0"), iris), apply(iris, 2, max))
+
+expect_equal(min_row_if(gt("0"), iris), gsub("\\.0$","", apply(iris, 1, min), perl = TRUE))
+expect_equal(min_col_if(gt("0"), iris), apply(iris, 2, min))
+
 
 context("errors")
 data(iris)

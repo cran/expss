@@ -17,7 +17,8 @@
 #' 
 #' \code{read_spss_to_list} returns list of variables from SPSS files.
 #' 
-#' @seealso \link[foreign]{read.spss} in package \code{foreign}, \link{val_lab}, \link{var_lab} 
+#' @seealso \link[foreign]{read.spss} in package \code{foreign}, \link{val_lab},
+#'   \link{var_lab}
 #' 
 #' @export
 #' @examples
@@ -38,6 +39,9 @@ read_spss=function(file, reencode = TRUE){
 #' @export
 #' @rdname read_spss
 read_spss_to_list=function(file, reencode = TRUE){
+    if(is.character(file)){
+        file = gsub("^file\\:///", "", file, perl = TRUE)
+    }
     spss = foreign::read.spss(enc2native(file), use.value.labels=FALSE, to.data.frame=FALSE, reencode = reencode, use.missings = FALSE)
     var_names = names(spss)
     var_labs = attr(spss,'variable.labels')

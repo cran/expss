@@ -9,19 +9,19 @@ var_lab(vec) = "vector"
 expect_identical(names2labels(vec),cbind(vector = vec))
 
 mat = matrix(1:9,ncol=3)
+# 
+# expect_identical(names2labels(mat),mat)
 
-expect_identical(names2labels(mat),mat)
-
-var_lab(mat) = "matrix"
-
-out_mat =  mat
-colnames(out_mat) = paste0("matrix|",1:3)
-expect_identical(names2labels(mat),out_mat)
+# var_lab(mat) = "matrix"
+# 
+# out_mat =  mat
+# colnames(out_mat) = paste0("matrix|",1:3)
+# expect_identical(names2labels(mat),out_mat)
 
 colnames(mat) = letters[1:3]
-out_mat =  mat
-colnames(out_mat) = paste0("matrix|",letters[1:3])
-expect_identical(names2labels(mat),out_mat)
+# out_mat =  mat
+# colnames(out_mat) = paste0("matrix|",letters[1:3])
+# expect_identical(names2labels(mat),out_mat)
 
 df = as.data.frame(mat)
 
@@ -40,9 +40,9 @@ expect_identical(names2labels(df, exclude = "a"), df)
 expect_identical(names2labels(df, exclude = 1), df)
 expect_identical(names2labels(df, exclude = c(TRUE, FALSE, FALSE)), df)
 
-colnames(out_df)[1] = "column a (a)"
+colnames(out_df)[1] = "a column a"
 
-expect_identical(names2labels(df, keep_names = TRUE),out_df)
+expect_identical(names2labels(df, keep_names = TRUE), out_df)
 expect_identical(names2labels(df, exclude = "a", keep_names = TRUE), df)
 expect_identical(names2labels(df, exclude = 1, keep_names = TRUE), df)
 expect_identical(names2labels(df, exclude = c(TRUE, FALSE, FALSE), keep_names = TRUE), df)

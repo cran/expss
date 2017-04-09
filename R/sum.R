@@ -1,12 +1,11 @@
 #' Compute sum/mean/sd/median/max/min/custom function on rows/columns 
 #' 
-#' This are convenience functions for usage inside \link{modify},
-#' \link{modify_if}, \link[base]{with}, \link[base]{within} and \code{dplyr}
-#' \code{mutate} functions. sum/mean/sd/median/max/min always omits NA.
-#' \code{any_in_*} checks existence of any TRUE in each row/column. It is 
-#' equivalent of \link[base]{any} applied to each row/column. \code{all_in_*} is
-#' equivalent of \link[base]{all} applied to each row/column. They don't
-#' remove NA.
+#' These functions are intended for usage inside \link{modify}, 
+#' \link{modify_if}, \link[base]{with} and \link[base]{within} functions. 
+#' sum/mean/sd/median/max/min always omits NA. \code{any_in_*} checks existence 
+#' of any TRUE in each row/column. It is equivalent of \link[base]{any} applied 
+#' to each row/column. \code{all_in_*} is equivalent of \link[base]{all} applied
+#' to each row/column. They don't remove NA.
 #' 
 #' @param ... data. Vectors, matrixes, data.frames, list. Shorter arguments
 #'   will be recycled.
@@ -114,7 +113,7 @@ sd_row=function(...){
 #' @rdname sum_row
 sd_col=function(...){
     data = dots2data_frame(...)
-    apply(data, 2, stats::sd, na.rm=TRUE)
+    vapply(data, stats::sd, FUN.VALUE = numeric(1), na.rm=TRUE)
 }
 
 ################################################
@@ -134,7 +133,7 @@ median_row=function(...){
 #' @rdname sum_row
 median_col=function(...){
     data = dots2data_frame(...)
-    apply(data, 2, stats::median, na.rm=TRUE)
+    vapply(data, stats::median, FUN.VALUE = numeric(1), na.rm=TRUE)
 }
 
 
@@ -145,7 +144,7 @@ median_col=function(...){
 max_row=function(...){
     data = dots2data_frame(...)
     res = suppressWarnings(do.call(pmax, c(data, na.rm=TRUE)))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -155,7 +154,7 @@ max_row=function(...){
 max_col=function(...){
     data = dots2data_frame(...)
     res = suppressWarnings(apply(data, 2, max, na.rm=TRUE))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -167,7 +166,7 @@ max_col=function(...){
 min_row=function(...){
     data = dots2data_frame(...)
     res = suppressWarnings(do.call(pmin, c(data, na.rm=TRUE)))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -177,7 +176,7 @@ min_row=function(...){
 min_col=function(...){
     data = dots2data_frame(...)
     res = suppressWarnings(apply(data, 2, min, na.rm=TRUE))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -195,7 +194,7 @@ apply_row = function(fun, ...){
 #' @rdname sum_row
 apply_col = function(fun, ...){
     data = dots2data_frame(...)  
-    apply(data, 2, fun)
+    sapply(data, fun)
 }
 
 
@@ -220,9 +219,10 @@ dots2list = function(...){
 
 dots2data_frame = function(...){
     args = dots2list(...)
+    if(length(args)==1 && is.data.frame(args[[1]])) return(args[[1]])
     zero_length = lengths(args)==0
     args[zero_length] = NA
-    do.call(data.frame,c(args,stringsAsFactors=FALSE, check.names = FALSE)) 
+    as.data.frame(args,stringsAsFactors=FALSE, check.names = FALSE)
     
 }
     

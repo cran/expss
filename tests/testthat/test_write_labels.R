@@ -5,7 +5,9 @@ if(isTRUE(options("covr")[[1]])){
     aaa = suppressWarnings(read_spss("data/7556w2_4Client_prelaunch.sav"))
     bbb = suppressWarnings(read_spss("data/2014-2016final.sav"))
     nsk = suppressWarnings(read_spss("data/NSK_all.sav"))
+    nsk2 = suppressWarnings(read_spss("file:///data/NSK_all.sav"))
     expect_equal_to_reference(nsk, "rds/nsk.rds")
+    expect_equal_to_reference(nsk2, "rds/nsk.rds")
     aaa2 = cbind(aaa, empty = NA, fac = factor("a"), fractional = 1.2345)
     write_labelled_spss(aaa2, "data/prelaunch.csv")
     dat = readLines("data/prelaunch.csv")
@@ -44,13 +46,49 @@ if(isTRUE(options("covr")[[1]])){
     unlink("data/labelled_iris.csv.sps")
     
     write_labelled_csv(aaa, "data/aaa.csv")
+    write_labelled_csv2(aaa2, "data/aaa_csv2.csv")
+    write_labelled_tab(aaa2, "data/aaa_tab.csv")
+    write_labelled_tab2(aaa2, "data/aaa_tab2.csv")
+    
+    aaa2_csv2 = read_labelled_csv2("data/aaa_csv2.csv")
+    aaa2_tab = read_labelled_tab("data/aaa_tab.csv")
+    aaa2_tab2 = read_labelled_tab2("data/aaa_tab2.csv")
+    
+    aaa_test = cbind(aaa, empty = NA, fac = "a", fractional = 1.2345)
+    obj1 = aaa2_csv2
+    obj2 = aaa_test
+    res = sapply(colnames(obj1), function(col) all(obj1[[col]] == obj2[[col]], na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    
+    obj1 = aaa2_tab
+    obj2 = aaa_test
+    res = sapply(colnames(obj1), function(col) all(obj1[[col]] == obj2[[col]], na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    
+    obj1 = aaa2_tab2
+    obj2 = aaa_test
+    res = sapply(colnames(obj1), function(col) all(obj1[[col]] == obj2[[col]], na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+    res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
+    expect_equal(length(res), 0 )
+ 
     write_labelled_csv(bbb, "data/bbb.csv")
-    write_labelled_csv(raw_data, "data/raw.csv.gz")
+    # write_labelled_csv(raw_data, "data/raw.csv.gz")
     
     
     a2 = read_labelled_csv("data/aaa.csv")
     b2 = read_labelled_csv("data/bbb.csv")
-    raw_gz = read_labelled_csv("data/raw.csv.gz")
+    # raw_gz = read_labelled_csv("data/raw.csv.gz")
     
     ### data
     obj1 = aaa
@@ -64,10 +102,10 @@ if(isTRUE(options("covr")[[1]])){
     expect_equal(length(res), 0 )
     
     
-    obj1 = raw_data
-    obj2 = raw_gz
-    res = sapply(colnames(obj1), function(col) all(obj1[[col]] == obj2[[col]], na.rm = TRUE)) %d% TRUE
-    expect_equal(length(res), 0 )
+    # obj1 = raw_data
+    # obj2 = raw_gz
+    # res = sapply(colnames(obj1), function(col) all(obj1[[col]] == obj2[[col]], na.rm = TRUE)) %d% TRUE
+    # expect_equal(length(res), 0 )
     
     ### val labs
     obj1 = aaa
@@ -80,10 +118,10 @@ if(isTRUE(options("covr")[[1]])){
     res = sapply(colnames(obj1), function(col) all(val_lab(obj1[[col]]) == val_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
     expect_equal(length(res), 0 )
     
-    obj1 = raw_data
-    obj2 = raw_gz
-    res = sapply(colnames(obj1), function(col) all(val_lab(obj1[[col]]) == val_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
-    expect_equal(length(res), 0 )
+    # obj1 = raw_data
+    # obj2 = raw_gz
+    # res = sapply(colnames(obj1), function(col) all(val_lab(obj1[[col]]) == val_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
+    # expect_equal(length(res), 0 )
     
     
     #############
@@ -98,10 +136,10 @@ if(isTRUE(options("covr")[[1]])){
     res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
     expect_equal(length(res), 0 )
     
-    obj1 = raw_data
-    obj2 = raw_gz
-    res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
-    expect_equal(length(res), 0 )
+    # obj1 = raw_data
+    # obj2 = raw_gz
+    # res = sapply(colnames(obj1), function(col) all(trimws(names(val_lab(obj1[[col]]))) == trimws(names(val_lab(obj2[[col]]))), na.rm = TRUE)) %d% TRUE
+    # expect_equal(length(res), 0 )
     
     ### var labs
     obj1 = aaa
@@ -114,20 +152,32 @@ if(isTRUE(options("covr")[[1]])){
     res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
     expect_equal(length(res), 0 )
     
-    obj1 = raw_data
-    obj2 = raw_gz
-    res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
-    expect_equal(length(res), 0 )
+    # obj1 = raw_data
+    # obj2 = raw_gz
+    # res = sapply(colnames(obj1), function(col) all(var_lab(obj1[[col]]) == var_lab(obj2[[col]]), na.rm = TRUE)) %d% TRUE
+    # expect_equal(length(res), 0 )
     
     unlink("data/aaa.csv.dic.R")
     expect_warning(read_labelled_csv("data/aaa.csv"))
     
+    ####### wrong slash
+    w = read_spss("data/wrong_slash.sav")
+    
+    write_labelled_csv(w, "data/wrong_slash.csv")
+    w2 = read_labelled_csv("data/wrong_slash.csv")
+    expect_true(all.equal(w, w2))
+    
+    unlink("data/wrong_slash.csv")
+    unlink("data/wrong_slash.csv.dic.R")
     unlink("data/prelaunch.csv")
     unlink("data/prelaunch.csv.sps")
     unlink("data/aaa.csv")
     unlink("data/bbb.csv")
     unlink("data/bbb.csv.dic.R")
-    unlink("data/raw.csv.gz")
-    unlink("data/raw.csv.gz.dic.R")
+    # unlink("data/raw.csv.gz")
+    # unlink("data/raw.csv.gz.dic.R")
+    unlink("data/aaa_csv2.csv")
+    unlink("data/aaa_tab.csv")
+    unlink("data/aaa_tab2.csv")
     
 }

@@ -2,9 +2,9 @@
 #'
 #' \code{add_rows} is similar to \link[base]{rbind} but it handles non-matching 
 #' column names. \code{\%add_rows\%} is an infix version of \code{add_rows}. 
-#' There is also special method for the results of \code{cro_*}/\code{fre}. 
-#' \code{.add_rows} is version for addding rows to default dataset. See
-#' \link{default_dataset}.
+#' There is also special method for the results of
+#' \link{cro}/\link{cro_fun}/\link{tables}/\link{fre}. \code{.add_rows} is
+#' version for adding rows to default dataset. See \link{default_dataset}.
 #'
 #' @param ... data.frame/matrix/table for binding
 #' @param x data.frame/matrix/table for binding
@@ -14,7 +14,7 @@
 #'   \code{"add"} will combine all columns, \code{"drop"} will leave only common
 #'   columns, \code{"stop"} will raise an error.
 #'
-#' @return See \link[base]{rbind}, \link{cro}, \link{fre}
+#' @return See \link[base]{rbind}, \link{cro}, \link{cro_fun}, \link{fre}, \link{tables} 
 #' @export
 #'
 #' @examples
@@ -28,21 +28,27 @@
 #'
 #' # simple tables
 #' data(mtcars)
+#' # apply labels
+#' mtcars = apply_labels(mtcars,
+#'                 mpg = "Miles/(US) gallon",
+#'                 cyl = "Number of cylinders",
+#'                 disp = "Displacement (cu.in.)",
+#'                 hp = "Gross horsepower",
+#'                 drat = "Rear axle ratio",
+#'                 wt = "Weight (lb/1000)",
+#'                 qsec = "1/4 mile time",
+#'                 vs = "V/S",
+#'                 vs = c("V-engine" = 0, "Straight engine" = 1),
+#'                 am = "Transmission (0 = automatic, 1 = manual)",
+#'                 am = c(automatic = 0, manual = 1),
+#'                 gear = "Number of forward gears",
+#'                 carb = "Number of carburetors"
+#' )
 #' 
-#' mtcars = modify(mtcars, {
-#'             var_lab(mpg) = "Miles/(US) gallon"
-#'             var_lab(vs) = "vs"
-#'             val_lab(vs) = c("V-engine" = 0, "Straight engine" = 1)
-#'             var_lab(am) = "am"
-#'             val_lab(am) = c("automatic transmission" = 1, "manual transmission" = 0)
-#'             var_lab(gear) = "gear"
-#'             var_lab(carb) = "carb"
-#' })
+#' tbl_mean = calculate(mtcars, cro_mean(cyl, am))
+#' tbl_percent = calculate(mtcars, cro_cpct(cyl, am))
 #' 
-#' tab_mean = with(mtcars, cro_mean(mpg, am))
-#' tab_percent = with(mtcars, cro_cpct(vs, am))
-#' 
-#' tab_mean %add_rows% tab_percent
+#' tbl_mean %add_rows% tbl_percent
 #'
 add_rows = function(...){
     UseMethod("add_rows")
@@ -66,23 +72,35 @@ add_rows.default =  function(...){
 
 
 #' @export
-add_rows.simple_table = function(..., nomatch_columns = c("add", "drop", "stop")){
+add_rows.etable = function(..., nomatch_columns = c("add", "drop", "stop")){
     args = list(...)
-    for(each in seq_along(args)){
-        colnames(args[[each]])[1] = "row_labels"
+    all_names = lapply(args, function(x) {
+        clnm = colnames(x)
+        if(!is.null(clnm)){
+            clnm[1]
+        } else {
+            NULL
+        }
+    })
+    all_names = unique(unlist(all_names))
+    if(length(all_names)>1){
+        for(each in seq_along(args)){
+            if(!is.null(colnames(args[[each]]))){
+                colnames(args[[each]])[1] = "row_labels"
+            }
+        }
     }
     classes = lapply(args, class)
     new_class = Reduce('%i%', classes)
     res = do.call(add_rows.data.frame, c(args, list(nomatch_columns = nomatch_columns)))
     if (!("data.frame" %in% new_class)) new_class = union("data.frame", new_class)
-    if (!("simple_table" %in% new_class)) new_class = union("simple_table", new_class)
-    
+    if (!("etable" %in% new_class)) new_class = union("etable", new_class)
+    rownames(res) = NULL
     class(res) = new_class
     res
 }
 
-#' @export
-add_rows.summary_table = add_rows.simple_table
+
 
 add_rows1 = function(x, y, nomatch_columns = c("add", "drop", "stop")){
     nomatch_columns = match.arg(nomatch_columns)
@@ -118,11 +136,11 @@ add_rows1 = function(x, y, nomatch_columns = c("add", "drop", "stop")){
             }
             stopif(nomatch_columns == "stop", "Different column names in 'x' and 'y'.")
         }
-        res = rbind(x, y, stringsAsFactors = FALSE)
+        res = rbind.data.frame(x, y, stringsAsFactors = FALSE)
         if_val(colnames(res), from = temp_names) = true_names
         res
     } else {
-        rbind(x, y, stringsAsFactors = FALSE)
+        rbind.data.frame(x, y, stringsAsFactors = FALSE)
     }
 }
 
@@ -137,6 +155,7 @@ add_rows1 = function(x, y, nomatch_columns = c("add", "drop", "stop")){
 .add_rows = function(..., nomatch_columns = c("add", "drop", "stop")){
     reference = suppressMessages(default_dataset() )
     data = ref(reference)
-    ref(reference) = add_rows(data, ..., nomatch_columns = nomatch_columns)
-    invisible(NULL)
+    data = add_rows(data, ..., nomatch_columns = nomatch_columns)
+    ref(reference) = data
+    invisible(data)
 }

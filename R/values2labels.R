@@ -8,7 +8,7 @@
 #' @param x vector/matrix/data.frame/list
 #' @return Object of the same form as x but with value labels instead of values.
 #'  
-#' @seealso \link{f}, \link{names2labels}, \link{val_lab},  \link{var_lab}
+#' @seealso \link{names2labels}, \link{val_lab},  \link{var_lab}
 #' @examples
 #' data(mtcars)
 #' mtcars = modify(mtcars,{
@@ -36,13 +36,8 @@ values2labels.default = function(x){
 
 #' @export
 values2labels.matrix = function(x){
-    vallab = val_lab(x)
-    if(is.null(vallab)) return(x)
-    res = names(vallab)[match(x,vallab,incomparables = NA)]
-    res_na = is.na(res)
-    if(any(res_na)) res[res_na] = x[res_na]
+    res = values2labels.default(x)
     res = matrix(res, nrow = nrow(x), ncol = ncol(x))
-    var_lab(res) = var_lab(x)
     res
     
 }

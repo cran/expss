@@ -1,24 +1,24 @@
 #' Criteria functions
 #' 
 #' These functions returns criteria functions which could be used in different 
-#' situation - see \link{keep}, \link{except}, \link{if_val}, \link{na_if},
+#' situation - see \link{keep}, \link{except}, \link{recode}, \link{na_if},
 #' \link{\%i\%}, \link{\%d\%}, \link{count_if}, \link{match_row} etc. For
 #' example, \code{gt(5)} returns function which tests whether its argument
 #' greater than five.
 #' \code{fixed("apple")} return function which tests whether its argument
-#' contains "apple". Logical operations (|, &, !, xor) defined for these
+#' contains "apple". Logical operations (|, &, !, xor) are defined for these
 #' functions.
 #' List of functions:
 #' \itemize{
 #' \item{\code{gt}}{ greater than}
-#' \item{\code{gte}/\code{ge}}{ greater than or equal}
+#' \item{\code{ge}/\code{gte}}{ greater than or equal}
 #' \item{\code{eq}}{ equal} 
-#' \item{\code{neq}/\code{ne}}{ not equal} 
+#' \item{\code{ne}/\code{neq}}{ not equal} 
 #' \item{\code{lt}}{ less than}
-#' \item{\code{lte}/\code{le}}{ less than or equal}
+#' \item{\code{le}/\code{lte}}{ less than or equal}
 #' \item{\code{thru}}{ checks whether value is inside interval.
-#' \code{thru(0,1)} is equivalent of \code{x>=0 & x<=1} or \code{gte(0) &
-#' lte(1)}}
+#' \code{thru(0,1)} is equivalent of \code{x>=0 & x<=1} or \code{ge(0) &
+#' le(1)}}
 #' \item{\code{\%thru\%}}{ infix version of \code{thru}, e. g. \code{0 \%thru\% 1}}
 #' \item{\code{regex}}{ use POSIX 1003.2 extended regular expressions. For details see \link[base]{grepl}}
 #' \item{\code{perl}}{ perl-compatible regular expressions. For details see \link[base]{grepl}}
@@ -31,6 +31,8 @@
 #' \item{\code{not_na}}{ return TRUE for all non-NA elements of vector.} 
 #' \item{\code{other}}{ return TRUE for all elements of vector. It is intended
 #' for usage with \code{if_val}, \code{keep}, \code{except}}
+#' \item{\code{items}}{ return TRUE for elements of vector with given
+#' sequential number. It is intended for usage with \code{keep}, \code{except}}
 #' } 
 #' 
 #' @param x vector 
@@ -41,11 +43,15 @@
 #'   Coerced by as.character to a character string if possible.
 #' @param ignore.case logical see \link[base]{grepl}
 #' @param useBytes logical see \link[base]{grepl}
+#' @param ... numeric indexes of desired items
+#' @param crit vector of values/function which returns logical or vector. It will be
+#'   converted to function of class criterion.
 #'
-#' @return function of class 'criterion' which tests its argument against condition and return logical value
+#' @return function of class 'criterion' which tests its argument against
+#'   condition and return logical value
 #' 
-#' @seealso \link{keep}, \link{except}, \link{count_if}, \link{match_row},
-#'   \link{if_val}, \link{na_if}, \link{\%i\%}, \link{\%d\%}
+#' @seealso \link{recode}, \link{keep}, \link{except}, \link{count_if},
+#'   \link{match_row}, \link{na_if}, \link{\%i\%}, \link{\%d\%}
 #' @examples
 #' # operations on vector
 #' 1:6 %d% gt(4) # 1:4
@@ -64,15 +70,15 @@
 #' 
 #' # examples with count_if
 #' df1 = data.frame(
-#'     a=c("apples",   "oranges",     "peaches",     "apples"),
+#'     a=c("apples", "oranges", "peaches", "apples"),
 #'     b = c(32, 54, 75, 86)
 #' )
 #' 
 #' count_if(gt(55), df1$b) # greater than 55 = 2
 #' 
-#' count_if(neq(75), df1$b) # not equal 75 = 3
+#' count_if(ne(75), df1$b) # not equal 75 = 3
 #' 
-#' count_if(gte(32), df1$b) # greater than or equal 32 = 4
+#' count_if(ge(32), df1$b) # greater than or equal 32 = 4
 #' 
 #' count_if(gt(32) & lt(86), df1$b) # greater than 32 and less than 86 = 2
 #' 
@@ -82,10 +88,10 @@
 #' count_if(35 %thru% 80, df1$b) # greater than or equals to 35 and less than or equals to 80 = 2
 #' 
 #' # values that started on 'a'
-#' count_if(regex("^a"),df1) # 2
+#' count_if(regex("^a"), df1) # 2
 #' 
 #' # count_row_if
-#' count_row_if(regex("^a"),df1) # c(1,0,0,1)
+#' count_row_if(regex("^a"), df1) # c(1,0,0,1)
 #' 
 #' # examples with 'keep' and 'except'
 #' 
@@ -95,43 +101,42 @@
 #' # 'Sepal.Length', 'Sepal.Width' will be left 
 #' iris %except% from("Petal.Length") 
 #' 
+#' # except first column
+#' iris %except% items(1)
+#' 
 #' # if_val examples
 #' # From SPSS: RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
 #' set.seed(123)
 #' qvar = sample((-5):20, 50, replace = TRUE)
-#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, other ~ 0)
+#' recode(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, 11 %thru% hi ~ 3, other ~ 0)
 #' # the same result
-#' if_val(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, gte(11) ~ 3, other ~ 0)
+#' recode(qvar, 1 %thru% 5 ~ 1, 6 %thru% 10 ~ 2, ge(11) ~ 3, other ~ 0)
 #' 
 #' 
 #' @name criteria
 #' @export
 eq = function(x){
     force(x)
-    res = function(y) {
-        cond = y == x
-        cond
-    }
-    class(res) = union("criterion",class(res))
-    res
-}
-
-#' @export
-#' @rdname criteria
-neq = function(x){
-    force(x)
-    res = function(y) {
-        cond = y != x
-        cond   
-    }    
-    class(res) = union("criterion",class(res))
-    res
+    as.criterion(function(y) {
+        y == x
+    })
     
 }
 
 #' @export
 #' @rdname criteria
-ne = neq
+ne = function(x){
+    force(x)
+    as.criterion(function(y) {
+        y != x
+    })  
+    
+    
+}
+
+#' @export
+#' @rdname criteria
+neq = ne
 
 #' @export
 #' @rdname criteria
@@ -150,66 +155,67 @@ gt = function(x){
 
 #' @export
 #' @rdname criteria
-lte = function(x){
+le = function(x){
     build_compare(x,"<=")    
 
 }
 
 #' @export
 #' @rdname criteria
-le = lte
+lte = le
 
 #' @export
 #' @rdname criteria
-gte = function(x){
+ge = function(x){
     build_compare(x,">=")       
 }
 
 #' @export
 #' @rdname criteria
-ge = gte
+gte = ge
 
 #' @export
 #' @rdname criteria
 perl = function(pattern, ignore.case = FALSE, useBytes = FALSE){
     pattern
-    res = function(x){
+    ignore.case
+    useBytes
+    as.criterion(function(x){
         grepl(pattern, x, ignore.case = ignore.case, perl = TRUE, fixed = FALSE, useBytes = useBytes)
-    }
-    class(res) = union("criterion",class(res))
-    res
+    })
+    
 }
 
 #' @export
 #' @rdname criteria
 regex = function(pattern, ignore.case = FALSE, useBytes = FALSE){
     pattern
-    res = function(x){
+    ignore.case
+    useBytes
+    as.criterion(function(x){
         grepl(pattern, x, ignore.case = ignore.case, perl = FALSE, fixed = FALSE, useBytes = useBytes)
-    }
-    class(res) = union("criterion",class(res))
-    res
+    })
 }
 
 #' @export
 #' @rdname criteria
 fixed = function(pattern, ignore.case = FALSE, useBytes = FALSE){
     pattern
-    res = function(x){
+    ignore.case
+    useBytes
+    as.criterion(function(x){
         grepl(pattern, x, ignore.case = ignore.case, perl = FALSE, fixed = TRUE, useBytes = useBytes)
-    }
-    class(res) = union("criterion",class(res))
-    res
+    })
 }
 
 #' @export
 #' @rdname criteria
 thru = function(lower, upper){
     stopif(is.function(lower) | is.function(upper),
-           "'thru' not defined for functions but 'lower' = ", lower, " and 'upper' = ", upper)
+           "'thru' is not defined for functions but 'lower' = ", lower, " and 'upper' = ", upper)
     force(lower)
     force(upper)
-    gte(lower) & lte(upper)
+    ge(lower) & le(upper)
 }
 
 
@@ -222,30 +228,38 @@ thru = function(lower, upper){
 #' @rdname criteria
 from = function(x){
     x
-    res = function(y){
+    as.criterion(function(y){
         first = match_col(x, y)[1]
         stopif(is.na(first), "'",x, "' not found." )
         positions = seq_along(y)
         positions>=first
         
-    } 
-    class(res) = union("criterion",class(res))
-    res
+    })
+
 }
 
 #' @export
 #' @rdname criteria
 to = function(x){
     x
-    res = function(y){
+    as.criterion(function(y){
         last = match_col(x, y)[1]
         stopif(is.na(last), "'",x, "' not found." )
         positions = seq_along(y)
         positions<=last
         
-    } 
-    class(res) = union("criterion", class(res))
-    res
+    })
+}
+
+#' @export
+#' @rdname criteria
+items = function(...){
+    args = c(list(...), recursive = TRUE)
+    as.criterion(function(x){
+        numbers = seq_along(x)    
+        numbers %in% args
+    })
+
 }
 
 
@@ -260,7 +274,7 @@ class(not_na) = union("criterion",class(not_na))
 #' @export
 #' @rdname criteria
 other = function(x){
-    is.na(x) | TRUE 
+    rep(TRUE, NROW(x)) 
 }
 
 
@@ -275,26 +289,23 @@ build_compare.default = function(x, compare){
     force(x)
     force(compare)
     FUN = match.fun(compare)
-    res = function(y){
+    as.criterion(function(y){
        FUN(y,x)
-    }
-    class(res) = union("criterion",class(res))
-    res
+    })
 }
 
 build_compare.numeric = function(x, compare){
     force(x)
     force(compare)
     FUN = match.fun(compare)
-    res = function(y){
+    as.criterion(function(y){
         if(is.numeric(y)){
             FUN(y,x)
         } else {
-            matrix(FALSE, nrow=NROW(y), ncol=NCOL(y))
+            matrix(FALSE, nrow = NROW(y), ncol = NCOL(y))
         }
-    }
-    class(res) = union("criterion",class(res))
-    res
+    })
+    
     
 }
 
@@ -311,18 +322,8 @@ build_compare.numeric = function(x, compare){
 #' @export
 '|.criterion' = function(e1,e2) {
     # one or both e1, e2 is criterion and criterion can be only logical or function
-    e1
-    e2
-    if (is.function(e1)) {
-        f1 = e1
-    } else {
-        f1 = function(x) x %in% e1
-    }
-    if (is.function(e2)) {
-        f2 = e2
-    } else {
-        f2 = function(x) x %in% e2
-    }
+    f1 = as.criterion(e1)
+    f2 = as.criterion(e2)
     res = function(x) f1(x) | f2(x)
     class(res) = union("criterion",class(res))
     res
@@ -331,25 +332,34 @@ build_compare.numeric = function(x, compare){
 
 #' @export
 '&.criterion' = function(e1,e2) {
-    e1
-    e2
-    if (is.function(e1)) {
-        f1 = e1
-    } else {
-        f1 = function(x) x %in% e1
-    }
-    if (is.function(e2)) {
-        f2 = e2
-    } else {
-        f2 = function(x) x %in% e2
-    }
+    f1 = as.criterion(e1)
+    f2 = as.criterion(e2)
     res = function(x) f1(x) & f2(x)
     class(res) = union("criterion",class(res))
     res
 }
 
 
-
+#' @export
+#' @rdname criteria
+as.criterion = function(crit){
+    force(crit)
+    if (is.function(crit)) {
+        crit = match.fun(crit)
+        res = function(x) {
+            cond = crit(x)
+            cond & !is.na(cond)
+        }
+    } else {
+        if(is.logical(crit) && !(length(crit) == 1L && is.na(crit))){
+            res = function(x) crit & !is.na(crit)
+        } else {
+            res = function(x) x %in% crit       
+        }    
+    }
+    class(res) = union("criterion",class(res))
+    res
+}
 
 
 

@@ -6,11 +6,11 @@
 #' @param x data.frame/list.
 #' @param exclude logical/integer/character columns which names should be left
 #'   unchanged. Only applicable to list/data.frame.
-#' @param keep_names logical. If TRUE original column names will be appended to
-#'   labels in round brackets. Only applicable to list/data.frame.
+#' @param keep_names logical. If TRUE original column names will be kept with
+#'   labels. Only applicable to list/data.frame.
 #' @return Object of the same type as x but with variable labels instead of
 #'   names. 
-#' @seealso \link{values2labels}, \link{f}, \link{val_lab},  \link{var_lab}
+#' @seealso \link{values2labels}, \link{val_lab},  \link{var_lab}
 #' @examples
 #' data(mtcars)
 #' mtcars = modify(mtcars,{
@@ -75,7 +75,7 @@ names2labels.list = function(x, exclude = NULL, keep_names = FALSE){
     }
     include = !no_labs & include
     labs = unlist(labs[include])
-    if (keep_names) labs = paste0(labs," (",names(x)[include],")")
+    if (keep_names) labs = paste0(names(x)[include], " ", labs)
     names(x)[include] = labs
     x
 }
@@ -86,18 +86,53 @@ names2labels.data.frame = function(x, exclude = NULL, keep_names = FALSE){
     
 }
 
-#' @export
-names2labels.matrix = function(x, exclude = NULL, keep_names = FALSE){
-    lab = var_lab(x)
-    if (is.null(lab) || (lab=="")) return(x)
-    clm = colnames(x)
-    if (is.null(clm)) clm = seq_len(ncol(x))
-    colnames(x) = paste0(lab,LABELS_SEP,clm)
-    x
 
-}
 
 
 #' @export
 #' @rdname names2labels
 n2l = names2labels
+
+### set variable label to variable name if label is absent
+make_labels_from_names = function(x){
+    UseMethod("make_labels_from_names")
+}
+
+#' @export
+make_labels_from_names.default = function(x){
+   x
+}
+
+#' @export
+make_labels_from_names.data.frame = function(x){
+    for(each in seq_along(x)){
+        if(is.null(var_lab(x[[each]]))){
+            var_lab(x[[each]]) = names(x)[each]
+        }
+    }
+    x
+}
+
+#' @export
+make_labels_from_names.list = function(x){
+    list_names = names(x)
+    for(each in seq_along(x)){
+        if(!is.null(list_names) && !is.matrix(x) && !is.data.frame(x) && is.null(var_lab(x[[each]]))){
+            var_lab(x[[each]]) = list_names[each]
+        } else {
+            if(is.data.frame(x) || is.list(x)){
+                x[[each]] = make_labels_from_names(x[[each]])
+            }            
+        }
+    }
+    x
+}
+
+make_value_labels_from_names = function(x){
+    for(each in seq_along(x)){
+        curr_lab = if_null(var_lab(x[[each]]), names(x)[each])
+        x[[each]] = set_val_lab(x[[each]], setNames(1, curr_lab))
+        x[[each]] = unvr(x[[each]])
+    }
+    x
+}

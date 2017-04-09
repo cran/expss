@@ -1,8 +1,9 @@
-#' expss: Some Useful Functions from Spreadsheets and SPSS Statistics
+#' expss: Tables with Labels and Some Useful Functions from Spreadsheets and SPSS Statistics
 #' 
-#' 'expss' package implements some popular functions from spreadsheets and SPSS
-#' Statistics software. Implementations are not complete copies of their
-#' originals. I try to make them consistent with other R functions. See examples in vignette and in help.
+#' 'expss' package implements some popular functions from spreadsheets and SPSS 
+#' Statistics software. Implementations are not complete copies of their 
+#' originals. I try to make them consistent with other R functions. See examples
+#' in the vignette and in the help.
 #' 
 #' @section Excel:
 #' \itemize{
@@ -21,18 +22,20 @@
 #' \item{IFNA }{\link{if_na}}
 #' \item{MATCH }{\link{match_row}}
 #' \item{INDEX }{\link{index_row}}
+#' \item{PIVOT TABLES}{\link{tables}, \link{cro_fun}, \link{cro}}
 #' }
 #' @section SPSS:
 #' \itemize{
-#' \item{COMPUTE }{\link{modify}}
-#' \item{DO IF }{\link{modify_if}}
-#' \item{RECODE }{\link{if_val}}
+#' \item{COMPUTE }{\link{compute}}
+#' \item{DO IF }{\link{do_if}}
+#' \item{RECODE }{\link{recode}}
 #' \item{COUNT }{\link{count_row_if}}
 #' \item{VARIABLE LABELS }{\link{var_lab}}
 #' \item{VALUE LABELS }{\link{val_lab}}
 #' \item{ANY }{\link{any_in_row}}
 #' \item{FREQUENCIES }{\link{fre}}
 #' \item{CROSSTABS }{\link{cro}}
+#' \item{CUSTOM TABLES}{\link{tables}}
 #' }
 #' 
 #' 
@@ -41,4 +44,34 @@
 NULL
 
 
-#' @import foreign stats utils
+#' @import data.table
+#' @import htmlTable 
+#' @import htmltools
+#' @import DT
+#' @import magrittr
+#' @import foreign stats utils matrixStats
+
+
+data.table = data.table::data.table
+as.data.table = data.table::as.data.table
+setkeyv = data.table::setkeyv
+# fwrite = data.table::fwrite
+# fread = data.table::fread
+# '[.data.table' = data.table::`[.data.table`
+
+
+.onLoad = function(...){
+    options(expss.output = "")
+    options(expss.digits = 1)
+    options(expss.enable_value_labels_support = 1)
+}
+
+.onAttach = function(...) {
+    rnd = runif(1)
+    if(rnd<0.2){
+        packageStartupMessage("\nUse \'options(expss.output = \"viewer\")\' to display tables in the RStudio Viewer.\n To return to the console output, use \'options(expss.output = NA)\'.\n")
+    }
+    if(rnd>0.8){
+        packageStartupMessage("\nUse \'options(expss.output = \"rnotebook\")\' to display tables inside R Notebooks.\n To return to the console output, use \'options(expss.output = NA)\'.\n")
+    }
+}

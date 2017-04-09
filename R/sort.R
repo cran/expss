@@ -90,7 +90,7 @@ sort_internal = function(data, ..., decreasing, na.last){
 
 #' @export
 sort_asc.list= function(data, ..., na.last = FALSE){
-    stop("Sorting in not implemented for lists.")
+    stop("Sorting not yet implemented for lists.")
 }
 
 #' @rdname sort_asc
@@ -105,8 +105,9 @@ sort_asc.list= function(data, ..., na.last = FALSE){
 .sort_asc = function(..., na.last = FALSE){
     reference = suppressMessages(default_dataset() )
     data = ref(reference)
-    ref(reference) = sort_asc(data, ..., na.last = na.last)
-    invisible(NULL)
+    data = sort_asc(data, ..., na.last = na.last)
+    ref(reference) = data
+    invisible(data)
 }
 
 #' @rdname sort_asc
@@ -128,8 +129,9 @@ sort_desc = function(data, ..., na.last = TRUE){
 .sort_desc = function(..., na.last = TRUE){
     reference = suppressMessages(default_dataset() )
     data = ref(reference)
-    ref(reference) = sort_desc(data, ..., na.last = na.last)
-    invisible(NULL)
+    data = sort_desc(data, ..., na.last = na.last)
+    ref(reference) = data
+    invisible(data)
 }
 
 #' @export

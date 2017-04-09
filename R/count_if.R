@@ -12,8 +12,8 @@
 #' @param ... Data on which criterion will be applied. Vector, matrix,
 #'   data.frame, list. Shorter arguments will be recycled.
 #'   
-#' @param x Counted values or criterion for counting. Vector, matrix, data.frame,
-#'   list, function. Shorter columns in list will be recycled.
+#' @param x Data on which criterion will be applied. Vector, matrix,
+#'   data.frame, list. Shorter arguments will be recycled.
 #'   
 #' @param data Data on which function will be applied. Doesn't applicable to 
 #'   \code{count_*_if} functions. If omitted then function will be applied on
@@ -25,27 +25,25 @@
 #' \code{*_if} return single value (vector of length 1). 
 #' \code{*_row_if} returns vector for each row of supplied arguments.
 #' \code{*_col_if} returns vector for each column of supplied arguments.
-#' \code{\%in_row\%}/\code{\%in_col\%} return logical vector - indicator of
+#' \code{\%row_in\%}/\code{\%col_in\%} return logical vector - indicator of
 #' presence of criterion in each row/column.
 #' 
 #' @details
 #' Possible type for criterion argument:
 #' \itemize{
 #' \item{vector/single value}{ All values in \code{...} which equal to elements of
-#' vector in criteria will be used as function argument.}
+#' vector in criteria will be used as function \code{fun} argument.}
 #' \item{function}{ Values for which function gives TRUE will be used as 
-#' function argument. There are some special functions for convenience (e. g.
-#' \code{gt(5)} is equivalent ">5" in spreadsheet) - see \link{criteria}.}
-#' \item{logical vector/matrix/data.frame}{ Values for which element of
-#' criterion equals to TRUE will be used as function argument. Logical vector
-#' will be recycled across all columns of \code{...}\code{data}. If criteria is
-#' logical matrix/data.frame then column from this matrix/data.frame will be
-#' used for corresponding column/element of \code{...}\code{data}. Note that
-#' this kind of criterion doesn't use \code{...} so \code{...} can be used
-#' instead of \code{data} argument.}}
-#' 
-#' If criterion is missing (or is NULL) then non-NA's values will be
-#'   used for function.
+#' function \code{fun} argument. There are some special functions for
+#' convenience (e. g. \code{gt(5)} is equivalent ">5" in spreadsheet) - see
+#' \link{criteria}.}
+#' \item{logical vector/matrix/data.frame}{ Values for which element of 
+#' criterion equals to TRUE will be used as function \code{fun} argument.
+#' Logical vector will be recycled across all columns of \code{...}\code{data}.
+#' If criteria is logical matrix/data.frame then column from this
+#' matrix/data.frame will be used for corresponding column/element of
+#' \code{...}\code{data}. Note that this kind of criterion doesn't use
+#' \code{...} so \code{...} can be used instead of \code{data} argument.}}
 #' 
 #' \code{count*} and \code{\%in*\%} never returns NA's. Other functions remove
 #' NA's before calculations (as \code{na.rm = TRUE} in base R functions).
@@ -62,7 +60,7 @@
 #' @examples
 #' set.seed(123)
 #' dfs = as.data.frame(
-#'        matrix(sample(c(1:10,NA),30,replace = TRUE),10)
+#'        matrix(sample(c(1:10,NA), 30, replace = TRUE), 10)
 #' )
 #' 
 #' result  = modify(dfs, {
@@ -77,9 +75,9 @@
 #'              # count NA 
 #'              na = count_row_if(is.na, V1, V2, V3)
 #'              # count not-NA 
-#'              not_na = count_row_if(, V1, V2, V3) 
+#'              not_na = count_row_if(not_na, V1, V2, V3) 
 #'              # are there any 5 in each row?
-#'              has_five = 5 %in_row% cbind(V1, V2, V3)  
+#'              has_five = cbind(V1, V2, V3) %row_in% 5   
 #'          })  
 #' result
 #'  
@@ -95,37 +93,37 @@
 #'  
 #' # Examples borrowed from Microsoft Excel help for COUNTIF
 #' df1 = data.frame(
-#'     a=c("apples",   "oranges",     "peaches",     "apples"),
+#'     a = c("apples",   "oranges",     "peaches",     "apples"),
 #'     b = c(32, 54, 75, 86)
 #' )
 #' 
-#' count_if("apples",df1$a) # 2
+#' count_if("apples", df1$a) # 2
 #' 
-#' count_if("apples",df1) # 2
+#' count_if("apples", df1) # 2
 #' 
-#' with(df1,count_if("apples",a,b)) # 2
+#' with(df1, count_if("apples", a, b)) # 2
 #' 
-#' count_if(gt(55),df1$b) # greater than 55 = 2
+#' count_if(gt(55), df1$b) # greater than 55 = 2
 #' 
-#' count_if(neq(75),df1$b) # not equal 75 = 3
+#' count_if(ne(75), df1$b) # not equal 75 = 3
 #' 
-#' count_if(gte(32),df1$b) # greater than or equal 32 = 4
+#' count_if(ge(32), df1$b) # greater than or equal 32 = 4
 #' 
-#' count_if(gt(32) & lt(86),df1$b) # 2
+#' count_if(gt(32) & lt(86), df1$b) # 2
 #' 
 #' # count only integer values between 33 and 85
-#' count_if(33:85,df1$b) # 2
+#' count_if(33:85, df1$b) # 2
 #' 
 #' # values with letters
-#' count_if(regex("^[A-z]+$"),df1) # 4
+#' count_if(regex("^[A-z]+$"), df1) # 4
 #' 
 #' # values that started on 'a'
-#' count_if(regex("^a"),df1) # 2
+#' count_if(regex("^a"), df1) # 2
 #' 
 #' # count_row_if
-#' count_row_if(regex("^a"),df1) # c(1,0,0,1)
+#' count_row_if(regex("^a"), df1) # c(1,0,0,1)
 #' 
-#' 'apples' %in_row% df1  # c(TRUE,FALSE,FALSE,TRUE)
+#' df1 %row_in% 'apples'  # c(TRUE,FALSE,FALSE,TRUE)
 #' 
 #' # Some of Microsoft Excel examples for SUMIF/AVERAGEIF/etc 
 #' dfs = read.csv(
@@ -217,11 +215,11 @@
 #'     ,stringsAsFactors = FALSE
 #' )
 #' 
-#' # Minimum gade for weight equals to 1
+#' # Minimum grade for weight equals to 1
 #' with(dfs, min_if(1, weight, data = grade)) # 88
 #' 
 #' 
-#' # Maximum gade for weight equals to 1
+#' # Maximum grade for weight equals to 1
 #' with(dfs, max_if(1, weight, data = grade)) #91
 #' 
 #' 
@@ -241,7 +239,7 @@
 #' with(dfs, min_if("a", grade[2:5], data = weight[1:4])) # 10
 #' 
 #' 
-count_if=function(criterion = NULL,...){
+count_if=function(criterion,...){
     dfs = dots2data_frame(...)   
     cond = build_criterion(criterion, dfs)
     sum(cond,na.rm=TRUE)
@@ -249,7 +247,7 @@ count_if=function(criterion = NULL,...){
 
 #' @export
 #' @rdname count_if
-count_row_if=function(criterion = NULL,...){
+count_row_if=function(criterion,...){
     dfs = dots2data_frame(...)   
     cond = build_criterion(criterion, dfs)
     rowSums(cond,na.rm=TRUE)
@@ -258,35 +256,37 @@ count_row_if=function(criterion = NULL,...){
 
 #' @export
 #' @rdname count_if
-count_col_if=function(criterion = NULL,...){
+count_col_if=function(criterion,...){
     dfs = dots2data_frame(...)   
     cond = build_criterion(criterion, dfs)
     colSums(cond,na.rm=TRUE)
 }
 
 
+
+
 #' @export
 #' @rdname count_if
-'%in_row%'=function(criterion, x){
+'%row_in%'=function(x, criterion){
     count_row_if(criterion=criterion, x)>0
 }
 
 #' @export
 #' @rdname count_if
-'%in_col%'=function(criterion, x){
+'%col_in%'=function(x, criterion){
     count_col_if(criterion=criterion, x)>0
 }
 
 #' @export
 #' @rdname count_if
-sum_if=function(criterion = NULL, ..., data = NULL){
+sum_if=function(criterion, ..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     sum(data, na.rm = TRUE)
 }
 
 #' @export
 #' @rdname count_if
-sum_row_if=function(criterion = NULL,..., data = NULL){
+sum_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     rowSums(data, na.rm=TRUE)
 }
@@ -294,7 +294,7 @@ sum_row_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-sum_col_if=function(criterion = NULL,..., data = NULL){
+sum_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     colSums(data, na.rm=TRUE)
 }
@@ -304,7 +304,7 @@ sum_col_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-mean_if=function(criterion = NULL, ..., data = NULL){
+mean_if=function(criterion, ..., data = NULL){
     data = as.matrix(fun_if_helper(criterion = criterion, ..., data = data))
     if(!(is.numeric(data) | is.logical(data) | is.complex(data))) {
         stop("Invalid argument type: for averaging it should be numeric or logical")
@@ -314,7 +314,7 @@ mean_if=function(criterion = NULL, ..., data = NULL){
 
 #' @export
 #' @rdname count_if
-mean_row_if=function(criterion = NULL,..., data = NULL){
+mean_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     rowMeans(data, na.rm=TRUE)
 }
@@ -322,7 +322,7 @@ mean_row_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-mean_col_if=function(criterion = NULL,..., data = NULL){
+mean_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     colMeans(data, na.rm=TRUE)
 }
@@ -332,7 +332,7 @@ mean_col_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-sd_if=function(criterion = NULL, ..., data = NULL){
+sd_if=function(criterion, ..., data = NULL){
     data = as.matrix(fun_if_helper(criterion = criterion, ..., data = data))
     if(!(is.numeric(data) | is.logical(data) | is.complex(data))) {
         stop("Invalid argument type: for standard deviation it should be numeric or logical")
@@ -342,7 +342,7 @@ sd_if=function(criterion = NULL, ..., data = NULL){
 
 #' @export
 #' @rdname count_if
-sd_row_if=function(criterion = NULL,..., data = NULL){
+sd_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     apply(data, 1, stats::sd, na.rm=TRUE)
 }
@@ -350,16 +350,16 @@ sd_row_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-sd_col_if=function(criterion = NULL,..., data = NULL){
+sd_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
-    apply(data, 2, stats::sd, na.rm=TRUE)
+    vapply(data, stats::sd, FUN.VALUE = numeric(1), na.rm=TRUE)
 }
 
 ################################################
 
 #' @export
 #' @rdname count_if
-median_if=function(criterion = NULL, ..., data = NULL){
+median_if=function(criterion, ..., data = NULL){
     data = as.matrix(fun_if_helper(criterion = criterion, ..., data = data))
     if(!(is.numeric(data) | is.logical(data) | is.complex(data))) {
         stop("Invalid argument type: for median it should be numeric or logical")
@@ -369,7 +369,7 @@ median_if=function(criterion = NULL, ..., data = NULL){
 
 #' @export
 #' @rdname count_if
-median_row_if=function(criterion = NULL,..., data = NULL){
+median_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     apply(data, 1, stats::median, na.rm=TRUE)
 }
@@ -377,9 +377,9 @@ median_row_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-median_col_if=function(criterion = NULL,..., data = NULL){
+median_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
-    apply(data, 2, stats::median, na.rm=TRUE)
+    vapply(data, FUN = stats::median, FUN.VALUE = numeric(1), na.rm=TRUE)
 }
 
 
@@ -387,29 +387,29 @@ median_col_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-max_if=function(criterion = NULL, ..., data = NULL){
+max_if=function(criterion, ..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(max(data, na.rm = TRUE))
-    if(!is.finite(res)) res = NA
+    if(is.numeric(res) && !is.finite(res)) res = NA
     res
 }
 
 #' @export
 #' @rdname count_if
-max_row_if=function(criterion = NULL,..., data = NULL){
+max_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(do.call(pmax, c(data, na.rm=TRUE)))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
 
 #' @export
 #' @rdname count_if
-max_col_if=function(criterion = NULL,..., data = NULL){
+max_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(apply(data, 2, max, na.rm=TRUE))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -417,29 +417,29 @@ max_col_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-min_if=function(criterion = NULL, ..., data = NULL){
+min_if=function(criterion, ..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(min(data, na.rm = TRUE))
-    if(!is.finite(res)) res = NA
+    if(is.numeric(res) && !is.finite(res)) res = NA
     res
 }
 
 #' @export
 #' @rdname count_if
-min_row_if=function(criterion = NULL,..., data = NULL){
+min_row_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(do.call(pmin, c(data, na.rm=TRUE)))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
 
 #' @export
 #' @rdname count_if
-min_col_if=function(criterion = NULL,..., data = NULL){
+min_col_if=function(criterion,..., data = NULL){
     data = fun_if_helper(criterion = criterion, ..., data = data)
     res = suppressWarnings(apply(data, 2, min, na.rm=TRUE))
-    res[!is.finite(res)] = NA
+    if(is.numeric(res)) res[!is.finite(res)] = NA
     res
 }
 
@@ -448,7 +448,7 @@ min_col_if=function(criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-apply_row_if=function(fun, criterion = NULL,..., data = NULL){
+apply_row_if=function(fun, criterion,..., data = NULL){
     dfs = dots2data_frame(...) # form data.frame 
     criterion = build_criterion(criterion, dfs)
     
@@ -484,7 +484,7 @@ apply_row_if=function(fun, criterion = NULL,..., data = NULL){
 
 #' @export
 #' @rdname count_if
-apply_col_if=function(fun, criterion = NULL,..., data = NULL){
+apply_col_if=function(fun, criterion,..., data = NULL){
     dfs = dots2data_frame(...) # form data.frame 
     criterion = build_criterion(criterion, dfs)
     if (is.null(data)){
@@ -514,11 +514,7 @@ fun_if_helper = function(criterion,..., data){
     }    
     
     if(!is.data.frame(data)){
-        if(is.list(data)) {
-            data = do.call(data.frame,c(data,stringsAsFactors=FALSE, check.names = FALSE))        
-        }  else {
             data = as.data.frame(data, stringsAsFactors = FALSE, check.names = FALSE)
-        } 
     }    
     na_if(data, !criterion) 
 }

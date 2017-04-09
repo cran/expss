@@ -15,9 +15,9 @@ expect_equal(sum_if(gt(55)|32,df1$b),193L)
 expect_equal(sum_if(function(x) x>55 | x==54,df1$b),215L)
 expect_equal(sum_if(gt(55)|54,df1$b),215L)
 
-expect_equal(sum_if(neq(75),df1$b),172L)
+expect_equal(sum_if(ne(75),df1$b),172L)
 
-expect_equal(sum_if(gte(32),df1$b),247L)
+expect_equal(sum_if(ge(32),df1$b),247L)
 
 
 expect_equal(sum_if(gt(32) & lt(86),df1$b),54L + 75L)
@@ -60,7 +60,7 @@ if(suppressWarnings(require(dplyr, quietly = TRUE))){
                     greater = sum_row_if(gt(8),V1,V2,V3),
                     range = sum_row_if(5:8,V1,V2,V3),
                     na = sum_row_if(is.na,V1,V2,V3),
-                    not_na = sum_row_if(,V1,V2,V3)),
+                    not_na = sum_row_if(not_na,V1,V2,V3)),
                      result)
 } else {
 	cat("dplyr not found\n")
@@ -111,7 +111,7 @@ expect_equal(
 )
 
 expect_equal(
-    with(t_df2, unname(sum_col_if(,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
+    with(t_df2, unname(sum_col_if(not_na,V1,V2,V3, V4, V5, V6, V7, V8, V9, V10))),
     result$not_na
 )
 
@@ -146,7 +146,7 @@ expect_equal(
 
 
 expect_equal(
-    with(df2, unname(sum_col_if(,V1,V2,V3))),
+    with(df2, unname(sum_col_if(not_na,V1,V2,V3))),
     unname(colSums(df2, na.rm = TRUE))
 )
 
