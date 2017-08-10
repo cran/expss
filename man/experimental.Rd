@@ -33,9 +33,9 @@
 
 .compute(expr)
 
-.calculate(expr, ...)
+.calculate(expr, use_labels = FALSE)
 
-.calc(expr, ...)
+.calc(expr, use_labels = FALSE)
 
 .val_lab(...)
 
@@ -73,13 +73,15 @@ the context of default dataset}
 
 \item{cond}{logical vector/expression}
 
+\item{use_labels}{logical. Experimental feature. If it equals to \code{TRUE} 
+then we will try to replace variable names with labels. So many base R
+functions which show variable names will show labels.}
+
 \item{...}{further arguments}
 
 \item{x}{vector/data.frame - variable names in the scope of default dataset}
 
-\item{varnames}{character vector. Names of variables which should be created
-in the default dataset. Expressions inside backticks in \code{varnames}
-will be expanded as with \link{subst}.}
+\item{varnames}{character vector. Deprecated.}
 
 \item{value}{value/vector/matrix/data.frame. Value for newly created/existing
 variables.}
@@ -109,13 +111,7 @@ SPSS DO IF operator. See \link{modify_if}.}
 condition. See \link{where}, \link[base]{subset}.}
 \item{\code{.recode}}{ Change, rearrange or consolidate the values of an existing
 variable inside default data.frame. See \link{recode}.}
-\item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.}
-\item{\code{.set}}{ Set variables values in the default dataset with given 
-names filled with \code{value}. It is possible to set multiple variables at 
-once. Expressions inside backticks in \code{varnames} will be expanded as
-with \link{subst}. \code{set} (without dot) is also available inside
-\code{.compute}, \code{.modify}, \code{.modify_if}, \code{.do_if},
-\link{modify}, \link{modify_if}.} }
+\item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.} }
 Other functions:
 \itemize{
 \item{\code{.var_lab}}{ Return variable label from default dataset. See

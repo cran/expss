@@ -81,9 +81,9 @@ fre.list = function(x, weight = NULL, drop_unused_labels = TRUE, prepend_var_lab
 
 #' @export
 fre.default = function(x, weight = NULL, drop_unused_labels = TRUE, prepend_var_lab = FALSE){
-    str_x = deparse(substitute(x))
+    str_x = expr_to_character(substitute(x))
     if(is.null(x)){
-        stop(paste0(str_x," is NULL. Possibly variable doesn't exist."))
+        stop(paste0(str_x," is NULL. Perhaps a variable does not exist."))
     }
     
     check_sizes("fre", x, weight)

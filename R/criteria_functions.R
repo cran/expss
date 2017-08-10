@@ -96,13 +96,13 @@
 #' # examples with 'keep' and 'except'
 #' 
 #' data(iris)
-#' iris %keep% to("Petal.Width") # column 'Species' will be removed 
+#' iris %>% keep(to("Petal.Width")) # column 'Species' will be removed 
 #'  
 #' # 'Sepal.Length', 'Sepal.Width' will be left 
-#' iris %except% from("Petal.Length") 
+#' iris %>% except(from("Petal.Length"))
 #' 
 #' # except first column
-#' iris %except% items(1)
+#' iris %n_d% items(1)
 #' 
 #' # if_val examples
 #' # From SPSS: RECODE QVAR(1 THRU 5=1)(6 THRU 10=2)(11 THRU HI=3)(ELSE=0).
@@ -266,7 +266,11 @@ items = function(...){
 #' @export
 #' @rdname criteria
 not_na = function(x){
-   !is.na(x) 
+    if(missing(x)){
+        not_na
+    } else {
+        !is.na(x)
+    }    
 }
 
 class(not_na) = union("criterion",class(not_na))
@@ -274,7 +278,11 @@ class(not_na) = union("criterion",class(not_na))
 #' @export
 #' @rdname criteria
 other = function(x){
-    rep(TRUE, NROW(x)) 
+    if(missing(x)){
+        other    
+    } else {
+        rep(TRUE, NROW(x)) 
+    }    
 }
 
 

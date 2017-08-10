@@ -11,7 +11,6 @@
 \alias{hi}
 \alias{copy}
 \alias{\%into\%}
-\alias{.into_helper_}
 \title{Change, rearrange or consolidate the values of an existing/new variable. Inspired by RECODE command from SPSS.}
 \format{An object of class \code{numeric} of length 1.}
 \usage{
@@ -31,9 +30,7 @@ hi
 
 copy(x)
 
-e1 \%into\% e2
-
-.into_helper_(e1, e2)
+values \%into\% names
 }
 \arguments{
 \item{x}{vector/matrix/data.frame/list}
@@ -50,10 +47,12 @@ format as RHS of formulas).}
 \item{value}{list with formulas which describe recodings in assignment form
 of function/\code{to} list if \code{from}/\code{to} notation is used.}
 
-\item{e1}{object which will be assigned to right-hand side of \code{\%into\%}
-expression.}
+\item{values}{object(-s) which will be assigned to \code{names} for 
+\code{\%into\%} operation. \code{\%into\%} supports multivalue assignments.
+See examples.}
 
-\item{e2}{names which will be given to LHS of \code{\%into\%} expression.}
+\item{names}{name(-s) which will be given to \code{values} expression. For 
+\code{\%into\%}.}
 }
 \value{
 object of same form as \code{x} with recoded values
@@ -62,13 +61,13 @@ object of same form as \code{x} with recoded values
 \code{recode} change, rearrange or consolidate the values of an existing 
 variable based on conditions. Design of this function inspired by RECODE from
 SPSS. Sequence of recodings provided in the form of formulas. For example, 
-1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will
-recoded only once. In the assignment form \code{recode(...) = ...} of this
+1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will 
+recoded only once. In the assignment form \code{recode(...) = ...} of this 
 function values which doesn't meet any condition remain unchanged. In case of
-the usual form \code{... = recode(...)} values which doesn't meet any
-condition will be replaced with NA. As a condition one can use just values or
-more sophisticated logical values and functions. There are several special
-functions for usage as criteria - for details see \link{criteria}. Simple
+the usual form \code{... = recode(...)} values which doesn't meet any 
+condition will be replaced with NA. One can use values or more sophisticated
+logical conditions and functions as a condition. There are several special 
+functions for usage as criteria - for details see \link{criteria}. Simple 
 common usage looks like: \code{recode(x, 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}.
 For more information, see details and examples.
 The \code{ifs} function checks whether one or more conditions are met and
@@ -79,7 +78,7 @@ as \code{recode} - e. g. with formulas or with from/to notation. But conditions
 should be only logical and it doesn't operate on multicolumn objects.
 }
 \details{
-Input conditions - possible values for left hand side (LHS) of formula or
+Input conditions - possible values for left-hand side (LHS) of formula or
 element of \code{from} list:
 \itemize{
 \item{vector/single value}{ All values in \code{x} which equal to elements of
@@ -94,7 +93,7 @@ will be recoded. Logical vector will be recycled across all columns of
 \code{x}. If LHS is matrix/data.frame then column from this matrix/data.frame
 will be used for corresponding column/element of \code{x}.}
 }
-Output values - possible values for right hand side (RHS) of formula or
+Output values - possible values for right-hand side (RHS) of formula or
 element of \code{to} list:
 \itemize{
 \item{value}{ replace elements of \code{x}. This value will be
@@ -114,11 +113,10 @@ assignment form \code{recode() = ...} because this form don't modify values
 which are not satisfying any of the conditions.}}
 \code{\%into\%} tries to mimic SPSS 'INTO'. Values from left-hand side will 
 be assigned to right-hand side. You can use \code{\%to\%} expression in the 
-RHS of \code{\%into\%}. Characters in the RHS will be expanded as with
-\link{subst}. See examples.
+RHS of \code{\%into\%}. See examples. 
 \code{lo} and \code{hi} are shortcuts for \code{-Inf} and \code{Inf}. They
-can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\% hi}.
-\code{if_val} is an alias for \code{recode}.
+can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\%
+hi}. \code{if_val} is an alias for \code{recode}.
 }
 \examples{
 # `ifs` examples
@@ -165,7 +163,7 @@ recode(x1 \%to\% x3, gt(0.5) ~ 1, other ~ 0) \%into\% (x_rec_1 \%to\% x_rec_3)
 fre(x_rec_1)
 # the same operation with characters expansion
 i = 1:3
-recode(x1 \%to\% x3, gt(0.5) ~ 1, other ~ 0) \%into\% 'x_rec2_`i`'
+recode(x1 \%to\% x3, gt(0.5) ~ 1, other ~ 0) \%into\% subst('x_rec2_`i`')
 fre(x_rec2_1)
 
 # example with function in RHS
@@ -199,7 +197,7 @@ recode(dfs,
       )
 
 # replace NA with row means
-# some rows which contain all NaN remain unchanged because mean_row for them also is NaN
+# some rows which contain only NaN's remain unchanged because mean_row for them also is NaN
 recode(dfs, NA ~ mean_row(dfs), other ~ copy) 
 
 # some of the above examples with from/to notation

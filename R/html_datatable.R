@@ -10,7 +10,7 @@
 #' @param show_row_numbers logical Default is FALSE.
 #' @param digits integer By default, all numeric columns are rounded to one digit after
 #'   decimal separator. Also you can set this argument by option 'expss.digits'
-#'   - for example, \code{option(expss.digits = 2)}. If it is NA than all
+#'   - for example, \code{expss_digits(2)}. If it is NA than all
 #'   numeric columns remain unrounded.
 #' @param ... further parameters for \link[DT]{datatable}
 #'
@@ -71,17 +71,15 @@ datatable.default = function(data, ...){
 datatable.etable = function(data, 
                             repeat_row_labels = FALSE, 
                             show_row_numbers = FALSE,
-                            digits = getOption("expss.digits"),
+                            digits = get_expss_digits(),
                             ...){
     data = round_dataframe(data, digits = digits)
-    # first_lab = htmltools::htmlEscape(colnames(data)[1])
     if(NCOL(data)>0){
         first_lab = colnames(data)[1]
         row_labels = data[[1]]
         data[[1]] = NULL # remove first column. This method is needed to prevent column names damaging
-        header = t(split_labels(colnames(data), split = "|", remove_repeated = FALSE))
-        # header[] = htmltools::htmlEscape(header)
-        row_labels = split_labels(row_labels, split = "|", remove_repeated = !repeat_row_labels)
+        header = t(split_labels(colnames(data), split = "|", fixed = TRUE, remove_repeated = FALSE))
+        row_labels = split_labels(row_labels, split = "|", fixed = TRUE, remove_repeated = !repeat_row_labels)
         if(length(row_labels)){
             row_labels = dtfrm(row_labels)    
         } else {
@@ -113,9 +111,9 @@ datatable.etable = function(data,
         empty_corner = NULL
     }
     args = list(...)
-    class = if_null(args[["class"]], 'stripe hover cell-border row-border order-column compact')
-    filter = if_null(args[["filter"]], "none")
-    curr_opts = if_null(args[["options"]], 
+    args[["class"]] = if_null(args[["class"]], 'stripe hover cell-border row-border order-column compact')
+    args[["filter"]] = if_null(args[["filter"]], "none")
+    args[["options"]] = if_null(args[["options"]], 
                         list(paging = FALSE,
                              searching = FALSE, 
                              sorting = FALSE, 
@@ -130,15 +128,10 @@ datatable.etable = function(data,
                              )
                         )
     )
-    
-    
-    res = DT::datatable(data, 
-                        container = header,
-                        class = class, #  
-                        rownames = FALSE,
-                        filter = filter,
-                        options = curr_opts 
-    )
+    args[["rownames"]] = if_null(args[["rownames"]], FALSE)
+    args[["container"]] = header
+    args[["data"]] = data
+    res = do.call(DT::datatable, args)
     # if(!is.null(format_bold_value)){
     #     columns = seq_len(ncol(empty_corner))-1
     #     if(length(columns)){
@@ -211,7 +204,7 @@ matrix_header_to_html = function(corner, m_cols){
                             rowspan = nrow(corner)
         )
     }
-    withTags(table(
+    htmltools::withTags(table(
         class = 'display',
         thead(
             lapply(row_rle, function(row){

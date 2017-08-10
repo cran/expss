@@ -4,21 +4,24 @@
 \alias{split_labels}
 \alias{split_columns}
 \alias{split_table_to_df}
+\alias{make_subheadings}
 \title{Split character vector to matrix/split columns in data.frame}
 \usage{
-split_labels(x, remove_repeated = TRUE, split = "|", fixed = TRUE,
+split_labels(x, remove_repeated = TRUE, split = "\\\\|", fixed = FALSE,
   perl = FALSE)
 
-split_columns(data, columns = 1, remove_repeated = TRUE, split = "|",
-  fixed = TRUE, perl = FALSE)
+split_columns(data, columns = 1, remove_repeated = TRUE, split = "\\\\|",
+  fixed = FALSE, perl = FALSE)
 
-split_table_to_df(data, digits = getOption("expss.digits"),
-  remove_repeated = TRUE, split = "|", fixed = TRUE, perl = FALSE)
+split_table_to_df(data, digits = get_expss_digits(), remove_repeated = TRUE,
+  split = "\\\\|", fixed = FALSE, perl = FALSE)
+
+make_subheadings(data, number_of_columns = 1)
 }
 \arguments{
 \item{x}{character vector which will be split}
 
-\item{remove_repeated}{logical. Should we remove repeated labels?}
+\item{remove_repeated}{logical. Default is \code{TRUE}. Should we remove repeated labels?}
 
 \item{split}{character vector (or object which can be coerced to such)
 containing regular expression(s) (unless \code{fixed = TRUE}) to use for
@@ -36,6 +39,9 @@ expressions. Has priority over \code{perl}.}
 
 \item{digits}{numeric. How many digits after decimal point should be left in
 \code{split_table_to_df}?}
+
+\item{number_of_columns}{integer. Number of columns from row labels which
+will be used as subheadings in table.}
 }
 \value{
 \code{split_labels} returns character matrix, \code{split_columns} returns
@@ -68,7 +74,13 @@ mtcars = apply_labels(mtcars,
 )
 
 # all row labels in the first column
-tabl = mtcars \%>\% calculate(cro_cpct(list(cyl, gear, carb), list("#total", vs, am)))
+tabl = mtcars \%>\% 
+       calculate(cro_cpct(list(cyl, gear, carb), list(total(), vs, am)))
+
+tabl # without subheadings
+
+make_subheadings(tabl) # with subheadings
+              
 split_labels(tabl[[1]])
 split_labels(colnames(tabl))
 
@@ -77,7 +89,13 @@ split_columns(tabl) # remove repeated
 
 split_columns(tabl, remove_repeated = FALSE)
 
+split_columns(tabl)
+
 split_table_to_df(tabl)
+
+split_table_to_df(tabl)
+
+
 }
 \seealso{
 \link[base]{strsplit}

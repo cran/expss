@@ -1,38 +1,43 @@
-#' Get variables by pattern/by name or range of variables.
+#' Get variables/range of variables by name/by pattern.
 #' 
 #' \itemize{
-#' \item{\code{vars}}{ returns all variables by their names or by criteria (see 
-#' \link{criteria}). Expressions in backticks inside characters will be expanded
-#' as with \link{subst}. \code{a`1:2`} will be translated to \code{'a1', 'a2'}. 
-#' There is no non-standard evaluation in this function by design so use quotes 
-#' for names of your variables or use \link{qc}. The only exception with 
-#' non-standard evaluation is \code{\%to\%}. You can use \code{\%to\%} inside 
-#' \code{vars} or independently.}
+#' \item{\code{vars}}{ returns data.frame with all variables by their names or
+#' by criteria (see \link{criteria}). There is no non-standard evaluation in
+#' this function by design so use quotes for names of your variables. This
+#' function is intended to get variables by parameter/criteria. The only
+#' exception with non-standard evaluation is \code{\%to\%}. You can use
+#' \code{\%to\%} inside \code{vars} or independently.}
+#' \item{\code{..[]}}{ returns data.frame with all variables by their names or
+#' by criteria (see \link{criteria}).  Names at the top-level can be unquoted
+#' (non-standard evaluation). For standard evaluation of parameters you can
+#' surround them by round brackets. You can assign to this expression. If there
+#' are several names inside square brackets then each element of list/data.frame
+#' from right side will be assigned to appropriate name from left side. You can
+#' use \code{item1 \%to\% item2} notation to get/create sequence of variables.}
+#' \item{\code{..$name}}{ sets/returns object which name is stored in the
+#' variable \code{name}. It is convenient wrapper around 
+#' \link[base]{get}/\link[base]{assign} functions.}
 #' \item{\code{\%to\%}}{ returns range of variables between \code{e1} and 
 #' \code{e2} (similar to SPSS 'to'). \link{modify}, \link{modify_if}, 
 #' \link{calculate}, \link{keep}, \link{except} and \link{where} support 
 #' \code{\%to\%}. Inside global environment \link[base]{with},
 #' \link[base]{within} \code{\%to\%} will take range from names of variables
-#' sorted in the alphabetic order.}}
+#' sorted in the alphabetic order.}
+#' \item{\code{indirect}/\code{indirect_list}}{ are aliases for
+#' \code{vars}/\code{vars_list}.}
+#' }
 #' Functions with word 'list' in name return lists of variables instead of 
 #' dataframes.
-#' \code{vars_pattern}, \code{vars_pattern_list}, \code{vars_range} and 
-#' \code{vars_range_list} are deprecated and will be removed in the future
-#' version.
-#' \code{.internal_to_} is for internal usage and not documented.
-#' @seealso \link{keep}
+#' @seealso \link{keep}, \link{except}, \link{do_repeat}, \link{compute},
+#'   \link{calculate}, \link{where}
 #' @param ... characters names of variables or criteria/logical functions
 #' @param e1 unquoted name of start variable (e. g. a_1)
 #' @param e2 unquoted name of start variable (e. g. a_5) 
-#'
 #' @return  data.frame/list with variables
-#' 
 #' @examples
-#' 
 #' # In data.frame
 #' dfs = data.frame(
-#'     aa = rep(10, 5),
-#'     b_ = rep(20, 5),
+#'     a = rep(1, 5),
 #'     b_1 = rep(11, 5),
 #'     b_2 = rep(12, 5),
 #'     b_3 = rep(13, 5),
@@ -41,14 +46,12 @@
 #' )
 #' 
 #' # calculate sum of b_* variables
-#' modify(dfs, {
+#' compute(dfs, {
 #'     b_total = sum_row(b_1 %to% b_5)
-#'     b_total2 = sum_row(vars("b_`1:5`"))
 #' })
 #' 
 #' # In global environement
-#' aa = rep(10, 5)
-#' b = rep(20, 5)
+#' a = rep(10, 5)
 #' a1 = rep(1, 5)
 #' a2 = rep(2, 5)
 #' a3 = rep(3, 5)
@@ -57,39 +60,88 @@
 #' 
 #' # identical results
 #' a1 %to% a5
-#' vars("a`1:5`")
 #' vars(perl("^a[0-9]$"))
+#' ..[perl("^a[0-9]$")]
 #' 
 #' # sum each row
 #' sum_row(a1 %to% a5)
 #' 
+#' # variable substitution
+#' name1 = "a"
+#' name2 = "new_var"
+#' 
+#' # in global environment
+#' ..$name1 # give as variable 'a'
+#' 
+#' ..$name2 = ..$name1 * 2 # create variable 'new_var' which is equal to 'a' times 2
+#' new_var
+#' 
+#' # inside data.frame
+#' compute(dfs, {
+#'      ..$name2 = ..$name1*2    
+#' })
+#' 
+#' compute(dfs, {
+#'      for(name1 in paste0("b_", 1:5)){
+#'          name2 = paste0("new_", name1) 
+#'          ..$name2 = ..$name1*2 
+#'      }
+#'      rm(name1, name2) # we don't need this variables as columns in 'dfs'
+#' })
+#' 
+#' # square brackets notation - multi-assignment
+#' name1 = paste0("b_", 1:5)
+#' compute(dfs, {
+#'           # round brackets about 'name1' is needed to avoid using it 'as is'
+#'          ..[paste0("new_", name1)] = ..[(name1)]*2  
+#' })
+#' 
+#' # the same result
+#' # note the automatic creation of sequence of variables
+#' compute(dfs, {
+#'          ..[new_b_1 %to% new_b_5] = ..[b_1 %to% b_5]*2  
+#' })
+#' 
+#' # assignment form of 'recode' on multiple variables
+#' compute(dfs, {
+#'          recode(..[b_1 %to% b_5]) = 13 %thru% hi ~ 20   
+#' })
+#' 
 #' @export
 vars = function(...){
-    # args = substitute(list(...))
-    res = eval(substitute(expss::vars_list(...)),
-               envir = parent.frame(),
-               enclos = baseenv()
-    )
+    variables_names = substitute(list(...))
+    res = internal_vars_list(variables_names, parent.frame())
     as.dtfrm(res)
 }
+
+
 
 #' @export
 #' @rdname vars
 vars_list = function(...){
-    if(exists(".internal_column_names0", envir = parent.frame())){
-        var_names = internal_ls(parent.frame()[[".internal_column_names0"]], env = parent.frame())
-    } else {
-        var_names = ls(envir = parent.frame())
-    }
-    args = substitute(list(...))
-    args = substitute_symbols(args,
-                              list("%to%" = ".internal_to_")
-    )
-    args = eval(args, envir = parent.frame(),
-                enclos = baseenv())
-    selected_names = keep_helper(var_names, args)
-    mget(var_names[selected_names], envir = parent.frame(), inherits = TRUE)
+    variables_names = substitute(list(...))
+    internal_vars_list(variables_names, parent.frame())
 }
+
+internal_vars_list = function(variables_names, envir, symbols_to_characters = FALSE){
+    stopif(length(variables_names)<2, 
+           "'vars'/'vars_list' - you should provide at least one argument.")
+    curr_names = get_current_variables(envir)
+    new_vars = variables_names_to_indexes(curr_names, 
+                                          variables_names, 
+                                          envir = envir, 
+                                          symbols_to_characters = symbols_to_characters)
+    mget(curr_names[new_vars], envir = envir, inherits = TRUE)
+}
+
+#' @export
+#' @rdname vars
+indirect = vars
+
+#' @export
+#' @rdname vars
+indirect_list = vars_list
+
 
 #' @export
 #' @rdname vars
@@ -117,11 +169,18 @@ vars_list = function(...){
 
 
 # version of %to% for usage inside 'keep'/'except'/'vars'
-#' @export
-#' @rdname vars
-.internal_to_ = function(e1, e2){
-    e1 = deparse(substitute(e1))
-    e2 = deparse(substitute(e2))
+# \code{.internal_to_} is for internal usage and not documented.
+
+
+.internal_to_ =function(e1, e2){
+    e1 = substitute(list(e1))
+    e2 = substitute(list(e2))
+    e1 = evaluate_variable_names(e1, envir = parent.frame(), symbols_to_characters = TRUE)
+    e2 = evaluate_variable_names(e2, envir = parent.frame(), symbols_to_characters = TRUE)
+    stopif(length(e1)>1, "'%to%' - length of name of first variable is greater than one.")
+    stopif(length(e2)>1, "'%to%' - length of name of second variable is greater than one.")
+    e1 = e1[[1]]
+    e2 = e2[[1]]
     res = function(y){
         first = match(e1, y)[1]
         stopif(is.na(first), "'",e1, "' not found." )
@@ -136,3 +195,102 @@ vars_list = function(...){
     
 }
 
+# expr of .internal_to_
+
+expr_internal_to = as.call(list(as.name(":::"), as.name("expss"), as.name(".internal_to_")))
+
+
+###################################
+internal_parameter_set = function(name, value, envir){
+    stopif(length(name)!=1, "'..' - variable name should be a vector of length 1.")
+    name = as.character(name)
+    assign(name, value = value, pos = envir, inherits = FALSE)
+    name
+}
+
+internal_parameter_get = function(name, envir){
+    stopif(length(name)!=1, "'..' - variable name should be a vector of length 1.")
+    name = as.character(name)
+    get(name, pos = envir, inherits = TRUE)
+}
+
+#' @export
+#' @rdname vars
+'..' = 'Object for variable substitution. Usage: `..$varname` or `..["varname"]`.'
+
+
+class(..) = "parameter"
+
+
+#' @export
+print.parameter = function(x, ...){
+    cat(x, '\n')
+    invisible(x)
+}
+
+#' @export
+'$.parameter' = function(x, name){
+    name = internal_parameter_get(name, envir = parent.frame())  
+    internal_parameter_get(name, envir = parent.frame())  
+}
+
+#' @export
+'$<-.parameter' = function(x, name, value){
+    name = internal_parameter_get(name, envir = parent.frame())
+    internal_parameter_set(name, value, envir = parent.frame())
+    x
+}
+
+
+#' @export
+'[.parameter' = function(x, ...){
+    envir = parent.frame()
+    variables_names = substitute(list(...))
+    res = internal_vars_list(variables_names, envir, symbols_to_characters = TRUE)
+    as.dtfrm(res)
+}
+
+#' @export
+'[<-.parameter' = function(x, ..., value){
+    variables_names = substitute(list(...))
+    into_internal(value, variables_names, parent.frame())
+    x
+}
+
+
+############################################
+
+'.internal_parameter_' = "Object for internal variable substitution. Don't use it."
+
+
+class(.internal_parameter_) = "internal_parameter"
+
+expr_internal_parameter = as.call(list(as.name(":::"), as.name("expss"), as.name(".internal_parameter_")))
+
+
+
+#' @export
+'$.internal_parameter' = function(x, name){
+    name = internal_parameter_get(name, envir = parent.frame())  
+    name  
+}
+
+#' @export
+'$<-.internal_parameter' = function(x, name, value){
+    .NotYetImplemented()
+}
+
+
+#' @export
+'[.internal_parameter' = function(x, ...){
+    envir = parent.frame()
+    variables_names = substitute(list(...))
+    evaluate_variable_names(variables_names, 
+                            envir, 
+                            symbols_to_characters = TRUE)
+}
+
+#' @export
+'[<-.internal_parameter' = function(x, ..., value){
+    .NotYetImplemented()
+}

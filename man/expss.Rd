@@ -29,7 +29,7 @@ in the vignette and in the help.
 \item{IFNA }{\link{if_na}}
 \item{MATCH }{\link{match_row}}
 \item{INDEX }{\link{index_row}}
-\item{PIVOT TABLES}{\link{tables}, \link{cro_fun}, \link{cro}}
+\item{PIVOT TABLES }{\link{tables}, \link{cro_fun}, \link{cro}}
 }
 }
 
@@ -37,15 +37,16 @@ in the vignette and in the help.
 
 \itemize{
 \item{COMPUTE }{\link{compute}}
-\item{DO IF }{\link{do_if}}
 \item{RECODE }{\link{recode}}
 \item{COUNT }{\link{count_row_if}}
+\item{DO IF }{\link{do_if}}
+\item{DO REPEAT }{\link{do_repeat}}
 \item{VARIABLE LABELS }{\link{var_lab}}
 \item{VALUE LABELS }{\link{val_lab}}
 \item{ANY }{\link{any_in_row}}
 \item{FREQUENCIES }{\link{fre}}
 \item{CROSSTABS }{\link{cro}}
-\item{CUSTOM TABLES}{\link{tables}}
+\item{CUSTOM TABLES }{\link{tables}}
 }
 }
 

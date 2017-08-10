@@ -24,13 +24,7 @@
 #' condition. See \link{where}, \link[base]{subset}.}
 #' \item{\code{.recode}}{ Change, rearrange or consolidate the values of an existing
 #' variable inside default data.frame. See \link{recode}.}
-#' \item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.}
-#' \item{\code{.set}}{ Set variables values in the default dataset with given 
-#' names filled with \code{value}. It is possible to set multiple variables at 
-#' once. Expressions inside backticks in \code{varnames} will be expanded as
-#' with \link{subst}. \code{set} (without dot) is also available inside
-#' \code{.compute}, \code{.modify}, \code{.modify_if}, \code{.do_if},
-#' \link{modify}, \link{modify_if}.} }
+#' \item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.} }
 #' Other functions:
 #' \itemize{
 #' \item{\code{.var_lab}}{ Return variable label from default dataset. See
@@ -51,11 +45,12 @@
 #' @param expr set of expressions  in curly brackets which will be evaluated in
 #'   the context of default dataset
 #' @param cond logical vector/expression
-#' @param varnames character vector. Names of variables which should be created
-#'   in the default dataset. Expressions inside backticks in \code{varnames}
-#'   will be expanded as with \link{subst}.
+#' @param varnames character vector. Deprecated.
 #' @param value value/vector/matrix/data.frame. Value for newly created/existing
 #'   variables.
+#' @param use_labels logical. Experimental feature. If it equals to \code{TRUE} 
+#'   then we will try to replace variable names with labels. So many base R
+#'   functions which show variable names will show labels.
 #' @param ... further arguments 
 #'
 #' @examples 
@@ -129,12 +124,9 @@
     # based on 'within' from base R by R Core team
     reference = suppressMessages(default_dataset())
     data = ref(reference)
-    # expr = substitute(expr)
-    data = eval(substitute(modify(data, expr)),
-                envir = parent.frame(),
-                enclos = baseenv()
-                )
-    ref(reference) = data
+    parent = parent.frame()
+    expr = substitute(expr)
+    ref(reference) = modify_internal(data, expr, parent)
     invisible(data)
 }
 
@@ -146,13 +138,10 @@
     # based on 'within' from base R by R Core team
     reference = suppressMessages(default_dataset())
     data = ref(reference)
-    # cond = substitute(cond)
-    # expr = substitute(expr)
-    data = eval(substitute(modify_if(data, cond, expr)),
-                envir = parent.frame(),
-                enclos = baseenv()               
-               )
-    ref(reference) = data
+    cond = substitute(cond)
+    expr = substitute(expr)
+    parent = parent.frame()
+    ref(reference) = modify_if_internal(data, cond, expr, parent)
     invisible(data)
 }
 
@@ -184,11 +173,12 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 
 #' @export
 #' @rdname experimental
-.calculate = function (expr, ...) {
+.calculate = function (expr, use_labels = FALSE) {
     reference = suppressMessages(default_dataset() )
-    # expr = substitute(expr)
     data = ref(reference)
-    eval(substitute(calculate(data, expr, ...)), envir = parent.frame(), enclos = baseenv())
+    expr = substitute(expr)
+    parent = parent.frame()
+    calculate_internal(data, expr, parent, use_labels = use_labels)
 } 
 
 #' @export
@@ -220,7 +210,7 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
     } else {
         for_names = names(eval(for_names, e))
     }
-    stopif(length(for_names)==0, "Something is going wrong. Variables not found: ", deparse((substitute(x))))
+    stopif(length(for_names)==0, "Something is going wrong. Variables not found: ", expr_to_character((substitute(x))))
     res = eval(expr, e)
     data[, for_names] = res
     ref(reference) = data
@@ -279,6 +269,7 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 #' @export
 #' @rdname experimental
 .set = function(varnames, value = NA){
+    .Deprecated("", msg = "Use assignment inside `.compute`. For multiassignement use `%into%`.")
     reference = suppressMessages(default_dataset() )
     dd_name = all.vars(reference)
     stopif(length(dd_name)!=1,"Reference should have only one variable name, e. g. ref_var = ~a")
@@ -304,6 +295,7 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 set_generator = function(number_of_rows){
     force(number_of_rows)
     function(varnames, value = NA){
+        .Deprecated("'%into%'")
         value = eval(substitute(value), envir = parent.frame(), enclos = baseenv())
         varnames = subst(varnames)
         num_of_vars = length(varnames)

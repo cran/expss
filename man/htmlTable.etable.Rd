@@ -3,32 +3,47 @@
 \name{htmlTable.etable}
 \alias{htmlTable.etable}
 \alias{knit_print.etable}
+\alias{repr_html.etable}
+\alias{repr_text.etable}
 \title{Outputting HTML tables in RStudio viewer/R Notebooks}
 \usage{
-\method{htmlTable}{etable}(x, digits = getOption("expss.digits"), ...)
+\method{htmlTable}{etable}(x, digits = get_expss_digits(), ...,
+  row_groups = TRUE)
 
-knit_print.etable(x, digits = getOption("expss.digits"), ...)
+knit_print.etable(x, digits = get_expss_digits(), ...)
+
+repr_html.etable(obj, digits = get_expss_digits(), ...)
+
+repr_text.etable(obj, digits = get_expss_digits(), ...)
 }
 \arguments{
-\item{x}{a data object (result of \link{fre}/\link{cro} and etc)}
+\item{x}{a data object of class 'etable' - result of \link{fre}/\link{cro} and etc.}
 
 \item{digits}{integer By default, all numeric columns are rounded to one digit after
-decimal separator. Also you can set this argument by option 'expss.digits'
-- for example, \code{option(expss.digits = 2)}. If it is NA than all
+decimal separator. Also you can set this argument by setting option 'expss.digits'
+- for example, \code{expss_digits(2)}. If it is NA than all
 numeric columns remain unrounded.}
 
 \item{...}{further parameters for \link[htmlTable]{htmlTable}.}
+
+\item{row_groups}{logical Should we create row groups? TRUE by default.}
+
+\item{obj}{a data object of class 'etable' - result of \link{fre}/\link{cro} and etc.}
 }
 \value{
 Returns a string of class htmlTable
 }
 \description{
-This is method for rendering results of \link{fre}/\link{cro}/\link{tables} in
-Shiny/RMarkdown and etc. For detailed description of function and its
-arguments see \link[htmlTable]{htmlTable}. You may be interested in
-\code{options(expss.output = "viewer")} for automatical rendering tables
-in the RStudio viewer or  \code{options(expss.output = "rnotebook")} for
-rendering in the R notebooks. See \link{expss.options}.
+This is method for rendering results of \link{fre}/\link{cro}/\link{tables} 
+in Shiny/RMarkdown/Jupyter notebooks and etc. For detailed description of 
+function and its arguments see \link[htmlTable]{htmlTable}. You may be 
+interested in \code{expss_output_viewer()} for automatical rendering tables 
+in the RStudio viewer or  \code{expss_output_rnotebook()} for rendering in 
+the R notebooks. See \link{expss.options}. \code{repr_html} is method for 
+rendering table in the Jupyter notebooks and \code{knit_print} is method for 
+rendering table in the \code{knitr} HTML-documents. Jupyter notebooks and 
+\code{knitr} documents are supported automatically but in the R notebooks it 
+is needed to set output to notebook via \code{expss_output_rnotebook()}.
 }
 \examples{
 \dontrun{ 
@@ -51,7 +66,7 @@ mtcars = apply_labels(mtcars,
                       carb = "Number of carburetors"
 )
 
-options(expss.output = "viewer")
+expss_output_viewer()
 mtcars \%>\% 
      tab_cols(total(), am \%nest\% vs) \%>\% 
      tab_cells(mpg, hp) \%>\% 
@@ -60,7 +75,7 @@ mtcars \%>\%
      tab_stat_cpct() \%>\% 
      tab_pivot()
      
-options(expss.output = NA)   
+expss_output_default()   
  
 }
 }

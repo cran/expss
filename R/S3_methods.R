@@ -182,7 +182,50 @@ unique.labelled = function(x, ...){
 }
 
 
-
+# # @export
+# abline = function(a = NULL, b = NULL, h = NULL, v = NULL, reg = NULL, coef = NULL, untf = FALSE, ...){
+#     UseMethod("abline")
+# }
+#
+# # @export
+# abline.default =  function(a = NULL, 
+#                            b = NULL, 
+#                            h = NULL, 
+#                            v = NULL, 
+#                            reg = NULL, 
+#                            coef = NULL, 
+#                            untf = FALSE, 
+#                            ...){
+#     graphics::abline(a = a, 
+#                      b = b, 
+#                      h = h, 
+#                      v = v, 
+#                      reg = reg, 
+#                      coef = coef, 
+#                      untf = untf, 
+#                      ...)
+#     
+# }    
+# 
+# # @export
+# abline.labelled =  function(a = NULL, 
+#                            b = NULL, 
+#                            h = NULL, 
+#                            v = NULL, 
+#                            reg = NULL, 
+#                            coef = NULL, 
+#                            untf = FALSE, 
+#                            ...){
+#     graphics::abline(a = unlab(a), 
+#                      b = b, 
+#                      h = h, 
+#                      v = v, 
+#                      reg = reg, 
+#                      coef = coef, 
+#                      untf = untf, 
+#                      ...)
+#     
+# } 
 
 #' @export
 as.logical.labelled = function (x, ...){
@@ -233,7 +276,7 @@ print.labelled = function(x, max = 50, max_labels = 20, ...){
 
 
 #' @export
-print.etable = function(x, digits = getOption("expss.digits"), remove_repeated = TRUE, ...,  right = TRUE){
+print.etable = function(x, digits = get_expss_digits(), remove_repeated = TRUE, ...,  right = TRUE){
     curr_output = getOption("expss.output")
     if(!is.null(curr_output)){
         if("rnotebook" %in% curr_output){
@@ -252,11 +295,19 @@ print.etable = function(x, digits = getOption("expss.digits"), remove_repeated =
             print(res)
             return(invisible(NULL))
         }
+
     }
     if(!("raw" %in% curr_output)){
         x = split_all_in_etable_for_print(x,
                                           digits = digits, 
                                           remove_repeated = remove_repeated)
+    }
+    if("commented" %in% curr_output){
+        if(NROW(x)>0 && NCOL(x)>0){
+            x = cbind("#" = "#", x)
+            colnames(x) = rep("", length(x))
+        } 
+        
     }
     print.data.frame(x, ...,  right = right, row.names = FALSE)
 }
@@ -349,18 +400,6 @@ t.etable = function(x){
 # 
 # 
 
-
-# #' @export
-# as.etable = function(x, ...){
-#     UseMethod("as.etable")
-# }
-# 
-# #' @export
-# as.etable.default = function(x, ...){
-#     class(x) = union("etable", x)
-#     x
-# }
-# 
 
 
 

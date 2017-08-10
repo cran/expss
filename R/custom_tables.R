@@ -1,6 +1,5 @@
 ### constants for intermediate_table
 
-
 DATA  = "data"   
 RESULT = "result"    
 COL_VAR = "col_var"  
@@ -10,8 +9,12 @@ SUBGROUP = "subgroup"
 WEIGHT  = "weight" 
 STAT_LABELS = "stat_labels"
 MIS_VAL = "mis_val"
+TOTAL_LABEL = "total_label"
+TOTAL_STATISTIC = "total_statistic"
+TOTAL_ROW_POSITION = "total_row_position" 
+SIGNIFICANCE_OPTIONS = "significance_options" 
 
-#' Functions for tables constraction
+#' Functions for custom tables construction
 #' 
 #' Table construction consists of at least of three functions chained with 
 #' \code{magrittr} pipe operator: \link[magrittr]{\%>\%}. At first we need to 
@@ -24,9 +27,10 @@ MIS_VAL = "mis_val"
 #' transpose with \code{tab_transpose}. Generally, table is just a data.frame so
 #' we can use arbitrary operations on it. Statistic is always calculated with 
 #' the last cell, column/row variables, weight, missing values and subgroup. To 
-#' define new variables we can call appropriate function one more time. 
+#' define new cell/column/row variables we can call appropriate function one more time. 
 #' \code{tab_pivot} defines how we combine different statistics and where 
 #' statistic labels will appear - inside/outside rows/columns. See examples.
+#' For significance testing see \link{significance}.
 #' 
 #' @details 
 #' \itemize{
@@ -44,14 +48,28 @@ MIS_VAL = "mis_val"
 #' manner as \link{na_if}.}
 #' \item{\code{tab_subgroup}}{ optional logical vector/expression which specify
 #' subset of data for table.}
+#' \item{\code{tab_row_label}}{ Add to table empty row with specified row
+#' labels. It is usefull for making section headings and etc.}
+#' \item{\code{tab_total_row_position}}{ Default value for
+#' \code{total_row_position} argument in \code{tab_stat_cases} and etc. Can be
+#' one of "below", "above", "none".}
+#' \item{\code{tab_total_label}}{ Default value for \code{total_label} argument
+#' in \code{tab_stat_cases} and etc. You can provide several names - each name
+#' for each total statistics.}
+#' \item{\code{tab_total_statistic}}{ Default value for \code{total_statistic}
+#' argument in \code{tab_stat_cases} and etc. You can provide several values.
+#' Possible values are "u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct", 
+#' "w_cases", "w_responses", "w_cpct", "w_rpct", "w_tpct". "u_" means unweighted
+#' statistics and "w_" means weighted statistics.}
 #' \item{\code{tab_stat_fun}, \code{tab_stat_fun_df}}{ \code{tab_stat_fun} 
 #' applies function on each variable in cells separately, \code{tab_stat_fun_df}
-#' gives to function each data.frame in cells as a whole
+#' gives to function each data.frame in cells as a whole 
 #' \link[data.table]{data.table} with all names converted to variable labels (if
-#' labels exists). So it is not recommended to rely on original variables names
-#' in your \code{fun}. You can provide several functions as arguments. They will
-#' be combined as with \link{combine_functions}. So you can use \code{method}
-#' argument. For details see documentation for \link{combine_functions}. }
+#' labels exists). So it is not recommended to rely on original variables names 
+#' in your \code{fun}. For details see \link{cro_fun}. You can provide several
+#' functions as arguments. They will be combined as with
+#' \link{combine_functions}. So you can use \code{method} argument. For details
+#' see documentation for \link{combine_functions}. }
 #' \item{\code{tab_stat_cases}}{ calculate counts.}
 #' \item{\code{tab_stat_cpct}, \code{tab_stat_cpct_responses}}{ calculate column
 #' percent. These functions give different results only for multiple response
@@ -82,6 +100,10 @@ MIS_VAL = "mis_val"
 #'   and zero weights are removed before calculations.
 #' @param subgroup logical vector in \code{tab_subgroup}. You can specify
 #'   subgroup on which table will be computed.
+#' @param weighted_valid_n logical. Sould we show weighted valid N in
+#'   \code{tab_stat_mean_sd_n}? By default it is FALSE.
+#' @param labels character vector of length 3. Labels for mean, standard
+#'   deviation and valid N in \code{tab_stat_mean_sd_n}.
 #' @param total_label By default "#Total". You can provide several names - each
 #'   name for each total statistics.
 #' @param total_statistic  By default it is "u_cases" (unweighted cases). 
@@ -96,12 +118,20 @@ MIS_VAL = "mis_val"
 #' @param stat_label character one of the values \code{"inside"} or 
 #'   \code{"outside"}. Where will be placed labels for the statistics relative
 #'   to column names/row labels? See examples.
+#' @param unsafe logical If TRUE than \code{fun} will be evaluated as is. It can
+#'   lead to significant increase in the performance. But there are some 
+#'   limitations. For \code{tab_stat_fun} it means that your function \code{fun} 
+#'   should return vector of length one. Also there will be no attempts to make
+#'   labels for statistic.  For \code{tab_stat_fun_df} your function should return
+#'   vector of length one or list/data.frame (optionally with 'row_labels'
+#'   element - statistic labels). If \code{unsafe} is TRUE then further
+#'   arguments (\code{...}) for \code{fun} will be ignored.
 #' @return All of these functions return object of class 
 #'   \code{intermediate_table} except \code{tab_pivot} which returns final
 #'   result - object of class \code{etable}. Basically it's a data.frame but
 #'   class is needed for custom methods.
 #' @seealso \link{fre}, \link{cro}, \link{cro_fun}, \link{tab_sort_asc},
-#'   \link{drop_empty_rows}.
+#'   \link{drop_empty_rows}, \link{significance}.
 #' @export
 #'
 #' @name tables
@@ -158,14 +188,14 @@ MIS_VAL = "mis_val"
 #' mtcars %>% 
 #'     tab_cells(mpg, disp, hp, wt, qsec) %>%
 #'     tab_cols(am) %>% 
-#'     tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n) %>%
+#'     tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n) %>%
 #'     tab_pivot()
 #' 
 #' # summary statistics - labels in columns
 #' mtcars %>% 
 #'     tab_cells(mpg, disp, hp, wt, qsec) %>%
 #'     tab_cols(am) %>% 
-#'     tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n, method = list) %>%
+#'     tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n, method = list) %>%
 #'     tab_pivot()
 #' 
 #' # subgroup with droping empty columns
@@ -191,18 +221,20 @@ MIS_VAL = "mis_val"
 #' mtcars %>%
 #'     tab_cells(am) %>%
 #'     tab_cols(total(), vs) %>%
-#'     tab_stat_cpct(total_row_position = "none", label = "col %") %>%
-#'     tab_stat_rpct(total_row_position = "none", label = "row %") %>%
-#'     tab_stat_tpct(total_row_position = "none", label = "table %") %>%
+#'     tab_total_row_position("none") %>% 
+#'     tab_stat_cpct(label = "col %") %>%
+#'     tab_stat_rpct(label = "row %") %>%
+#'     tab_stat_tpct(label = "table %") %>%
 #'     tab_pivot(stat_position = "inside_rows")
 #' 
 #' # statistic labels inside columns             
 #' mtcars %>%
 #'     tab_cells(am) %>%
 #'     tab_cols(total(), vs) %>%
-#'     tab_stat_cpct(total_row_position = "none", label = "col %") %>%
-#'     tab_stat_rpct(total_row_position = "none", label = "row %") %>%
-#'     tab_stat_tpct(total_row_position = "none", label = "table %") %>%
+#'     tab_total_row_position("none") %>% 
+#'     tab_stat_cpct(label = "col %") %>%
+#'     tab_stat_rpct(label = "row %") %>%
+#'     tab_stat_tpct(label = "table %") %>%
 #'     tab_pivot(stat_position = "inside_columns")
 #' 
 #' # stacked statistics
@@ -212,6 +244,18 @@ MIS_VAL = "mis_val"
 #'     tab_stat_mean() %>%
 #'     tab_stat_se() %>% 
 #'     tab_stat_valid_n() %>% 
+#'     tab_stat_cpct() %>% 
+#'     tab_pivot()
+#'     
+#' # stacked statistics with section headings
+#' mtcars %>% 
+#'     tab_cells(cyl) %>% 
+#'     tab_cols(total(), am) %>% 
+#'     tab_row_label("#Summary statistics") %>% 
+#'     tab_stat_mean() %>%
+#'     tab_stat_se() %>% 
+#'     tab_stat_valid_n() %>% 
+#'     tab_row_label("#Column percent") %>% 
 #'     tab_stat_cpct() %>% 
 #'     tab_pivot()
 #' 
@@ -309,25 +353,13 @@ MIS_VAL = "mis_val"
 #' 
 #' for(each in c("mpg", "disp", "hp", "qsec")){
 #'     tables = tables %>% tab_cells(vars(each)) %>%
-#'         tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n) 
+#'         tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n) 
 #' }
 #' tables %>% tab_pivot()
 tab_cols = function(data, ...){
-    UseMethod("tab_cols")
-}
-
-
-#' @export
-tab_cols.data.frame = function(data, ...){
-    res = make_empty_intermediate_table(data)
-    tab_cols(res, ...)
-}
-
-#' @export
-tab_cols.intermediate_table = function(data, ...){
-    args = eval(substitute(calculate(data[["data"]], list(...))),
-                envir = parent.frame(),
-                enclos = baseenv())
+    data = check_class(data)
+    expr = substitute(list(...))
+    args = calculate_internal(data[[DATA]], expr, parent.frame())
     args = add_names_to_list(args, ...)
     if(length(args)>0){
         args = flat_list(args, flat_df = FALSE)
@@ -345,24 +377,9 @@ tab_cols.intermediate_table = function(data, ...){
 #' @rdname tables
 #' @export
 tab_cells = function(data, ...){
-    UseMethod("tab_cells")
-}
-
-
-#' @export
-tab_cells.data.frame = function(data, ...){
-    res = make_empty_intermediate_table(data)
-    tab_cells(res, ...)
-}
-
-#' @export
-tab_cells.intermediate_table = function(data, ...){
-    # expr = substitute(create_list_with_names(...))
-    # args = eval(bquote(calculate(data[["data"]], .(expr))))
-    # expr = substitute(list(...))
-    args = eval(substitute(calculate(data[["data"]], list(...))),
-                envir = parent.frame(),
-                enclos = baseenv())
+    data = check_class(data)
+    expr = substitute(list(...))
+    args = calculate_internal(data[[DATA]], expr, parent.frame())
     args = add_names_to_list(args, ...)
     if(length(args)>0){
         args = flat_list(args, flat_df = FALSE)
@@ -378,26 +395,9 @@ tab_cells.intermediate_table = function(data, ...){
 #' @rdname tables
 #' @export
 tab_rows = function(data, ...){
-    UseMethod("tab_rows")
-}
-
-
-#' @export
-tab_rows.default = function(data, ...){
-    res = make_empty_intermediate_table(data)
-    tab_rows(res, ...)
-}
-
-
-
-#' @export
-tab_rows.intermediate_table = function(data, ...){
-    # expr = substitute(create_list_with_names(...))
-    # args = eval(bquote(calculate(data[["data"]], .(expr))))
-    # expr = substitute(list(...))
-    args = eval(substitute(calculate(data[["data"]], list(...))),
-                envir = parent.frame(),
-                enclos = baseenv())
+    data = check_class(data)
+    expr = substitute(list(...))
+    args = calculate_internal(data[[DATA]], expr, parent.frame())
     args = add_names_to_list(args, ...)
     if(length(args)>0){
         args = flat_list(multiples_to_single_columns_with_dummy_encoding(args),
@@ -414,53 +414,32 @@ tab_rows.intermediate_table = function(data, ...){
 #' @rdname tables
 #' @export
 tab_weight = function(data, weight = NULL){
-    UseMethod("tab_weight")
+    data = check_class(data)
+    expr = substitute(weight)
+    tab_weight_internal(data, expr, parent.frame())
 }
 
-#' @export
-tab_weight.default = function(data, weight = NULL){
-    res = make_empty_intermediate_table(data)
-    # expr = substitute(weight)
-    eval(substitute(tab_weight(res, weight)),
-         envir = parent.frame(),
-         enclos = baseenv())
-}
-
-#' @export
-tab_weight.intermediate_table = function(data, weight = NULL){
-    # expr = substitute(weight)
-    weight = eval(substitute(calculate(data[["data"]], weight)),
-                  envir = parent.frame(),
-                  enclos = baseenv())
+tab_weight_internal = function(data, expr, parent){
+    weight = calculate_internal(data[[DATA]], expr, parent)
     if(is.null(weight)){
         data[[WEIGHT]] = NULL
     } else {
         stopif(!is.numeric(weight) && !is.logical(weight), "'weight' should be numeric or logical.")
         data[[WEIGHT]] = weight
     }
-    data
+    data    
 }
+
+
 
 ############
 
 #' @rdname tables
 #' @export
 tab_mis_val = function(data, ...){
-    UseMethod("tab_mis_val")
-}
-
-#' @export
-tab_mis_val.default = function(data, ...){
-    res = make_empty_intermediate_table(data)
-    tab_mis_val(res, ...)
-}
-
-#' @export
-tab_mis_val.intermediate_table = function(data, ...){
-    # expr = substitute(weight)
-    args = eval(substitute(calculate(data[["data"]], list(...))),
-                envir = parent.frame(),
-                enclos = baseenv())
+    data = check_class(data)
+    expr = substitute(list(...))
+    args = calculate_internal(data[[DATA]], expr, parent.frame())
     if(length(args)>0){
         data[[MIS_VAL]] = unlist(args)
     } else {
@@ -469,53 +448,331 @@ tab_mis_val.intermediate_table = function(data, ...){
     data
 }
 
-#########
+############
+
+#' @rdname tables
+#' @export
+tab_total_label = function(data, ...){
+    data = check_class(data)
+    expr = substitute(list(...))
+    args = calculate_internal(data[[DATA]], expr, parent.frame())
+    if(length(args)>0){
+        data[[TOTAL_LABEL]] = unlist(args)
+    } else {
+        data[[TOTAL_LABEL]] = NULL
+    }
+    data
+}
+
+############
+
+#' @rdname tables
+#' @export
+tab_total_statistic = function(data, ...){
+    data = check_class(data)
+    total_statistic = unlist(list(...))
+    if(length(total_statistic)>0){
+        unknowns = total_statistic %d% TOTAL_STATISTICS
+        stopif(length(unknowns)>0, "unknown total statistics - ", 
+               paste(unknowns, collapse = ", "))
+        total_statistic = match.arg(total_statistic, TOTAL_STATISTICS, several.ok = TRUE)
+        data[[TOTAL_STATISTIC]] = total_statistic
+    } else {
+        data[[TOTAL_STATISTIC]] = NULL
+    }
+    data
+}
+
+
+
+
+############
+
+#' @rdname tables
+#' @export
+tab_total_row_position = function(data, 
+                                  total_row_position = c("below", "above", "none")){
+    data = check_class(data)
+    if(!missing(total_row_position)){
+        data[[TOTAL_ROW_POSITION]] = match.arg(total_row_position)
+    } else {
+        data[[TOTAL_ROW_POSITION]] = NULL
+    }
+    data
+}
+
+#################
+
+
 
 #' @rdname tables
 #' @export
 tab_subgroup = function(data, subgroup = NULL){
-    UseMethod("tab_subgroup")
+    data = check_class(data)
+    expr = substitute(subgroup)
+    tab_subgroup_internal(data, expr, parent.frame())
 }
 
-#' @export
-tab_subgroup.default = function(data, subgroup = NULL){
-    res = make_empty_intermediate_table(data)
-    # expr = substitute(subgroup)
-    eval(substitute(tab_subgroup(res, subgroup)),
-         envir = parent.frame(),
-         enclos = baseenv())
-}
-
-#' @export
-tab_subgroup.intermediate_table = function(data, subgroup = NULL){
-    # expr = substitute(subgroup)
-    subgroup = eval(substitute(calculate(data[["data"]], subgroup)),
-                  envir = parent.frame(),
-                  enclos = baseenv())
+tab_subgroup_internal = function(data, expr, parent){
+    subgroup = calculate_internal(data[[DATA]], expr, parent)
     if(is.null(subgroup)){
         data[[SUBGROUP]] = NULL
     } else {
         stopif(!is.numeric(subgroup) && !is.logical(subgroup), "'subgroup' should be numeric or logical.")
         data[[SUBGROUP]] = subgroup
     }
-    data
+    data 
 }
-
 
 #####################
 #' @rdname tables
 #' @export
-tab_stat_fun = function(data, ..., 
-                        label = NULL){
-    UseMethod("tab_stat_fun")
+tab_row_label = function(data, ..., 
+                         label = NULL){
+    data = check_class(data)
+    label = substitute(label)
+    tab_row_label_internal(data, 
+                           ..., 
+                           label_expr = label, 
+                           parent = parent.frame()
+    )
+}
+
+
+tab_row_label_internal = function(data, ..., label_expr, parent){
+    args = substitute(paste(..., sep = "|"))
+    row_labels = calculate_internal(data[[DATA]], args, parent)
+    label = calculate_internal(data[[DATA]], label_expr, parent)
+    result = dtfrm(row_labels = row_labels)
+    class(result) = union("etable", class(result))
+    add_result_to_intermediate_table(data, result, label)
+}
+
+
+
+############
+
+#' @rdname tables
+#' @export
+tab_stat_fun = function(data, ..., label = NULL, unsafe = FALSE){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          ..., 
+                          label_expr = label, 
+                          unsafe = unsafe, 
+                          parent = parent.frame()
+    )
+}
+
+tab_stat_fun_internal = function(data, ..., label_expr, unsafe, parent){
+    args = list(...)
+    if(length(args)>1 || !is.null(names(args))){
+        fun = combine_functions(...)
+    } else {
+        fun = args[[1]]
+    }
+    label = calculate_internal(data[[DATA]], label_expr, parent)
+    result = cro_fun(
+        cell_vars = get_cells(data),
+        col_vars = data[[COL_VAR]],
+        row_vars = data[[ROW_VAR]],
+        weight = data[[WEIGHT]],
+        subgroup = data[[SUBGROUP]],
+        fun = fun,
+        unsafe = unsafe
+    )
+    add_result_to_intermediate_table(data, result, label)
+    
+}
+
+################################
+
+#' @rdname tables
+#' @export
+tab_stat_mean_sd_n = function(data, weighted_valid_n = FALSE,
+                              labels = c("Mean", "Std. dev.", 
+                                         ifelse(weighted_valid_n, 
+                                                "Valid N", 
+                                                "Unw. valid N")
+                                         ),
+                              label = NULL){
+    check_class_for_stat(data)
+    label = substitute(label)
+    if(weighted_valid_n){
+        fun = function(x, weight = NULL) {
+            c(w_mean(x, weight), w_sd(x, weight), valid_n(x, weight))
+        }
+    } else {
+        fun = function(x, weight = NULL) {
+            c(w_mean(x, weight), w_sd(x, weight), unweighted_valid_n(x, weight))
+        }
+    }
+    tab_stat_fun_internal(data, 
+                          fun, 
+                          label_expr = label, 
+                          unsafe = labels, 
+                          parent = parent.frame()
+    ) 
+}
+
+
+#' @rdname tables
+#' @export
+tab_stat_mean = function(data, label = "Mean"){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_mean, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    ) 
 }
 
 #' @rdname tables
 #' @export
-tab_stat_fun_df = function(data, ..., 
-                           label = NULL){
-    UseMethod("tab_stat_fun_df")
+tab_stat_median = function(data, label = "Median"){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_median, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )  
 }
+
+
+
+#' @rdname tables
+#' @export
+tab_stat_se = function(data, label = "S. E."){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_se, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )    
+}
+
+#' @rdname tables
+#' @export
+tab_stat_sum = function(data, label = "Sum"){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_sum, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )   
+}
+
+#' @rdname tables
+#' @export
+tab_stat_min = function(data, label = "Min."){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_min, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )    
+}
+
+#' @rdname tables
+#' @export
+tab_stat_max = function(data, label = "Max."){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_max, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )   
+}
+
+#' @rdname tables
+#' @export
+tab_stat_sd = function(data, label = "Std. dev."){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          w_sd, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    ) 
+}
+
+#' @rdname tables
+#' @export
+tab_stat_valid_n = function(data, label = "Valid N"){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          valid_n, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )  
+}
+
+#' @rdname tables
+#' @export
+tab_stat_unweighted_valid_n = function(data, label = "Unw. valid N"){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_internal(data, 
+                          unweighted_valid_n, 
+                          label_expr = label, 
+                          unsafe = TRUE, 
+                          parent = parent.frame()
+    )  
+}
+
+#######################################
+
+#' @rdname tables
+#' @export
+tab_stat_fun_df = function(data, ..., label = NULL, unsafe = FALSE){
+    check_class_for_stat(data)
+    label = substitute(label)
+    tab_stat_fun_df_internal(data, 
+                          ..., 
+                          label_expr = label, 
+                          unsafe = unsafe, 
+                          parent = parent.frame()
+    )    
+}
+
+tab_stat_fun_df_internal = function(data, ..., label_expr, unsafe, parent){
+    args = list(...)
+    if(length(args)>1 || !is.null(names(args))){
+        fun = combine_functions(...)
+    } else {
+        fun = args[[1]]
+    }
+    label = calculate_internal(data[[DATA]], label_expr, parent)
+    result = cro_fun_df(
+        cell_vars = get_cells(data),
+        col_vars = data[[COL_VAR]],
+        row_vars = data[[ROW_VAR]],
+        weight = data[[WEIGHT]],
+        subgroup = data[[SUBGROUP]],
+        fun = fun,
+        unsafe = unsafe
+    )
+    add_result_to_intermediate_table(data, result, label)
+    
+}
+
+########################################################
 
 #' @rdname tables
 #' @export
@@ -524,200 +781,21 @@ tab_stat_cases = function(data,
                           total_statistic = "u_cases",
                           total_row_position = c("below", "above", "none"),
                           label = NULL){
-    UseMethod("tab_stat_cases")
-}
-
-#' @rdname tables
-#' @export
-tab_stat_cpct = function(data, 
-                         total_label = NULL,
-                         total_statistic = "u_cases",
-                         total_row_position = c("below", "above", "none"),
-                         label = NULL){
-    UseMethod("tab_stat_cpct")
-}
-
-#' @rdname tables
-#' @export
-tab_stat_cpct_responses =function(data, 
-                                  total_label = NULL,
-                                  total_statistic = "u_responses",
-                                  total_row_position = c("below", "above", "none"),
-                                  label = NULL){
-    UseMethod("tab_stat_cpct_responses")
-}
-
-#' @rdname tables
-#' @export
-tab_stat_tpct = function(data, 
-                         total_label = NULL,
-                         total_statistic = "u_cases",
-                         total_row_position = c("below", "above", "none"),
-                         label = NULL){
-    UseMethod("tab_stat_tpct")
-}
-
-#' @rdname tables
-#' @export
-tab_stat_rpct = function(data, 
-                         total_label = NULL,
-                         total_statistic = "u_cases",
-                         total_row_position = c("below", "above", "none"),
-                         label = NULL){
-    UseMethod("tab_stat_rpct")
-}
-
-############
-#' @export
-tab_stat_fun.intermediate_table = function(data, ..., 
-                                label = NULL){
-    # fun = eval(substitute(combine_functions(...)))
-    args = list(...)
-    if(length(args)>1 || !is.null(names(args))){
-        fun = combine_functions(...)
+    check_class_for_stat(data)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    if(missing(total_label) && !is.null(data[[TOTAL_LABEL]])){
+        total_label = data[[TOTAL_LABEL]]    
     } else {
-        fun = args[[1]]
+        total_label = substitute(total_label)
+        total_label = calculate_internal(data[[DATA]], total_label, parent.frame())
     }
-    # label = substitute(label)
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
-    result = cro_fun(
-        cell_vars = get_cells(data),
-        col_vars = data[[COL_VAR]],
-        row_vars = data[[ROW_VAR]],
-        weight = data[[WEIGHT]],
-        subgroup = data[[SUBGROUP]],
-        fun = fun
-    )
-    add_result_to_intermediate_table(data, result, label)
-}
-
-#' @rdname tables
-#' @export
-tab_stat_mean = function(data, label = "Mean"){
-    eval(substitute(tab_stat_fun(data, 
-                             w_mean, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_median = function(data, label = "Median"){
-    eval(substitute(tab_stat_fun(data, 
-                             w_median, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_se = function(data, label = "S. E."){
-    eval(substitute(tab_stat_fun(data,
-                             w_se, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_sum = function(data, label = "Sum"){
-    eval(substitute(tab_stat_fun(data, 
-                             w_sum, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_min = function(data, label = "Min."){
-    eval(substitute(tab_stat_fun(data, 
-                                 w_min, 
-                                 label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_max = function(data, label = "Max."){
-    eval(substitute(tab_stat_fun(data, 
-                                 w_max, 
-                                 label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_sd = function(data, label = "Std. dev."){
-    eval(substitute(tab_stat_fun(data, 
-                             w_sd, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())
-}
-
-#' @rdname tables
-#' @export
-tab_stat_valid_n = function(data, label = "Valid N"){
-    eval(substitute(tab_stat_fun(data, 
-                             valid_n, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-#' @rdname tables
-#' @export
-tab_stat_unweighted_valid_n = function(data, label = "Unw. valid N"){
-    eval(substitute(tab_stat_fun(data, 
-                             unweighted_valid_n, 
-                             label = label)),
-         envir = parent.frame(),
-         enclos = baseenv())    
-}
-
-
-#' @export
-tab_stat_fun_df.intermediate_table = function(data, ..., 
-                                   label = NULL){
-    
-    # fun = eval(substitute(combine_functions(...)))
-    args = list(...)
-    if(length(args)>1 || !is.null(names(args))){
-        fun = combine_functions(...)
-    } else {
-        fun = args[[1]]
-    }
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
-    result = cro_fun_df(
-        cell_vars = get_cells(data),
-        col_vars = data[[COL_VAR]],
-        row_vars = data[[ROW_VAR]],
-        weight = data[[WEIGHT]],
-        subgroup = data[[SUBGROUP]],
-        fun = fun
-    )
-    add_result_to_intermediate_table(data, result, label)
-}
-
-#' @export
-tab_stat_cases.intermediate_table = function(data, 
-                                  total_label = NULL,
-                                  total_statistic = "u_cases",
-                                  total_row_position = c("below", "above", "none"),
-                                  label = NULL){
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
+    if(missing(total_statistic) && !is.null(data[[TOTAL_STATISTIC]])){
+        total_statistic = data[[TOTAL_STATISTIC]]    
+    } 
+    if(missing(total_row_position) && !is.null(data[[TOTAL_ROW_POSITION]])){
+        total_row_position = data[[TOTAL_ROW_POSITION]]    
+    } 
     result = cro_cases(
         cell_vars = get_cells(data),
         col_vars = data[[COL_VAR]],
@@ -731,15 +809,28 @@ tab_stat_cases.intermediate_table = function(data,
     add_result_to_intermediate_table(data, result, label)
 }
 
+#' @rdname tables
 #' @export
-tab_stat_cpct.intermediate_table = function(data, 
-                                 total_label = NULL,
-                                 total_statistic = "u_cases",
-                                 total_row_position = c("below", "above", "none"),
-                                 label = NULL){
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
+tab_stat_cpct = function(data, 
+                         total_label = NULL,
+                         total_statistic = "u_cases",
+                         total_row_position = c("below", "above", "none"),
+                         label = NULL){
+    check_class_for_stat(data)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    if(missing(total_label) && !is.null(data[[TOTAL_LABEL]])){
+        total_label = data[[TOTAL_LABEL]]    
+    } else {
+        total_label = substitute(total_label)
+        total_label = calculate_internal(data[[DATA]], total_label, parent.frame())
+    }
+    if(missing(total_statistic) && !is.null(data[[TOTAL_STATISTIC]])){
+        total_statistic = data[[TOTAL_STATISTIC]]    
+    } 
+    if(missing(total_row_position) && !is.null(data[[TOTAL_ROW_POSITION]])){
+        total_row_position = data[[TOTAL_ROW_POSITION]]    
+    }
     result = cro_cpct(
         cell_vars = get_cells(data),
         col_vars = data[[COL_VAR]],
@@ -753,16 +844,28 @@ tab_stat_cpct.intermediate_table = function(data,
     add_result_to_intermediate_table(data, result, label)
 }
 
-
+#' @rdname tables
 #' @export
-tab_stat_cpct_responses.intermediate_table =function(data, 
-                                          total_label = NULL,
-                                          total_statistic = "u_responses",
-                                          total_row_position = c("below", "above", "none"),
-                                          label = NULL){
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
+tab_stat_cpct_responses =function(data, 
+                                  total_label = NULL,
+                                  total_statistic = "u_responses",
+                                  total_row_position = c("below", "above", "none"),
+                                  label = NULL){
+    check_class_for_stat(data)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    if(missing(total_label) && !is.null(data[[TOTAL_LABEL]])){
+        total_label = data[[TOTAL_LABEL]]    
+    } else {
+        total_label = substitute(total_label)
+        total_label = calculate_internal(data[[DATA]], total_label, parent.frame())
+    }
+    if(missing(total_statistic) && !is.null(data[[TOTAL_STATISTIC]])){
+        total_statistic = data[[TOTAL_STATISTIC]]    
+    } 
+    if(missing(total_row_position) && !is.null(data[[TOTAL_ROW_POSITION]])){
+        total_row_position = data[[TOTAL_ROW_POSITION]]    
+    }
     result = cro_cpct_responses(
         cell_vars = get_cells(data),
         col_vars = data[[COL_VAR]],
@@ -776,15 +879,28 @@ tab_stat_cpct_responses.intermediate_table =function(data,
     add_result_to_intermediate_table(data, result, label)
 }
 
+#' @rdname tables
 #' @export
-tab_stat_tpct.intermediate_table = function(data, 
-                                 total_label = NULL,
-                                 total_statistic = "u_cases",
-                                 total_row_position = c("below", "above", "none"),
-                                 label = NULL){
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
+tab_stat_tpct = function(data, 
+                         total_label = NULL,
+                         total_statistic = "u_cases",
+                         total_row_position = c("below", "above", "none"),
+                         label = NULL){
+    check_class_for_stat(data)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    if(missing(total_label) && !is.null(data[[TOTAL_LABEL]])){
+        total_label = data[[TOTAL_LABEL]]    
+    } else {
+        total_label = substitute(total_label)
+        total_label = calculate_internal(data[[DATA]], total_label, parent.frame())
+    }
+    if(missing(total_statistic) && !is.null(data[[TOTAL_STATISTIC]])){
+        total_statistic = data[[TOTAL_STATISTIC]]    
+    } 
+    if(missing(total_row_position) && !is.null(data[[TOTAL_ROW_POSITION]])){
+        total_row_position = data[[TOTAL_ROW_POSITION]]    
+    }
     result = cro_tpct(
         cell_vars = get_cells(data),
         col_vars = data[[COL_VAR]],
@@ -798,15 +914,28 @@ tab_stat_tpct.intermediate_table = function(data,
     add_result_to_intermediate_table(data, result, label)
 }
 
+#' @rdname tables
 #' @export
-tab_stat_rpct.intermediate_table = function(data, 
-                                            total_label = NULL,
-                                            total_statistic = "u_cases",
-                                            total_row_position = c("below", "above", "none"),
-                                            label = NULL){
-    label = eval(substitute(calculate(data[["data"]], label)),
-                 envir = parent.frame(),
-                 enclos = baseenv())
+tab_stat_rpct = function(data, 
+                         total_label = NULL,
+                         total_statistic = "u_cases",
+                         total_row_position = c("below", "above", "none"),
+                         label = NULL){
+    check_class_for_stat(data)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    if(missing(total_label) && !is.null(data[[TOTAL_LABEL]])){
+        total_label = data[[TOTAL_LABEL]]    
+    } else {
+        total_label = substitute(total_label)
+        total_label = calculate_internal(data[[DATA]], total_label, parent.frame())
+    }
+    if(missing(total_statistic) && !is.null(data[[TOTAL_STATISTIC]])){
+        total_statistic = data[[TOTAL_STATISTIC]]    
+    } 
+    if(missing(total_row_position) && !is.null(data[[TOTAL_ROW_POSITION]])){
+        total_row_position = data[[TOTAL_ROW_POSITION]]    
+    }
     result = cro_rpct(
         cell_vars = get_cells(data),
         col_vars = data[[COL_VAR]],
@@ -821,68 +950,78 @@ tab_stat_rpct.intermediate_table = function(data,
 }
 
 ######
-############
-#' @export
-tab_stat_fun.default = function(data, ..., 
-                        label = NULL){
-    tab_stat_()
-}
-
-#' @export
-tab_stat_fun_df.default = function(data, ..., 
-                           label = NULL){
-    tab_stat_()
-}
-
-#' @export
-tab_stat_cases.default = function(data, 
-                          total_label = NULL,
-                          total_statistic = "u_cases",
-                          total_row_position = c("below", "above", "none"),
-                          label = NULL){
-    tab_stat_()
-}
-
-#' @export
-tab_stat_cpct.default = function(data, 
-                         total_label = NULL,
-                         total_statistic = "u_cases",
-                         total_row_position = c("below", "above", "none"),
-                         label = NULL){
-    tab_stat_()
-}
-
-
-#' @export
-tab_stat_cpct_responses.default =function(data, 
-                                  total_label = NULL,
-                                  total_statistic = "u_responses",
-                                  total_row_position = c("below", "above", "none"),
-                                  label = NULL){
-    tab_stat_()
-}
-
-#' @export
-tab_stat_tpct.default = function(data, 
-                         total_label = NULL,
-                         total_statistic = "u_cases",
-                         total_row_position = c("below", "above", "none"),
-                         label = NULL){
-    tab_stat_()
-}
-
-#' @export
-tab_stat_rpct.default = function(data, 
-                                 total_label = NULL,
-                                 total_statistic = "u_cases",
-                                 total_row_position = c("below", "above", "none"),
-                                 label = NULL){
-    tab_stat_()
-}
 
 ######
-tab_stat_ = function(){
-    stop("No data for 'tab_stat_*'. Use at least one of 'tab_cells'/'tab_rows'/'tab_cols' before the 'tab_stat'.")
+check_class_for_stat = function(data){
+    stopif(!inherits(data, "intermediate_table"),
+           "No data for 'tab_stat_*'. Use at least one of 'tab_cells'/'tab_rows'/'tab_cols' before the 'tab_stat'.")
+    TRUE
+}
+
+########################
+
+#' @rdname tables
+#' @export
+tab_last_vstack = function(data, stat_position = c("outside_rows",
+                                              "inside_rows"), 
+                      stat_label = c("inside", "outside"),
+                      label = NULL){
+    stopif(!inherits(data, "intermediate_table"), 
+           "'tab_last_vstack' - argument 'data' need to be result of 'tab_stats_*'.") 
+    result_length = length(data[[RESULT]])
+    stopif(result_length < 2, 
+           "It is needed at least two 'tab_stat_*' in the intermeadiate tables for 'tab_last_vstack'.")
+    stat_position = match.arg(stat_position)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    two_items = list()
+    two_items[[RESULT]] = data[[RESULT]][(result_length-1):result_length]
+    two_items[[STAT_LABELS]] = data[[STAT_LABELS]][(result_length-1):result_length] 
+    data[[RESULT]][(result_length-1):result_length] = NULL
+    data[[STAT_LABELS]] = data[[STAT_LABELS]][-((result_length-1):result_length)]
+    res = switch(stat_position, 
+                 outside_rows = pivot_rows(two_items, stat_position = "outside", 
+                                           stat_label = stat_label),
+                 inside_rows = pivot_rows(two_items, stat_position = "inside", 
+                                          stat_label = stat_label)
+                 
+    )
+    res[["row_labels"]] = remove_unnecessary_splitters(res[["row_labels"]])
+    colnames(res) = remove_unnecessary_splitters(colnames(res))
+    rownames(res) = NULL
+    add_result_to_intermediate_table(data, res, label)
+}
+
+#' @rdname tables
+#' @export
+tab_last_hstack = function(data, stat_position = c("outside_columns",
+                                              "inside_columns"), 
+                      stat_label = c("inside", "outside"),
+                      label = NULL){
+    stopif(!inherits(data, "intermediate_table"), 
+           "'tab_last_hstack' - argument 'data' need to be result of 'tab_stats_*'.")   
+    result_length = length(data[[RESULT]])
+    stopif(result_length < 2, 
+           "It is needed at least two 'tab_stat_*' in the intermeadiate tables for 'tab_last_hstack'.")
+    stat_position = match.arg(stat_position)
+    label = substitute(label)
+    label = calculate_internal(data[[DATA]], label, parent.frame())
+    two_items = list()
+    two_items[[RESULT]] = data[[RESULT]][(result_length-1):result_length]
+    two_items[[STAT_LABELS]] = data[[STAT_LABELS]][(result_length-1):result_length] 
+    data[[RESULT]][(result_length-1):result_length] = NULL
+    data[[STAT_LABELS]] = data[[STAT_LABELS]][-((result_length-1):result_length)]
+    res = switch(stat_position, 
+                 outside_columns = pivot_columns(two_items, stat_position = "outside", 
+                                                 stat_label = stat_label),
+                 inside_columns = pivot_columns(two_items, stat_position = "inside", 
+                                                stat_label = stat_label)
+                 
+    )
+    res[["row_labels"]] = remove_unnecessary_splitters(res[["row_labels"]])
+    colnames(res) = remove_unnecessary_splitters(colnames(res))
+    rownames(res) = NULL
+    add_result_to_intermediate_table(data, res, label)
 }
 
 ########
@@ -893,17 +1032,11 @@ tab_pivot = function(data, stat_position = c("outside_rows",
                                              "outside_columns",
                                              "inside_columns"), 
                      stat_label = c("inside", "outside")){
-    UseMethod("tab_pivot")
-}
-
-#' @export
-tab_pivot.intermediate_table = function(data, stat_position = c("outside_rows",
-                                                       "inside_rows",
-                                                       "outside_columns",
-                                                       "inside_columns"), 
-                                        stat_label = c("inside", "outside")){
+    stopif(!inherits(data, "intermediate_table"), 
+           "'tab_pivot' - argument 'data' need to be result of 'tab_stats_*'.")
     stopif(length(data[[RESULT]])==0, 
            "No statistics in the table. Use at least one of 'tab_stat' before the 'pivot'.")
+    
     stat_position = match.arg(stat_position)
     res = switch(stat_position, 
                  outside_rows = pivot_rows(data, stat_position = "outside", 
@@ -921,16 +1054,7 @@ tab_pivot.intermediate_table = function(data, stat_position = c("outside_rows",
     res
 }
 
-#' @export
-tab_pivot.default = function(data, stat_position = c("outside_rows",
-                                                     "inside_rows",
-                                                     "outside_columns",
-                                                     "inside_columns"), 
-                             stat_label = c("inside", "outside")
-                             ){
-    stop("No data for 'tab_pivot'. 
-         Use at least one of 'tab_cells'/'tab_rows'/'tab_cols' and at least one of 'tab_stat' before the 'tab_pivot'.")
-}
+
 
 #' @rdname tables
 #' @export
@@ -945,50 +1069,15 @@ tab_transpose.default = function(data){
 
 #' @export
 tab_transpose.intermediate_table = function(data){
-    result_num = length(data[[RESULT]])
-    stopif(result_num==0,
-           "No results for transposition. Use 'tab_transpose' after 'tab_stat_*' or after 'tab_pivot'.")
-    data[[RESULT]][[result_num]] = t(data[[RESULT]][[result_num]])
-    data
+    replace_last_result(
+        data, 
+        t(
+            get_last_result(data)
+        )
+    )
 }
-# ########
-# #' @rdname tables
-# #' @export
-# tab_intermediate_pivot = function(data, stat_position = c("outside_rows",
-#                                                           "inside_rows",
-#                                                           "outside_columns",
-#                                                           "inside_columns"), 
-#                                   stat_label = c("inside", "outside")
-# ){
-#     UseMethod("tab_intermediate_pivot")
-#     
-# }
-# 
-# #' @export
-# tab_intermediate_pivot.intermediate_table = function(data, stat_position = c("outside_rows",
-#                                                                              "inside_rows",
-#                                                                              "outside_columns",
-#                                                                              "inside_columns"), 
-#                                                      stat_label = c("inside", "outside"),
-#                                                      label = NULL
-# ){
-#     stopif(length(data[[RESULT]])==0, 
-#            "No statistics in the table. Use at least one of 'tab_stat' before the 'pivot'.")
-#     res = tab_pivot(data, stat_position = stat_position, stat_label = stat_label)
-#     data[[RESULT]] = list(res)
-#     data[[STAT_LABELS]] = if_null(label, "")
-#     data
-# }
-# 
-# #' @export
-# tab_intermediate_pivot.default = function(data, stat_label_position = c("outside_rows",
-#                                                            "inside_rows", 
-#                                                            "outside_columns", 
-#                                                            "inside_columns")
-# ){
-#     stop("No data for 'tab_pivot'. 
-#          Use at least one of 'tab_cells'/'tab_rows'/'tab_cols' and at least one of 'tab_stat' before the 'tab_pivot'.")
-# }
+
+
 ################
 
 pivot_rows = function(data, stat_position = c("inside", "outside"), 
@@ -999,30 +1088,34 @@ pivot_rows = function(data, stat_position = c("inside", "outside"),
     labels = data[[STAT_LABELS]]
     labels_index = seq_along(labels)
     
-    results = lapply(labels_index, function(item_num){
-        curr = results[[item_num]]
-        curr[["..label_index__"]] = item_num
-        curr[["..label__"]] = labels[item_num]
-        curr
+    labels_and_index = lapply(labels_index, function(item_num){
+        dtfrm(label_index = rep(item_num, NROW(results[[item_num]])),
+             label = rep(labels[item_num], NROW(results[[item_num]]))
+        )
     })
     results = Reduce(add_rows, results)
+    old_colnames = colnames(results)
+    labels_and_index = do.call(rbind, labels_and_index)
 
     if(stat_position == "inside"){
-        results[["..row_labels__"]] = match(results[["row_labels"]], 
+        labels_and_index[["row_labels"]] = match(results[["row_labels"]], 
                                             unique(results[["row_labels"]])
         )
-        results = sort_asc(results, "..row_labels__", "..label_index__")
+        results = results[order(labels_and_index[["row_labels"]],
+                                labels_and_index[["label_index"]]),
+                          ]
+        labels_and_index = labels_and_index[order(labels_and_index[["row_labels"]],
+                                labels_and_index[["label_index"]]),
+                          ]
         
-        results[["..row_labels__"]] = NULL
     }
     if(stat_label == "inside"){
-        results[["row_labels"]] = paste0( results[["row_labels"]], "|", results[["..label__"]])     
+        results[[1]] = paste0( results[[1]], "|", labels_and_index[["label"]])     
     } else {
-        results[["row_labels"]] = paste0( results[["..label__"]], "|", results[["row_labels"]])
+        results[[1]] = paste0( labels_and_index[["label"]], "|", results[[1]])
     }
-    
-    results[["..label__"]] = NULL
-    results[["..label_index__"]] = NULL
+    colnames(results) = old_colnames
+
     results
     
 }
@@ -1068,6 +1161,20 @@ pivot_columns = function(data, stat_position = c("inside", "outside"),
 
 #############
 
+check_class = function(data){
+    if(inherits(data, "intermediate_table")){
+        return(data)
+    }
+    if(inherits(data, "data.frame")){
+        return(make_empty_intermediate_table(data))
+    }
+    stop("'data' should be data.frame or intermediate table.")
+}
+
+
+
+################
+
 add_result_to_intermediate_table = function(data, result, label){
     new_result_position = length(data[[RESULT]]) + 1
     label = if_null(label, "")
@@ -1079,7 +1186,7 @@ add_result_to_intermediate_table = function(data, result, label){
 #############
 make_empty_intermediate_table = function(data){
     res = list()
-    res[["data"]] = data
+    res[[DATA]] = data
     res[[COL_VAR]] = list(total())
     res[[ROW_VAR]] = list(total(label = ""))
     res[[CELL_VAR]] = list(total())
@@ -1089,8 +1196,8 @@ make_empty_intermediate_table = function(data){
     res[[RESULT]] = list()
     res[[STAT_LABELS]] = character(0)
     class(res) = union("intermediate_table", class(res))
+    res[[SIGNIFICANCE_OPTIONS]] = list()
     res
-    
 }
 
 ##############
@@ -1104,6 +1211,19 @@ get_cells = function(intermediate_table){
     na_if(cells, mis_val)
 }
 
+
+get_last_result = function(intermediate_table){
+    results = intermediate_table[[RESULT]]
+    stopif(length(results)==0, "There are no results yet. Use at least one of 'tab_stat_*' functions.")
+    results[[length(results)]]
+}
+
+replace_last_result = function(intermediate_table, new_result){
+    results = intermediate_table[[RESULT]]
+    stopif(length(results)==0, "There are no results yet. Use at least one of 'tab_stat_*' functions.")
+    intermediate_table[[RESULT]][[length(results)]] = new_result
+    intermediate_table
+}
 ##############
 
 #' @export
@@ -1114,7 +1234,7 @@ print.intermediate_table = function(x, ...){
 ###############
 add_names_to_list = function(args, ...){
     if(length(args)==0) return(NULL)
-    possible_names = unlist(lapply(as.list(substitute(list(...)))[-1], deparse))
+    possible_names = unlist(lapply(as.list(substitute(list(...)))[-1], expr_to_character))
     arg_names = names(args)
     if(length(possible_names)>0){
         if(is.null(arg_names)) {

@@ -3,13 +3,13 @@
 #' \code{recode} change, rearrange or consolidate the values of an existing 
 #' variable based on conditions. Design of this function inspired by RECODE from
 #' SPSS. Sequence of recodings provided in the form of formulas. For example, 
-#' 1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will
-#' recoded only once. In the assignment form \code{recode(...) = ...} of this
+#' 1:2 ~ 1 means that all 1's and 2's will be replaced with 1. Each value will 
+#' recoded only once. In the assignment form \code{recode(...) = ...} of this 
 #' function values which doesn't meet any condition remain unchanged. In case of
-#' the usual form \code{... = recode(...)} values which doesn't meet any
-#' condition will be replaced with NA. As a condition one can use just values or
-#' more sophisticated logical values and functions. There are several special
-#' functions for usage as criteria - for details see \link{criteria}. Simple
+#' the usual form \code{... = recode(...)} values which doesn't meet any 
+#' condition will be replaced with NA. One can use values or more sophisticated
+#' logical conditions and functions as a condition. There are several special 
+#' functions for usage as criteria - for details see \link{criteria}. Simple 
 #' common usage looks like: \code{recode(x, 1:2 ~ -1, 3 ~ 0, 1:2 ~ 1, 99 ~ NA)}.
 #' For more information, see details and examples.
 #' The \code{ifs} function checks whether one or more conditions are met and
@@ -20,7 +20,7 @@
 #' should be only logical and it doesn't operate on multicolumn objects.
 #' 
 #' @details 
-#' Input conditions - possible values for left hand side (LHS) of formula or
+#' Input conditions - possible values for left-hand side (LHS) of formula or
 #' element of \code{from} list:
 #' \itemize{
 #' \item{vector/single value}{ All values in \code{x} which equal to elements of
@@ -35,7 +35,7 @@
 #' \code{x}. If LHS is matrix/data.frame then column from this matrix/data.frame
 #' will be used for corresponding column/element of \code{x}.}
 #' }
-#' Output values - possible values for right hand side (RHS) of formula or
+#' Output values - possible values for right-hand side (RHS) of formula or
 #' element of \code{to} list:
 #' \itemize{
 #' \item{value}{ replace elements of \code{x}. This value will be
@@ -55,11 +55,10 @@
 #' which are not satisfying any of the conditions.}}
 #' \code{\%into\%} tries to mimic SPSS 'INTO'. Values from left-hand side will 
 #' be assigned to right-hand side. You can use \code{\%to\%} expression in the 
-#' RHS of \code{\%into\%}. Characters in the RHS will be expanded as with
-#' \link{subst}. See examples.
+#' RHS of \code{\%into\%}. See examples. 
 #' \code{lo} and \code{hi} are shortcuts for \code{-Inf} and \code{Inf}. They
-#' can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\% hi}.
-#' \code{if_val} is an alias for \code{recode}.
+#' can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\%
+#' hi}. \code{if_val} is an alias for \code{recode}.
 #' 
 #' @param x vector/matrix/data.frame/list
 #' @param ... sequence of formulas which describe recodings. They are used when
@@ -70,9 +69,11 @@
 #'   same format as LHS of formulas).
 #' @param to list of values into which old values should be recoded (in the same
 #'   format as RHS of formulas).
-#' @param e1 object which will be assigned to right-hand side of \code{\%into\%}
-#'   expression.
-#' @param e2 names which will be given to LHS of \code{\%into\%} expression. 
+#' @param values object(-s) which will be assigned to \code{names} for 
+#'   \code{\%into\%} operation. \code{\%into\%} supports multivalue assignments.
+#'   See examples.
+#' @param names name(-s) which will be given to \code{values} expression. For 
+#'   \code{\%into\%}.
 #'
 #' @return object of same form as \code{x} with recoded values
 #' @examples
@@ -120,7 +121,7 @@
 #' fre(x_rec_1)
 #' # the same operation with characters expansion
 #' i = 1:3
-#' recode(x1 %to% x3, gt(0.5) ~ 1, other ~ 0) %into% 'x_rec2_`i`'
+#' recode(x1 %to% x3, gt(0.5) ~ 1, other ~ 0) %into% subst('x_rec2_`i`')
 #' fre(x_rec2_1)
 #' 
 #' # example with function in RHS
@@ -154,7 +155,7 @@
 #'       )
 #' 
 #' # replace NA with row means
-#' # some rows which contain all NaN remain unchanged because mean_row for them also is NaN
+#' # some rows which contain only NaN's remain unchanged because mean_row for them also is NaN
 #' recode(dfs, NA ~ mean_row(dfs), other ~ copy) 
 #' 
 #' # some of the above examples with from/to notation
@@ -337,16 +338,10 @@ if_val.default = function(x, ..., from = NULL, to = NULL){
 }
 
 
-
-
-
-
 #' @export
 if_val.list = function(x, ..., from = NULL, to = NULL){
     lapply(x, if_val, ..., from = from, to = to)
 }
-
-
 
 
 
@@ -401,88 +396,75 @@ hi = Inf
 
 #' @export
 #' @rdname if_val
-copy = function(x) x
+copy = function(x) {
+    if(missing(x)){
+        copy
+    } else {
+        x
+    }
+}    
 
 #' @export
 #' @rdname if_val
-'%into%' = function(e1, e2){
-    args = substitute(e2)
-    if(length(args)==1){
-        if(length(all.names(args))==length(all.vars(args))){
-            # there is no functions
-            if(is.character(args)){
-                new_args = eval(substitute(subst(args)), parent.frame(), baseenv())
-            } else {
-                new_args = deparse(args) 
-            }
-            
-        } else {
-            # we have functions
-            new_args = substitute_symbols(args,
-                                          list("%to%" = ".into_helper_")
-            )
-            new_args = eval(substitute(new_args), parent.frame(), baseenv())
-        }
-    } else {
-        if(deparse(args[[1]]) %in% c("list", "c", "qc", "lst")){
-            new_args = list()
-            for(each in seq_along(args[-1])){
-                x = args[[each+1]]
-                if(length(all.names(x))==length(all.vars(x))){
-                    if(is.character(x)){
-                        new_args[[each]] = eval(substitute(subst(x)), parent.frame(), baseenv()) 
-                    } else {
-                        new_args[[each]] = deparse(x) 
-                    }
-                } else {
-                    x = substitute_symbols(x,
-                                           list("%to%" = ".into_helper_")
-                    )
-                    x = eval(substitute(x), parent.frame(), baseenv())
-                    new_args[[each]] = x
-                }
-            }
-        } else {
-            new_args = substitute_symbols(args,
-                                      list("%to%" = ".into_helper_")
-            )
-            new_args = eval(substitute(new_args), parent.frame(), baseenv())
-        }
+'%into%' = function(values, names){
+    variables_names = substitute(names)
+    if(length(variables_names)==1){
+        variables_names = substitute(list(names))
     }
-    args = unlist(new_args)
-    if(length(args)==1){
-        assign(args[[1]], e1, envir = parent.frame())
-    } else {
-        if(is.list(e1)){
-            n_elements = length(e1)
-        } else {
-            n_elements = NCOL(e1)
-        }
-        stopif(!((n_elements==length(args)) || (n_elements==1)),
-               "'%into%' - you provide ",length(args), " names and ", n_elements,
-               " items for them. Number of items should be equal to number of the names or equal to one."
-        )
-        for(each in seq_along(args)){
-            assign(args[[each]], column(e1, each), envir = parent.frame())
-        }
-    }
-    invisible(NULL)
+    into_internal(values, variables_names, parent.frame())
 }
 
 
 
 
-# version of %to% for usage inside %into%'
-#' @export
-#' @rdname if_val
-.into_helper_ = function(e1, e2){
-    if(exists(".internal_column_names0", envir = parent.frame())){
-        var_names = internal_ls(parent.frame()[[".internal_column_names0"]], env = parent.frame())
-    } else {
-        var_names = ls(envir = parent.frame())
+
+into_internal = function(values, variables_names, envir){
+    variables_names = substitute_symbols(variables_names,
+                       list("%to%" = expr_into_helper,
+                            ".." = expr_internal_parameter)
+                       )
+    existing_vars = get_current_variables(envir)
+    variables_names = as.list(variables_names)
+    variables_names[-1] = convert_top_level_symbols_to_characters(variables_names[-1])
+    variables_names = as.call(variables_names)
+    variables_names = eval(variables_names, envir = envir,
+                       enclos = baseenv())
+    variables_names = flat_list(variables_names)
+    for(i in seq_along(variables_names)){
+        each_name = variables_names[[i]]
+        if(is.function(each_name)){
+            variables_names[[i]] = v_intersect(existing_vars, each_name)
+            existing_vars = v_diff(existing_vars, each_name)
+        } 
     }
-    e1 = deparse(substitute(e1))
-    e2 = deparse(substitute(e2))
+    variables_names = unlist(variables_names, use.names = FALSE)
+    if(is.list(values)){
+        n_elements = length(values)
+    } else {
+        n_elements = NCOL(values)
+    }
+    stopif(!((n_elements==length(variables_names)) || (n_elements==1)),
+           "'%into%' - you provide ", length(variables_names), " names and ", n_elements,
+           " items for them. Number of items should be equal to number of the names or equal to one."
+    )
+    for(each in seq_along(variables_names)){
+        assign(variables_names[[each]], column(values, each), envir = envir)
+    }
+    invisible(NULL)
+}
+
+
+# version of %to% for usage inside %into%'
+.into_helper_ = function(e1, e2){
+    var_names = get_current_variables(parent.frame())
+    e1 = substitute(list(e1))
+    e2 = substitute(list(e2))
+    e1 = evaluate_variable_names(e1, envir = parent.frame(), symbols_to_characters = TRUE)
+    e2 = evaluate_variable_names(e2, envir = parent.frame(), symbols_to_characters = TRUE)
+    stopif(length(e1)>1, "'%to%' - length of name of first variable is greater than one.")
+    stopif(length(e2)>1, "'%to%' - length of name of second variable is greater than one.")
+    e1 = e1[[1]]
+    e2 = e2[[1]]
     first = match(e1, var_names)[1]
     last = match(e2, var_names)[1]
     if(is.na(first) && is.na(last)){
@@ -499,6 +481,8 @@ copy = function(x) x
                    digits1, ", '", digits2, "'.")
             padding = nchar(digits1)
         }
+        digits1 = as.numeric(digits1)
+        digits2 = as.numeric(digits2)
         stopif(digits1>digits2, "Name of start variables greater than name of end variables: '", e1,"' > '",e2,"'.")
         all_digits = digits1:digits2
         if(padding>0) all_digits = formatC(all_digits, width = padding, format = "d", flag = "0")
@@ -511,6 +495,8 @@ copy = function(x) x
     } 
 }
 
+
+expr_into_helper = as.call(list(as.name(":::"), as.name("expss"), as.name(".into_helper_")))
 
 
 # make object with the same shape as its argument but filled with NA and logical type
@@ -541,19 +527,19 @@ make_empty_object.matrix = function(x){
     res
 }   
 
-#' @export
-make_empty_object.POSIXct = function(x){
-    res = as.POSIXct(rep(NA, length(x)))
-    names(res) = names(x)
-    res
-} 
+# #' @export
+# make_empty_object.POSIXct = function(x){
+#     res = as.POSIXct(rep(NA, length(x)))
+#     names(res) = names(x)
+#     res
+# } 
 
-#' @export
-make_empty_object.factor = function(x){
-    res = x
-    res[] = NA
-    res
-} 
+# #' @export
+# make_empty_object.factor = function(x){
+#     res = x
+#     res[] = NA
+#     res
+# } 
 
 #' @export
 make_empty_object.default = function(x){

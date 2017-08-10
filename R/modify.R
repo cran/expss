@@ -1,45 +1,49 @@
 #' Modify data.frame/modify subset of the data.frame
 #' 
 #' \itemize{
-#' \item{{\code{modify}}{ evaluates expression \code{expr} in the context of data.frame 
+#' \item{{\code{compute}}{ evaluates expression \code{expr} in the context of data.frame 
 #' \code{data} and return original data possibly modified. It works similar to
 #' \code{\link[base]{within}} in base R but try to return new variables in order
 #' of their occurrence in the expression and make available
 #' full-featured \code{\%to\%} and \code{.N} in the expressions. See \link{vars}.}}
-#' \item{{\code{calculate}}{ evaluates expression \code{expr} in the context of
+#' \item{{\code{calculate}}{ evaluates expression \code{expr} in the context of 
 #' data.frame \code{data} and return value of the evaluated expression. It works
-#' similar to \code{\link[base]{with}} in base R but make available
-#' full-featured \code{\%to\%} and \code{.N} in the expressions. See \link{vars}.}}
-#' \item{{\code{modify_if}}{ modifies only rows for which \code{cond} equals to
+#' similar to \code{\link[base]{with}} in base R but make available 
+#' full-featured \code{\%to\%} and \code{.N} in the expressions. See 
+#' \link{vars}. Function \code{use_labels} is shortcut for \code{calculate} with
+#' argument \code{use_labels} set to \code{TRUE}.}}
+#' \item{{\code{do_if}}{ modifies only rows for which \code{cond} equals to
 #' TRUE. Other rows remain unchanged. Newly created variables also will have
 #' values only in rows for which \code{cond} have TRUE. There will be NA's in
 #' other rows. This function tries to mimic SPSS "DO IF(). ... END IF."
 #' statement.}}
 #' }
-#' There is a special constant \code{.N} which equals to number of cases in
-#' \code{data} for usage in expression inside \code{modify}/\code{calculate}.
-#' Inside \code{modify_if} \code{.N} gives number of rows which will be affected
-#' by expressions. Inside these functions you can use \code{set} function which 
-#' creates variables with given name/set values to existing variables - 
-#' \link{.set}. It is possible with \code{set} to assign values to multiple 
-#' variables at once. \code{compute} is an alias for \code{modify}, \code{do_if}
-#' is an alias for \code{modify_if} and \code{calc} is an alias for 
-#' \code{calculate}.
+#' There is a special constant \code{.N} which equals to number of cases in 
+#' \code{data} for usage in expression inside \code{compute}/\code{calculate}. 
+#' Inside \code{do_if} \code{.N} gives number of rows which will be affected by 
+#' expressions. For parametrization (variable substitution) see \link{..} or 
+#' examples. Sometimes it is useful to create new empty variable inside compute.
+#' You can use \code{.new_var} function for this task. This function creates
+#' variable of length \code{.N} filled with NA. See examples.
+#' \code{modify} is an alias for \code{compute}, \code{modify_if} is
+#' an alias for \code{do_if} and \code{calc} is an alias for \code{calculate}.
 #' 
 #' @param data data.frame/list of data.frames. If \code{data} is list of
 #'   data.frames then expression \code{expr} will be evaluated inside each
 #'   data.frame separately.
 #' @param expr expression that should be evaluated in the context of data.frame \code{data}
 #' @param cond logical vector or expression. Expression will be evaluated in the context of the data.  
+#' @param use_labels logical. Experimental feature. If it equals to \code{TRUE} 
+#'   then we will try to replace variable names with labels. So many base R
+#'   functions which show variable names will show labels.
 #'
-#' @return \code{modify} and \code{modify_if} functions return modified 
+#' @return \code{compute} and \code{do_if} functions return modified 
 #'   data.frame/list of modified data.frames, \code{calculate} returns value of
 #'   the evaluated expression/list of values.
 #' @examples
 #' dfs = data.frame(
 #'     test = 1:5,
-#'     aa = rep(10, 5),
-#'     b_ = rep(20, 5),
+#'     a = rep(10, 5),
 #'     b_1 = rep(11, 5),
 #'     b_2 = rep(12, 5),
 #'     b_3 = rep(13, 5),
@@ -49,49 +53,123 @@
 #' 
 #' 
 #' # compute sum of b* variables and attach it to 'dfs'
-#' modify(dfs, {
-#'     b_total = sum_row(b_, b_1 %to% b_5)
+#' compute(dfs, {
+#'     b_total = sum_row(b_1 %to% b_5)
 #'     var_lab(b_total) = "Sum of b"
 #'     random_numbers = runif(.N) # .N usage
 #' })
 #' 
 #' # calculate sum of b* variables and return it
-#' calculate(dfs, sum_row(b_, b_1 %to% b_5))
+#' calculate(dfs, sum_row(b_1 %to% b_5))
 #' 
-#' # 'set' function
-#' # new variables filled with NA
-#' modify(dfs, {
-#'     set('new_b`1:5`')
-#' })
 #' 
-#' # 'set' function
 #' # set values to existing/new variables
-#' # expression in backticks will be expanded - see ?subst
-#' modify(dfs, {
-#'     set('new_b`1:5`', b_1 %to% b_5)
+#' compute(dfs, {
+#'     (b_1 %to% b_5) %into% subst('new_b`1:5`')
 #' })
 #' 
+#' # .new_var usage
+#' compute(dfs, {
+#'     new_var = .new_var()
+#'     new_var[1] = 1 # this is not possible without preliminary variable creation
+#' })
 #' 
 #' # conditional modification
-#' modify_if(dfs, test %in% 2:4, {
-#'     aa = aa + 1    
-#'     a_b = aa + b_    
-#'     b_total = sum_row(b_, b_1 %to% b_5)
+#' do_if(dfs, test %in% 2:4, {
+#'     a = a + 1    
+#'     b_total = sum_row(b_1 %to% b_5)
 #'     random_numbers = runif(.N) # .N usage
 #' })
 #' 
+#' 
+#' # variable substitution
+#' name1 = "a"
+#' name2 = "new_var"
+#' 
+#' # example with short notation but it can be applied only for simple cases - 
+#' # when 'name' is vector of length 1
+#' compute(dfs, {
+#'      ..$name2 = ..$name1*2    
+#' })
+#' 
+#' compute(dfs, {
+#'      for(name1 in paste0("b_", 1:5)){
+#'          name2 = paste0("new_", name1) 
+#'          ..$name2 = ..$name1*2 
+#'      }
+#'      rm(name1, name2) # we don't need this variables as columns in 'dfs'
+#' })
+#' 
+#' # square brackets notation
+#' compute(dfs, {
+#'      ..[(name2)] = ..[(name1)]*2  
+#' })
+#' 
+#' compute(dfs, {
+#'      for(name1 in paste0("b_", 1:5)){
+#'          ..[paste0("new_", name1)] = ..$name1*2 
+#'      }
+#'      rm(name1) # we don't need this variable as column in 'dfs'
+#' })
+#' 
+#' # '..$' doesn't work for case below so we need to use square brackets form
+#' name1 = paste0("b_", 1:5)
+#' name2 = paste0("new_", name1)
+#' compute(dfs, {
+#'      for(i in 1:5){
+#'          ..[name2[i]] = ..[name1[i]]*3
+#'      }
+#'      rm(i) # we don't need this variable as column in 'dfs'
+#' })
+#' 
+#' # 'use_labels' examples. Utilization of labels in base R.
+#' data(mtcars)
+#' mtcars = apply_labels(mtcars,
+#'                       mpg = "Miles/(US) gallon",
+#'                       cyl = "Number of cylinders",
+#'                       disp = "Displacement (cu.in.)",
+#'                       hp = "Gross horsepower",
+#'                       drat = "Rear axle ratio",
+#'                       wt = "Weight (lb/1000)",
+#'                       qsec = "1/4 mile time",
+#'                       vs = "Engine",
+#'                       vs = c("V-engine" = 0,
+#'                              "Straight engine" = 1),
+#'                       am = "Transmission",
+#'                       am = c("Automatic" = 0,
+#'                              "Manual"=1),
+#'                       gear = "Number of forward gears",
+#'                       carb = "Number of carburetors"
+#' )
+#' 
+#' use_labels(mtcars, table(am, vs))
+#' 
+#' \dontrun{
+#' use_labels(mtcars, plot(mpg, hp))
+#' }
+#' 
+#' mtcars %>% 
+#'        use_labels(lm(mpg ~ disp + hp + wt)) %>% 
+#'        summary()
+#' 
 #' @export
 modify =  function (data, expr) {
-    UseMethod("modify")
+    parent = parent.frame()
+    expr = substitute(expr)
+    modify_internal(data, expr, parent = parent)
+}
+
+
+modify_internal =  function (data, expr, parent) {
+    UseMethod("modify_internal")
 }
 
 #' @export
-modify.data.frame = function (data, expr) {
+modify_internal.data.frame = function (data, expr, parent) {
     # based on 'within' from base R by R Core team
-    parent = parent.frame()
     e = evalq(environment(), data, parent)
     prepare_env(e, n = nrow(data), column_names = colnames(data))
-    eval(substitute(expr), envir = e, enclos = baseenv())
+    eval(expr, envir = e, enclos = baseenv())
     clear_env(e)
     l = as.list(e, all.names = TRUE)
     l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
@@ -114,36 +192,27 @@ modify.data.frame = function (data, expr) {
 }
 
 #' @export
-modify.list = function (data, expr) {
+modify_internal.list = function (data, expr, parent) {
     for(each in seq_along(data)){
-        data[[each]] = eval(
-            substitute(modify(data[[each]], expr)), 
-            envir = parent.frame(),
-            enclos = baseenv()
-        )
+        data[[each]] = modify_internal(data[[each]], expr, parent = parent)
     }
     data
 }
 
 
-#' @export
-#' @rdname modify
-'%modify%' = function (data, expr) {
-    eval(substitute(modify(data, expr)), envir = parent.frame(), enclos = baseenv())
-}
 
 #' @export
 #' @rdname modify
 compute = modify
 
-#' @export
-#' @rdname modify
-'%compute%' = `%modify%`
 
 #' @export
 #' @rdname modify
 modify_if = function (data, cond, expr){
-    UseMethod("modify_if")
+    cond = substitute(cond)
+    expr = substitute(expr)
+    parent = parent.frame()
+    modify_if_internal(data, cond, expr, parent = parent)
 }
 
 
@@ -151,18 +220,18 @@ modify_if = function (data, cond, expr){
 #' @rdname modify
 do_if = modify_if
 
+modify_if_internal = function (data, cond, expr, parent){
+    UseMethod("modify_if_internal")
+} 
+
 #' @export
-modify_if.data.frame = function (data, cond, expr) {
+modify_if_internal.data.frame = function (data, cond, expr, parent) {
     # based on 'within' from base R by R Core team
-    cond = substitute(cond)
-    e = evalq(environment(), data, parent.frame())
+    e = evalq(environment(), data, parent)
     prepare_env(e, n = NROW(data), column_names = colnames(data))
     cond = calc_cond(cond, envir = e)
     
-    new_data = eval(substitute(modify(data[cond,, drop = FALSE], expr)),
-                    envir = parent.frame(),
-                    enclos = baseenv()
-                    )
+    new_data = modify_internal(data[cond,, drop = FALSE], expr, parent)
     del = setdiff(names(data), names(new_data))
     if(length(del)){
         data[, del] = NULL
@@ -174,17 +243,10 @@ modify_if.data.frame = function (data, cond, expr) {
     data
 }
 
-
-
 #' @export
-modify_if.list = function (data, cond, expr) {
-
+modify_if_internal.list = function (data, cond, expr, parent) {
     for(each in seq_along(data)){
-        data[[each]] = eval(
-            substitute(modify_if(data[[each]], cond, expr)), 
-            envir = parent.frame(),
-            enclos = baseenv()
-        )
+        data[[each]] = modify_if_internal(data[[each]], cond, expr, parent = parent)
     }
     data
 }
@@ -193,37 +255,83 @@ modify_if.list = function (data, cond, expr) {
 
 #' @export
 #' @rdname modify
-calculate =  function (data, expr) {
-    UseMethod("calculate")
+calculate =  function (data, expr, use_labels = FALSE) {
+    expr = substitute(expr)
+    parent = parent.frame()
+    calculate_internal(data, expr, parent, use_labels = use_labels)
 }
 
 #' @export
-calculate.data.frame = function (data, expr) {
-    # based on 'within' from base R by R Core team
+#' @rdname modify
+use_labels =  function (data, expr) {
+    expr = substitute(expr)
     parent = parent.frame()
+    calculate_internal(data, expr, parent, use_labels = TRUE)
+}
+
+
+calculate_internal =  function (data, expr, parent, use_labels = FALSE) {
+    UseMethod("calculate_internal")
+}
+
+#' @export
+calculate_internal.data.frame = function (data, expr, parent, use_labels = FALSE) {
+    # based on 'within' from base R by R Core team
+    if(use_labels){
+        all_labs = all_labels(data)
+        if(length(all_labs)>0){
+            if(anyDuplicated(names(all_labs))){
+                dupl = duplicated(names(all_labs)) | duplicated(names(all_labs), fromLast = TRUE)
+                all_labs = all_labs[dupl]
+                names(all_labs) = paste(names(all_labs), colnames(data)[all_labs])
+                for(each in seq_along(all_labs)){
+                    var_lab(data[[all_labs[each]]]) = names(all_labs)[each]
+                }
+            }
+            substitution_list = extract_var_labs_as_list_with_symbols(data)
+            expr = substitute_symbols(expr, substitution_list)
+            data = names2labels(data) 
+        }
+    }
     e = evalq(environment(), data, parent)
     prepare_env(e, n = nrow(data), column_names = colnames(data))
-    eval(substitute(expr), envir = e, enclos = baseenv())
+    eval(expr, envir = e, enclos = baseenv())
 }
 
 #' @export
-calculate.list = function (data, expr) {
-
+calculate_internal.list = function (data, expr, parent, use_labels = FALSE) {
     for(each in seq_along(data)){
-        data[[each]] = eval(
-            substitute(calculate(data[[each]], expr)), 
-            envir = parent.frame(),
-            enclos = baseenv()
-        )
+        data[[each]] = calculate_internal(data[[each]], expr, parent, use_labels)
     }
     data
 }
 
+all_labels = function(data){
+    res = lapply(data, function(x) {
+        new_name = var_lab(x)
+        if(!is.null(new_name) && !is.na(new_name) && new_name!=""){
+            new_name
+        } else {
+            NULL
+        }
+    }) 
+    indexes = seq_along(data)
+    indexes = indexes[lengths(res)>0]
+    res = res[lengths(res)>0]
+    setNames(indexes, unlist(res))
+}
 
-#' @export
-#' @rdname modify
-'%calculate%' = function (data, expr) {
-    eval(substitute(calculate(data, expr)), envir = parent.frame(), enclos = baseenv())
+extract_var_labs_as_list_with_symbols = function(data){
+    res = lapply(data, function(x) {
+        new_name = var_lab(x)
+        if(!is.null(new_name) && !is.na(new_name) && new_name!=""){
+            as.symbol(new_name)
+        } else {
+            NULL
+        }
+        })
+    names(res) = colnames(data)
+    res[lengths(res)>0]
 }
 
 #' @export
@@ -232,7 +340,24 @@ calc = calculate
 
 #' @export
 #' @rdname modify
-'%calc%' = `%calculate%`
+'%calc%' = function (data, expr) {
+    expr = substitute(expr)
+    parent = parent.frame()
+    calculate_internal(data, expr, parent, use_labels = FALSE)
+}
+
+#' @export
+#' @rdname modify
+'%use_labels%' = use_labels
+
+#' @export
+#' @rdname modify
+'%calculate%' = function (data, expr) {
+    expr = substitute(expr)
+    parent = parent.frame()
+    calculate_internal(data, expr, parent, use_labels = FALSE)
+}
+
 
 
 

@@ -99,6 +99,9 @@ set_var_lab.matrix = function(x, value){
 
 #' @export
 set_var_lab.default = function(x, value){
+    if(is.list(x)){
+        return(set_var_lab.list(x, value = value))
+    }
     # this conversion is needed to avoid strange bug (incorrect residuals)
     # with 'lm' with labelled integers 
     if (length(value)==0){
@@ -115,8 +118,6 @@ set_var_lab.default = function(x, value){
     class(x)=union("labelled", class(x))
     x
 }
-
-
 
 
 
@@ -143,6 +144,9 @@ unvr.list=function(x){
     x
 }
 
+#'@rdname var_lab
+#' @export
+drop_var_labs = unvr
 
 ############# value labels #######################
 
@@ -289,6 +293,9 @@ add_val_lab = function(x, value) set_val_lab(x, value, add = TRUE)
 
 #' @export
 set_val_lab.default = function(x, value, add = FALSE){
+     if(is.list(x)){
+        return(set_val_lab.list(x, value = value, add = add))
+     }
      if (length(value)==0){
         if(!add){
             attr(x, "labels") = NULL
@@ -343,14 +350,15 @@ set_val_lab.list = function(x,value, add = FALSE){
 
 ######
 
-
-
 #' @export
 #' @rdname val_lab
 unvl=function(x){
     set_val_lab(x,NULL)
 }
 
+#' @export
+#' @rdname val_lab
+drop_val_labs = unvl
 
 #' @export
 #' @rdname val_lab
@@ -403,6 +411,7 @@ drop_unused_labels = function(x){
 #' @export
 drop_unused_labels.default = function(x){
     curr_labs = val_lab(x)
+    if(is.null(curr_labs)) return(x)
     curr_values = uniq_elements(x)
     set_val_lab(x, curr_labs[curr_labs %in% curr_values])
 }
@@ -410,6 +419,7 @@ drop_unused_labels.default = function(x){
 #' @export
 drop_unused_labels.category = function(x){
     curr_labs = val_lab(x)
+    if(is.null(curr_labs)) return(x)
     curr_values = uniq_elements(x)
     set_val_lab(x, curr_labs[curr_labs %in% curr_values])
 }
@@ -452,14 +462,17 @@ autonum = function(text) make_labels(text = text, code_position = "autonum")
 #' val_lab(var_with_lab) = c("Low"=1,"High"=2)
 #' identical(raw_var,unlab(var_with_lab)) # should be TRUE
 unlab=function(x){
-    if(is.null(x)) return(x)
     UseMethod("unlab")
 }
 
 #' @export
 unlab.default=function(x){
-    x = set_var_lab(x, NULL)
-    x = set_val_lab(x, NULL, add = FALSE)
+    if(is.null(x)) return(x)
+    if(is.list(x)){
+        return(unlab.list(x))
+    }
+    attr(x, "label") = NULL
+    attr(x, "labels") = NULL
     class(x) = setdiff(class(x), "labelled")
     x
 }
@@ -475,6 +488,10 @@ unlab.list=function(x){
     for (each in seq_along(x)) x[[each]] = unlab(x[[each]])
     x
 }
+
+#' @export
+#' @rdname unlab
+drop_all_labels = unlab
 
 ########
 
@@ -504,7 +521,7 @@ as.labelled = function(x, label = NULL){
 as.labelled.default = function(x, label = NULL){
     labels = sort(unique(x), na.last = NA)
     values = seq_along(labels)
-    res = match(x, labels)
+    res = fast_match(x, labels)
     names(values) = as.character(labels)
     val_lab(res) = values
     if(!is.null(label)) var_lab(res) = label
@@ -541,20 +558,13 @@ as.labelled.factor = function(x, label = NULL){
 
 #' @export
 as.labelled.labelled = function(x, label = NULL){
-    if(is.factor(x)){
-        ### factor with variable label
-        return(
-            as.labelled.factor(x, label = if_null(label, var_lab(x)))
-            )
-    }
     if(is.null(val_lab(x))){
-        labels = unlab(sort(unique(x), na.last = NA))
-        names(labels) = as.character(labels)
-        val_lab(x) = labels
-    } 
-    if(!is.null(label)) var_lab(x) = label
+        label = if_null(label, var_lab(x))
+        x = as.labelled(unlab(x), label = label)
+    } else {
+        if(!is.null(label)) var_lab(x) = label    
+    }
     x
-    
 }
 
 #' @export

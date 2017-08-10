@@ -2,67 +2,54 @@
 % Please edit documentation in R/grouping.R
 \name{by_groups}
 \alias{by_groups}
-\alias{\%by_groups\%}
 \title{Aggregate dataset by grouping variable(s).}
 \usage{
 by_groups(data, ...)
-
-data \%by_groups\% args
 }
 \arguments{
 \item{data}{data for aggregation}
 
-\item{...}{aggregation parameters. It should be names of variables in quotes 
-(characters, e. g. 'Species') and formulas with aggregation expressions, 
-such as \code{mean_x ~ mean(x)}. Instead of the formulas it can be single 
-function as last argument - it will be applied to all non-grouping columns.
-Note that there is no non-standard evaluation by design so use quotes for
-names of your variables or use \link{qc}.}
-
-\item{args}{list The same as \code{...} but for infix the version
-\code{\%by_groups\%}.}
+\item{...}{aggregation parameters. Character/numeric or criteria/logical functions (see
+\link{criteria}) for grouping variables and formulas with aggregation expressions, 
+such as \code{mean_x ~ mean(x)}. Names of variables at the top-level can be unquoted (non-standard
+evaluation). For standard evaluation of parameters you can surround them by
+round brackets. See examples. Instead of the formulas it can be single 
+function as last argument - it will be applied to all non-grouping columns.}
 }
 \value{
 aggregated data.frame/data.table
 }
 \description{
 Splits the data by groups, computes summary statistics for each, and returns
-\code{data.frame}/\code{data.table}. \code{\%by_groups\%} is infix version of
-the function.
+\code{data.frame}/\code{data.table}.
 }
 \examples{
 # compute mean of the every column for every value of the Species
 data(iris)
-by_groups(iris, "Species", mean)
+by_groups(iris, Species, mean)
 
 # compute mean of the every numeric column
-by_groups(iris \%except\% "Species", mean)
+iris \%>\% except(Species) \%>\% by_groups(mean)
 
 # compute different functions for different columns
 # automatic naming
 data(mtcars)
-by_groups(mtcars, "cyl", "am", ~ mean(hp), ~ median(mpg))
+by_groups(mtcars, cyl, am, ~ mean(hp), ~ median(mpg))
 
 # with custom names
-by_groups(mtcars, "cyl", "am", mean_hp ~ mean(hp), median_mpg ~ median(mpg))
-
-# 'qc' usage to avoide quotes
-by_groups(mtcars, qc(cyl, am), ~ mean(hp), ~ median(mpg))
+by_groups(mtcars, cyl, am, mean_hp ~ mean(hp), median_mpg ~ median(mpg))
 
 # variable substitution
 group1 = "cyl"
-statistic1 = as.formula("~ mean(hp)")
-by_groups(mtcars, group1, statistic1)
+statistic1 = ~ mean(hp)
+by_groups(mtcars, (group1), (statistic1))
 
 group2 = "am"
-statistic2 = as.formula("~ median(mpg)")
-by_groups(mtcars, group2, statistic2)
+# formulas can be easily constructed from text strings
+statistic2 = as.formula("~ median(mpg)") 
+by_groups(mtcars, (group2), (statistic2))
 
-by_groups(mtcars, group1, group2, statistic1, statistic2)
+by_groups(mtcars, (group1), (group2), (statistic1), (statistic2))
 
-# infix version
-iris \%by_groups\% c("Species", mean)
-
-mtcars \%by_groups\%  c("cyl", "am", mean_hp ~ mean(hp), median_mpg ~ median(mpg))
 
 }

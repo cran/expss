@@ -7,14 +7,13 @@
 \alias{tab_rows}
 \alias{tab_weight}
 \alias{tab_mis_val}
+\alias{tab_total_label}
+\alias{tab_total_statistic}
+\alias{tab_total_row_position}
 \alias{tab_subgroup}
+\alias{tab_row_label}
 \alias{tab_stat_fun}
-\alias{tab_stat_fun_df}
-\alias{tab_stat_cases}
-\alias{tab_stat_cpct}
-\alias{tab_stat_cpct_responses}
-\alias{tab_stat_tpct}
-\alias{tab_stat_rpct}
+\alias{tab_stat_mean_sd_n}
 \alias{tab_stat_mean}
 \alias{tab_stat_median}
 \alias{tab_stat_se}
@@ -24,9 +23,17 @@
 \alias{tab_stat_sd}
 \alias{tab_stat_valid_n}
 \alias{tab_stat_unweighted_valid_n}
+\alias{tab_stat_fun_df}
+\alias{tab_stat_cases}
+\alias{tab_stat_cpct}
+\alias{tab_stat_cpct_responses}
+\alias{tab_stat_tpct}
+\alias{tab_stat_rpct}
+\alias{tab_last_vstack}
+\alias{tab_last_hstack}
 \alias{tab_pivot}
 \alias{tab_transpose}
-\title{Functions for tables constraction}
+\title{Functions for custom tables construction}
 \usage{
 tab_cols(data, ...)
 
@@ -38,27 +45,21 @@ tab_weight(data, weight = NULL)
 
 tab_mis_val(data, ...)
 
+tab_total_label(data, ...)
+
+tab_total_statistic(data, ...)
+
+tab_total_row_position(data, total_row_position = c("below", "above", "none"))
+
 tab_subgroup(data, subgroup = NULL)
 
-tab_stat_fun(data, ..., label = NULL)
+tab_row_label(data, ..., label = NULL)
 
-tab_stat_fun_df(data, ..., label = NULL)
+tab_stat_fun(data, ..., label = NULL, unsafe = FALSE)
 
-tab_stat_cases(data, total_label = NULL, total_statistic = "u_cases",
-  total_row_position = c("below", "above", "none"), label = NULL)
-
-tab_stat_cpct(data, total_label = NULL, total_statistic = "u_cases",
-  total_row_position = c("below", "above", "none"), label = NULL)
-
-tab_stat_cpct_responses(data, total_label = NULL,
-  total_statistic = "u_responses", total_row_position = c("below", "above",
-  "none"), label = NULL)
-
-tab_stat_tpct(data, total_label = NULL, total_statistic = "u_cases",
-  total_row_position = c("below", "above", "none"), label = NULL)
-
-tab_stat_rpct(data, total_label = NULL, total_statistic = "u_cases",
-  total_row_position = c("below", "above", "none"), label = NULL)
+tab_stat_mean_sd_n(data, weighted_valid_n = FALSE, labels = c("Mean",
+  "Std. dev.", ifelse(weighted_valid_n, "Valid N", "Unw. valid N")),
+  label = NULL)
 
 tab_stat_mean(data, label = "Mean")
 
@@ -78,6 +79,30 @@ tab_stat_valid_n(data, label = "Valid N")
 
 tab_stat_unweighted_valid_n(data, label = "Unw. valid N")
 
+tab_stat_fun_df(data, ..., label = NULL, unsafe = FALSE)
+
+tab_stat_cases(data, total_label = NULL, total_statistic = "u_cases",
+  total_row_position = c("below", "above", "none"), label = NULL)
+
+tab_stat_cpct(data, total_label = NULL, total_statistic = "u_cases",
+  total_row_position = c("below", "above", "none"), label = NULL)
+
+tab_stat_cpct_responses(data, total_label = NULL,
+  total_statistic = "u_responses", total_row_position = c("below", "above",
+  "none"), label = NULL)
+
+tab_stat_tpct(data, total_label = NULL, total_statistic = "u_cases",
+  total_row_position = c("below", "above", "none"), label = NULL)
+
+tab_stat_rpct(data, total_label = NULL, total_statistic = "u_cases",
+  total_row_position = c("below", "above", "none"), label = NULL)
+
+tab_last_vstack(data, stat_position = c("outside_rows", "inside_rows"),
+  stat_label = c("inside", "outside"), label = NULL)
+
+tab_last_hstack(data, stat_position = c("outside_columns", "inside_columns"),
+  stat_label = c("inside", "outside"), label = NULL)
+
 tab_pivot(data, stat_position = c("outside_rows", "inside_rows",
   "outside_columns", "inside_columns"), stat_label = c("inside", "outside"))
 
@@ -92,10 +117,28 @@ tab_transpose(data)
 \item{weight}{numeric vector in \code{tab_weight}. Cases with NA's, negative
 and zero weights are removed before calculations.}
 
+\item{total_row_position}{Position of total row in the resulting table. Can
+be one of "below", "above", "none".}
+
 \item{subgroup}{logical vector in \code{tab_subgroup}. You can specify
 subgroup on which table will be computed.}
 
 \item{label}{character. Label for the statistic in the \code{tab_stat_*}.}
+
+\item{unsafe}{logical If TRUE than \code{fun} will be evaluated as is. It can
+lead to significant increase in the performance. But there are some 
+limitations. For \code{tab_stat_fun} it means that your function \code{fun} 
+should return vector of length one. Also there will be no attempts to make
+labels for statistic.  For \code{tab_stat_fun_df} your function should return
+vector of length one or list/data.frame (optionally with 'row_labels'
+element - statistic labels). If \code{unsafe} is TRUE then further
+arguments (\code{...}) for \code{fun} will be ignored.}
+
+\item{weighted_valid_n}{logical. Sould we show weighted valid N in
+\code{tab_stat_mean_sd_n}? By default it is FALSE.}
+
+\item{labels}{character vector of length 3. Labels for mean, standard
+deviation and valid N in \code{tab_stat_mean_sd_n}.}
 
 \item{total_label}{By default "#Total". You can provide several names - each
 name for each total statistics.}
@@ -104,9 +147,6 @@ name for each total statistics.}
 Possible values are "u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct",
 "w_cases", "w_responses", "w_cpct", "w_rpct", "w_tpct". "u_" means
 unweighted statistics and "w_" means weighted statistics.}
-
-\item{total_row_position}{Position of total row in the resulting table. Can
-be one of "below", "above", "none".}
 
 \item{stat_position}{character one of the values \code{"outside_rows"}, 
 \code{"inside_rows"}, \code{"outside_columns"} or \code{"inside_columns"}.
@@ -134,9 +174,10 @@ with \link{tab_sort_asc}, drop empty rows/columns with \link{drop_rc} and
 transpose with \code{tab_transpose}. Generally, table is just a data.frame so
 we can use arbitrary operations on it. Statistic is always calculated with 
 the last cell, column/row variables, weight, missing values and subgroup. To 
-define new variables we can call appropriate function one more time. 
+define new cell/column/row variables we can call appropriate function one more time. 
 \code{tab_pivot} defines how we combine different statistics and where 
 statistic labels will appear - inside/outside rows/columns. See examples.
+For significance testing see \link{significance}.
 }
 \details{
 \itemize{
@@ -154,14 +195,28 @@ be applied on variables specified by \code{tab_cells}. It works in the same
 manner as \link{na_if}.}
 \item{\code{tab_subgroup}}{ optional logical vector/expression which specify
 subset of data for table.}
+\item{\code{tab_row_label}}{ Add to table empty row with specified row
+labels. It is usefull for making section headings and etc.}
+\item{\code{tab_total_row_position}}{ Default value for
+\code{total_row_position} argument in \code{tab_stat_cases} and etc. Can be
+one of "below", "above", "none".}
+\item{\code{tab_total_label}}{ Default value for \code{total_label} argument
+in \code{tab_stat_cases} and etc. You can provide several names - each name
+for each total statistics.}
+\item{\code{tab_total_statistic}}{ Default value for \code{total_statistic}
+argument in \code{tab_stat_cases} and etc. You can provide several values.
+Possible values are "u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct", 
+"w_cases", "w_responses", "w_cpct", "w_rpct", "w_tpct". "u_" means unweighted
+statistics and "w_" means weighted statistics.}
 \item{\code{tab_stat_fun}, \code{tab_stat_fun_df}}{ \code{tab_stat_fun} 
 applies function on each variable in cells separately, \code{tab_stat_fun_df}
-gives to function each data.frame in cells as a whole
+gives to function each data.frame in cells as a whole 
 \link[data.table]{data.table} with all names converted to variable labels (if
-labels exists). So it is not recommended to rely on original variables names
-in your \code{fun}. You can provide several functions as arguments. They will
-be combined as with \link{combine_functions}. So you can use \code{method}
-argument. For details see documentation for \link{combine_functions}. }
+labels exists). So it is not recommended to rely on original variables names 
+in your \code{fun}. For details see \link{cro_fun}. You can provide several
+functions as arguments. They will be combined as with
+\link{combine_functions}. So you can use \code{method} argument. For details
+see documentation for \link{combine_functions}. }
 \item{\code{tab_stat_cases}}{ calculate counts.}
 \item{\code{tab_stat_cpct}, \code{tab_stat_cpct_responses}}{ calculate column
 percent. These functions give different results only for multiple response
@@ -238,14 +293,14 @@ mtcars \%>\%
 mtcars \%>\% 
     tab_cells(mpg, disp, hp, wt, qsec) \%>\%
     tab_cols(am) \%>\% 
-    tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n) \%>\%
+    tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n) \%>\%
     tab_pivot()
 
 # summary statistics - labels in columns
 mtcars \%>\% 
     tab_cells(mpg, disp, hp, wt, qsec) \%>\%
     tab_cols(am) \%>\% 
-    tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n, method = list) \%>\%
+    tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n, method = list) \%>\%
     tab_pivot()
 
 # subgroup with droping empty columns
@@ -271,18 +326,20 @@ mtcars \%>\%
 mtcars \%>\%
     tab_cells(am) \%>\%
     tab_cols(total(), vs) \%>\%
-    tab_stat_cpct(total_row_position = "none", label = "col \%") \%>\%
-    tab_stat_rpct(total_row_position = "none", label = "row \%") \%>\%
-    tab_stat_tpct(total_row_position = "none", label = "table \%") \%>\%
+    tab_total_row_position("none") \%>\% 
+    tab_stat_cpct(label = "col \%") \%>\%
+    tab_stat_rpct(label = "row \%") \%>\%
+    tab_stat_tpct(label = "table \%") \%>\%
     tab_pivot(stat_position = "inside_rows")
 
 # statistic labels inside columns             
 mtcars \%>\%
     tab_cells(am) \%>\%
     tab_cols(total(), vs) \%>\%
-    tab_stat_cpct(total_row_position = "none", label = "col \%") \%>\%
-    tab_stat_rpct(total_row_position = "none", label = "row \%") \%>\%
-    tab_stat_tpct(total_row_position = "none", label = "table \%") \%>\%
+    tab_total_row_position("none") \%>\% 
+    tab_stat_cpct(label = "col \%") \%>\%
+    tab_stat_rpct(label = "row \%") \%>\%
+    tab_stat_tpct(label = "table \%") \%>\%
     tab_pivot(stat_position = "inside_columns")
 
 # stacked statistics
@@ -292,6 +349,18 @@ mtcars \%>\%
     tab_stat_mean() \%>\%
     tab_stat_se() \%>\% 
     tab_stat_valid_n() \%>\% 
+    tab_stat_cpct() \%>\% 
+    tab_pivot()
+    
+# stacked statistics with section headings
+mtcars \%>\% 
+    tab_cells(cyl) \%>\% 
+    tab_cols(total(), am) \%>\% 
+    tab_row_label("#Summary statistics") \%>\% 
+    tab_stat_mean() \%>\%
+    tab_stat_se() \%>\% 
+    tab_stat_valid_n() \%>\% 
+    tab_row_label("#Column percent") \%>\% 
     tab_stat_cpct() \%>\% 
     tab_pivot()
 
@@ -389,11 +458,11 @@ tables = mtcars \%>\%
 
 for(each in c("mpg", "disp", "hp", "qsec")){
     tables = tables \%>\% tab_cells(vars(each)) \%>\%
-        tab_stat_fun(Mean = w_mean, "Std. dev" = w_sd, "Valid N" = w_n) 
+        tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n) 
 }
 tables \%>\% tab_pivot()
 }
 \seealso{
 \link{fre}, \link{cro}, \link{cro_fun}, \link{tab_sort_asc},
-  \link{drop_empty_rows}.
+  \link{drop_empty_rows}, \link{significance}.
 }

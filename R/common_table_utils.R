@@ -1,14 +1,29 @@
 
 ###########################
 universal_subset = function(data, index, drop = TRUE){
-    if(is.matrix(data) || is.data.frame(data)){
+    if(is.matrix(data)){
         data =  data[index, , drop = drop]
+    } else if(is.data.frame(data)){
+        data = subset_dataframe(data, index, drop = drop)
     } else {
         data =  data[index]
     }
     data
 }
 
+###################
+# x should be data.frame
+# j numeric or logical
+# row.names are ignored
+subset_dataframe = function(x, j, drop = TRUE){
+    if(drop && NCOL(x)<2){
+        return(unlist(x, use.names = FALSE)[j])
+    }
+    res = lapply(x, `[`, j)
+    class(res) = class(x)
+    attr(res, "row.names") <- seq_len(NROW(res[[1]]))
+    res
+}
 #########################################
 
 recycle_if_single_row = function(data, nrows){
@@ -17,7 +32,7 @@ recycle_if_single_row = function(data, nrows){
     }    
     if(NROW(data)==1){
         if(is.matrix(data) || is.data.frame(data)){
-            data =  data[rep(1, nrows), ]
+            data =  universal_subset(data, rep(1, nrows))
         } else {
             data =  rep(data, nrows)
         }
@@ -69,7 +84,7 @@ set_negative_and_na_to_zero = function(x){
 
 test_for_null_and_make_list = function(curr_vars, str_curr_vars){
     stopif(is.null(curr_vars), 
-           paste0("'", str_curr_vars,"' is NULL. Possibly variable doesn't exist."))
+           paste0("'", str_curr_vars,"' is NULL. Perhaps a variable does not exist."))
     if(!is_list(curr_vars)){
         if(!is.matrix(curr_vars) && !is.data.frame(curr_vars)){
             if(is.null(var_lab(curr_vars))){
@@ -84,7 +99,7 @@ test_for_null_and_make_list = function(curr_vars, str_curr_vars){
 ################
 test_for_null_and_make_dataframe = function(curr_vars, str_curr_vars){
     stopif(is.null(curr_vars), 
-           paste0("'", str_curr_vars,"' is NULL. Possibly variable doesn't exist."))
+           paste0("'", str_curr_vars,"' is NULL. Perhaps a variable does not exist."))
     if(!is_list(curr_vars)){
         if(!is.matrix(curr_vars) && !is.data.frame(curr_vars)){
             if(is.null(var_lab(curr_vars))){
@@ -110,7 +125,7 @@ convert_multicolumn_object_to_vector  = function(x){
             }
         }
         vallab = val_lab(x)
-        x = c(x, recursive = TRUE)
+        x = c(x, recursive = TRUE, use.names = FALSE)
         val_lab(x) = vallab
         var_lab(x) = varlab
     } 
@@ -120,7 +135,7 @@ convert_multicolumn_object_to_vector  = function(x){
 #################################
 
 long_datatable_to_table = function(dtable, rows, columns, values){
-    
+    if(!is.data.table(dtable)) dtable = as.data.table(dtable)
     rows_columns = which(colnames(dtable) %in% c(rows, columns))
     for (each in rows_columns){
         curr_col = dtable[[each]]
@@ -148,8 +163,17 @@ long_datatable_to_table = function(dtable, rows, columns, values){
             curr_levels = levels(dtable[[each]])
             if(length(curr_levels)>0){
                 dtable[[each]][] = curr_levels[1]
-            }
+            } 
         }
+    }
+    # to prevent new name creation from empty names ("")
+    columns_number = which(colnames(dtable) %in% columns)
+    for(each in columns_number){
+        if(!is.factor(dtable[[each]])){
+            dtable[[each]] = fctr(dtable[[each]], drop_unused_labels = FALSE, 
+                                  prepend_var_lab = FALSE)    
+        } 
+        levels(dtable[[each]]) = paste0(levels(dtable[[each]]), "|")  
     }
     setkeyv(dtable, cols = c(rows, columns), verbose = FALSE)
     frm = as.formula(paste(paste(rows, collapse = "+"), "~", paste(columns, collapse = "+")))
@@ -212,8 +236,7 @@ multiples_to_single_columns_with_dummy_encoding = function(x){
                 as.list(make_value_labels_from_names(item))
             } else {
                 if(is.category(item)){
-                    item = as.dichotomy(item, keep_unused = TRUE, use_na = TRUE)
-                    na_if(item) = 0
+                    item = as.dichotomy(item, keep_unused = TRUE, use_na = FALSE, absence = NA)
                     as.list(make_value_labels_from_names(item))
                 } else {
                     if(is.data.frame(item)){

@@ -22,20 +22,21 @@
 #' \item{IFNA }{\link{if_na}}
 #' \item{MATCH }{\link{match_row}}
 #' \item{INDEX }{\link{index_row}}
-#' \item{PIVOT TABLES}{\link{tables}, \link{cro_fun}, \link{cro}}
+#' \item{PIVOT TABLES }{\link{tables}, \link{cro_fun}, \link{cro}}
 #' }
 #' @section SPSS:
 #' \itemize{
 #' \item{COMPUTE }{\link{compute}}
-#' \item{DO IF }{\link{do_if}}
 #' \item{RECODE }{\link{recode}}
 #' \item{COUNT }{\link{count_row_if}}
+#' \item{DO IF }{\link{do_if}}
+#' \item{DO REPEAT }{\link{do_repeat}}
 #' \item{VARIABLE LABELS }{\link{var_lab}}
 #' \item{VALUE LABELS }{\link{val_lab}}
 #' \item{ANY }{\link{any_in_row}}
 #' \item{FREQUENCIES }{\link{fre}}
 #' \item{CROSSTABS }{\link{cro}}
-#' \item{CUSTOM TABLES}{\link{tables}}
+#' \item{CUSTOM TABLES }{\link{tables}}
 #' }
 #' 
 #' 
@@ -46,7 +47,7 @@ NULL
 
 #' @import data.table
 #' @import htmlTable 
-#' @import htmltools
+#' @import htmltools 
 #' @import DT
 #' @import magrittr
 #' @import foreign stats utils matrixStats
@@ -60,18 +61,13 @@ setkeyv = data.table::setkeyv
 # '[.data.table' = data.table::`[.data.table`
 
 
-.onLoad = function(...){
-    options(expss.output = "")
-    options(expss.digits = 1)
-    options(expss.enable_value_labels_support = 1)
-}
 
 .onAttach = function(...) {
     rnd = runif(1)
     if(rnd<0.2){
-        packageStartupMessage("\nUse \'options(expss.output = \"viewer\")\' to display tables in the RStudio Viewer.\n To return to the console output, use \'options(expss.output = NA)\'.\n")
+        packageStartupMessage("\nUse 'expss_output_viewer()' to display tables in the RStudio Viewer.\n To return to the console output, use 'expss_output_default()'.\n")
     }
     if(rnd>0.8){
-        packageStartupMessage("\nUse \'options(expss.output = \"rnotebook\")\' to display tables inside R Notebooks.\n To return to the console output, use \'options(expss.output = NA)\'.\n")
+        packageStartupMessage("\nUse 'expss_output_rnotebook()' to display tables inside R Notebooks.\n To return to the console output, use 'expss_output_default()'.\n")
     }
 }

@@ -22,32 +22,40 @@ mtcars = apply_labels(mtcars,
 
 ## ------------------------------------------------------------------------
 # 'cro' examples
-# multiple banners
+# Table with multiple banners (column %).
 mtcars %>% 
-    calculate(cro_cpct(cyl, list(total(), am, vs))) %>% 
-    htmlTable(caption = "Table with multiple banners (column %).")
+    calculate(cro_cpct(cyl, list(total(), am, vs))) 
 
-# nested banners          
+# Table with nested banners (column %).          
 mtcars %>% 
-    calculate(cro_cpct(cyl, list(total(), am %nest% vs))) %>% 
-    htmlTable(caption = "Table with nested banners (column %).")         
+    calculate(cro_cpct(cyl, list(total(), am %nest% vs)))       
 
 
 ## ------------------------------------------------------------------------
+# simple example
+mtcars %>% 
+    tab_cells(cyl) %>% 
+    tab_cols(total(), am) %>% 
+    tab_stat_cpct() %>% 
+    tab_pivot()
+
+# if we need caption then we use 'htmlTable'
 mtcars %>% 
     tab_cells(mpg, disp, hp, wt, qsec) %>%
     tab_cols(total(), am) %>% 
-    tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n) %>%
+    tab_stat_mean_sd_n() %>%
+    tab_last_sig_means(subtable_marks = "both") %>% 
     tab_pivot() %>% 
-    htmlTable(caption = "Table with summary statistics. Statistics labels in rows.")
+    htmlTable(caption = "Table with summary statistics and significance marks.")
 
+# Table with the same summary statistics. Statistics labels in columns.
 mtcars %>% 
     tab_cells(mpg, disp, hp, wt, qsec) %>%
     tab_cols(total(label = "#Total| |"), am) %>% 
     tab_stat_fun(Mean = w_mean, "Std. dev." = w_sd, "Valid N" = w_n, method = list) %>%
-    tab_pivot() %>% 
-    htmlTable(caption = "Table with the same summary statistics. Statistics labels in columns.")
+    tab_pivot()
 
+# Different statistics for different variables.
 mtcars %>%
     tab_cols(total(), vs) %>%
     tab_cells(mpg) %>% 
@@ -57,9 +65,9 @@ mtcars %>%
     tab_stat_cpct(total_row_position = "none", label = "col %") %>%
     tab_stat_rpct(total_row_position = "none", label = "row %") %>%
     tab_stat_tpct(total_row_position = "none", label = "table %") %>%
-    tab_pivot(stat_position = "inside_rows") %>% 
-    htmlTable(caption = "Different statistics for differen variables.")
+    tab_pivot(stat_position = "inside_rows") 
 
+# Table with split by rows and with custom totals.
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), vs) %>% 
@@ -67,9 +75,9 @@ mtcars %>%
     tab_stat_cpct(total_row_position = "above",
                   total_label = c("number of cases", "row %"),
                   total_statistic = c("u_cases", "u_rpct")) %>% 
-    tab_pivot() %>% 
-    htmlTable(caption = "Table with split by rows and with custom totals.")
+    tab_pivot()
 
+# Linear regression by groups.
 mtcars %>% 
     tab_cells(dtfrm(mpg, disp, hp, wt, qsec)) %>% 
     tab_cols(total(label = "#Total| |"), am) %>% 
@@ -82,8 +90,7 @@ mtcars %>%
             )
         }    
     ) %>% 
-    tab_pivot() %>% 
-    htmlTable(caption = "Linear regression by groups.")
+    tab_pivot() 
 
 ## ------------------------------------------------------------------------
 
@@ -169,54 +176,66 @@ w = apply_labels(w,
 )
 
 
-cro(w$c1r) %>% htmlTable(caption = "Distribution of preferences." )
+## ------------------------------------------------------------------------
+# 'tab_mis_val(3)' remove 'hard to say' from vector 
+w %>% tab_cols(total(), age_cat) %>% 
+      tab_cells(c1r) %>% 
+      tab_mis_val(3) %>% 
+      tab_stat_cases() %>% 
+      tab_last_sig_cases() %>% 
+      tab_pivot()
+    
 
 ## ------------------------------------------------------------------------
-# 'na_if(c1r, 3)' remove 'hard to say' from vector 
-w %>% calculate(c1r %>% na_if(3) %>% table %>% chisq.test) 
+# lets specify repeated parts of table creation chains
+banner = w %>% tab_cols(total(), age_cat, c1r) 
+# column percent with significance
+tab_cpct_sig = . %>% tab_stat_cpct() %>% 
+                    tab_last_sig_cpct(sig_labels = paste0("<b>",LETTERS, "</b>"))
 
-## ------------------------------------------------------------------------
-w %>% 
-    tab_cols(total(), age_cat) %>% 
+# means with siginifcance
+tab_means_sig = . %>% tab_stat_mean_sd_n(labels = c("<b><u>Mean</u></b>", "sd", "N")) %>% 
+                      tab_last_sig_means(
+                          sig_labels = paste0("<b>",LETTERS, "</b>"),   
+                          keep = "means")
+
+# Preferences
+banner %>% 
     tab_cells(c1r) %>% 
-    tab_stat_cpct() %>% 
-    tab_pivot() %>% 
-    htmlTable(caption = "Preferences")
+    tab_cpct_sig() %>% 
+    tab_pivot() 
 
-w %>% 
-    tab_cols(total(), age_cat, c1r) %>% 
+# Overall liking
+banner %>%  
     tab_cells(h22) %>% 
-    tab_stat_mean(label = "<b><u>Mean</u></b>") %>% 
-    tab_stat_cpct() %>% 
+    tab_means_sig() %>% 
+    tab_cpct_sig() %>%  
     tab_cells(p22) %>% 
-    tab_stat_mean(label = "<b><u>Mean</u></b>") %>% 
-    tab_stat_cpct() %>% 
-    tab_pivot() %>% 
-    htmlTable(caption = "Overall liking")
+    tab_means_sig() %>% 
+    tab_cpct_sig() %>%
+    tab_pivot() 
 
-w %>% 
-    tab_cols(total(), age_cat, c1r) %>% 
+# Likes
+banner %>% 
     tab_cells(h_likes) %>% 
-    tab_stat_mean() %>% 
+    tab_means_sig() %>% 
     tab_cells(mrset(h1_1 %to% h1_6)) %>% 
-    tab_stat_cpct() %>% 
+    tab_cpct_sig() %>% 
     tab_cells(p_likes) %>% 
-    tab_stat_mean() %>% 
+    tab_means_sig() %>% 
     tab_cells(mrset(p1_1 %to% p1_6)) %>% 
-    tab_stat_cpct() %>% 
-    tab_pivot() %>% 
-    htmlTable(caption = "Likes") 
+    tab_cpct_sig() %>%
+    tab_pivot() 
 
+# below more complciated table were we compare likes side by side
+# Likes - side by side comparison
 w %>% 
     tab_cols(total(label = "#Total| |"), c1r) %>% 
     tab_cells(list(unvr(mrset(h1_1 %to% h1_6)))) %>% 
     tab_stat_cpct(label = var_lab(h1_1)) %>% 
     tab_cells(list(unvr(mrset(p1_1 %to% p1_6)))) %>% 
     tab_stat_cpct(label = var_lab(p1_1)) %>% 
-    tab_pivot(stat_position = "inside_columns") %>% 
-    htmlTable(caption = "Likes - side by side comparison")  
-
-
+    tab_pivot(stat_position = "inside_columns") 
 
 
 ## ---- eval=FALSE---------------------------------------------------------
@@ -225,10 +244,27 @@ w %>%
 ## ---- eval=FALSE---------------------------------------------------------
 #  write_labelled_spss(w, file  filename = "product_test.csv")
 
-## ------------------------------------------------------------------------
-with(mtcars, table(am, vs)) %>% knitr::kable()
+## ---- fig.height=6, fig.width=7------------------------------------------
+library(knitr)
+with(mtcars, table(am, vs))
 
 boxplot(mpg ~ am, data = mtcars)
+
+## ------------------------------------------------------------------------
+# table with dimension names
+use_labels(mtcars, table(am, vs)) 
+
+# linear regression
+use_labels(mtcars, lm(mpg ~ wt + hp + qsec)) %>% summary
+
+## ---- fig.height=6, fig.width=7------------------------------------------
+library(ggplot2)
+use_labels(mtcars, {
+    # 'vars(other)' is needed to get all 'mtcars' data.frame inside expression 
+    ggplot(vars(other)) +
+        geom_point(aes(y = mpg, x = wt, color = qsec)) +
+        facet_grid(am ~ vs)
+}) 
 
 ## ---- message=FALSE, warning=FALSE, include=FALSE------------------------
 library(expss)

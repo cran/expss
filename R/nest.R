@@ -1,8 +1,9 @@
-#' Compute nested variable from several variables
+#' Compute nested variable(-s) from several variables
 #' 
 #' \code{nest} mainly intended for usage with table functions such as 
-#' \link{cro}. See examples. \code{\%nest\%} is infix version of this function.
-#' Multiple-response variable are supported in this function..
+#' \link{cro}. See examples. \code{\%nest\%} is infix version of this function. 
+#' You can apply \code{nest} on multiple-response variables/list of variables
+#' and data.frames.
 #' 
 #' @param ... vectors/data.frames/lists
 #' @param x vector/data.frame/list
@@ -41,7 +42,7 @@
 #' with(mtcars, cro(nest(am, vs, carb), cyl))
 nest = function(...){
     arg = list(...)
-    if (length(arg)<2) return(arg)
+    if (length(arg)<2) return(arg[[1]])
     x = to_labelled(arg[[1]])
     y = to_labelled(arg[[2]])
     if (!is_list(x)) x = list(x) else x = flat_list(x)
@@ -90,8 +91,9 @@ nest_xlist = function(x, y)
     vlab = var_lab(x)
     uniqs = sort(unique(c(uniq_elements(x), labs)))
     xlist = lapply(uniqs, function(item){
-        ((x == item) | NA)*item
-
+        res = (x == item) | NA
+        res[res] = item
+        res
     })
     if(!is.null(labs)){
         names(labs) = remove_unnecessary_splitters(names(labs))
@@ -108,7 +110,7 @@ nest_xlist = function(x, y)
         })
 
     })
-    unlist(res, recursive = FALSE)
+    unlist(res, recursive = FALSE, use.names = FALSE)
 }
 
 
@@ -150,7 +152,12 @@ nest_xy = function(x, y){
     for (i in seq_len(ncol(x))) for (j in seq_len(ncol(y))){
         res[, j*i] = x[, i]+y[, j]
     }
-    res = res[, colSums(is.na(res))<nrow(res)]
+    empty_columns = matrixStats::colAlls(res, value = NA, na.rm = FALSE)
+    if(all(empty_columns)) {
+        # we need at least one column in the result
+        empty_columns[1] = FALSE
+    }
+    res = res[, !empty_columns]
     new_lab_x = values2labels(set_val_lab(uniq_x, labs_x))
     new_lab_y = values2labels(set_val_lab(uniq_y, labs_y))
     if (!is.null(vlabs_x)) new_lab_x = paste(vlabs_x, new_lab_x, sep = "|")

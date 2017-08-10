@@ -1,18 +1,24 @@
 #' Outputting HTML tables in RStudio viewer/R Notebooks
 #' 
-#' This is method for rendering results of \link{fre}/\link{cro}/\link{tables} in
-#' Shiny/RMarkdown and etc. For detailed description of function and its
-#' arguments see \link[htmlTable]{htmlTable}. You may be interested in
-#' \code{options(expss.output = "viewer")} for automatical rendering tables
-#' in the RStudio viewer or  \code{options(expss.output = "rnotebook")} for
-#' rendering in the R notebooks. See \link{expss.options}.
+#' This is method for rendering results of \link{fre}/\link{cro}/\link{tables} 
+#' in Shiny/RMarkdown/Jupyter notebooks and etc. For detailed description of 
+#' function and its arguments see \link[htmlTable]{htmlTable}. You may be 
+#' interested in \code{expss_output_viewer()} for automatical rendering tables 
+#' in the RStudio viewer or  \code{expss_output_rnotebook()} for rendering in 
+#' the R notebooks. See \link{expss.options}. \code{repr_html} is method for 
+#' rendering table in the Jupyter notebooks and \code{knit_print} is method for 
+#' rendering table in the \code{knitr} HTML-documents. Jupyter notebooks and 
+#' \code{knitr} documents are supported automatically but in the R notebooks it 
+#' is needed to set output to notebook via \code{expss_output_rnotebook()}.
 #'
-#' @param x a data object (result of \link{fre}/\link{cro} and etc)
+#' @param x a data object of class 'etable' - result of \link{fre}/\link{cro} and etc.
+#' @param obj a data object of class 'etable' - result of \link{fre}/\link{cro} and etc.
 #' @param digits integer By default, all numeric columns are rounded to one digit after
-#'   decimal separator. Also you can set this argument by option 'expss.digits'
-#'   - for example, \code{option(expss.digits = 2)}. If it is NA than all
+#'   decimal separator. Also you can set this argument by setting option 'expss.digits'
+#'   - for example, \code{expss_digits(2)}. If it is NA than all
 #'   numeric columns remain unrounded.
 #' @param ... further parameters for \link[htmlTable]{htmlTable}.
+#' @param row_groups logical Should we create row groups? TRUE by default.
 #'
 #' @return Returns a string of class htmlTable
 #' @export
@@ -38,7 +44,7 @@
 #'                       carb = "Number of carburetors"
 #' )
 #' 
-#' options(expss.output = "viewer")
+#' expss_output_viewer()
 #' mtcars %>% 
 #'      tab_cols(total(), am %nest% vs) %>% 
 #'      tab_cells(mpg, hp) %>% 
@@ -47,25 +53,52 @@
 #'      tab_stat_cpct() %>% 
 #'      tab_pivot()
 #'      
-#' options(expss.output = NA)   
+#' expss_output_default()   
 #'  
 #' }
-htmlTable.etable = function(x, digits = getOption("expss.digits"), ...){
-    x = round_dataframe(x, digits = digits)
+htmlTable.etable = function(x, digits = get_expss_digits(), ..., row_groups = TRUE){
     if(NCOL(x) == 0){
         return(htmlTable(setNames(dtfrm("Table is empty"), " "), ...))
     }
+    digits = if_null(digits, 1)
+    if(!is.na(digits)){
+        x = round_dataframe(x, digits = digits)
+        not_total = !get_total_rows_indicator(x, total_marker = "#")
+        for(i in seq_len(NCOL(x))[-1]){
+            curr_col = x[[i]][not_total]
+            if(is.numeric(curr_col) && any(grepl("\\.|,", curr_col, perl = TRUE))){
+                    x[[i]][not_total] = trimws(format(curr_col, nsmall = digits, justify =  "right"))
+                    x[[i]][not_total][is.na(curr_col)] = ""
+            }
+            ## for significance marks
+            if(is.character(curr_col) || is.factor(curr_col)){
+                has_symbols = grepl("[^\\s^\\t]", x[[i]], perl = TRUE)
+                x[[i]][has_symbols] = gsub("\\s$", "&nbsp;",
+                                           x[[i]][has_symbols], perl = TRUE)
+                # x[[i]] = gsub("([\\d])$", "\\1&nbsp;", x[[i]], perl = TRUE)
+            }
+        }
+    }
+    # escape <NA>
+    colnames(x) = gsub("<NA>", "&lt;NA&gt;", colnames(x), fixed = TRUE)
+    if(is.character(x[[1]]) || is.factor(x[[1]])){
+        x[[1]] = gsub("<NA>", "&lt;NA&gt;", x[[1]], fixed = TRUE)
+    }
+    
+
+    if(!row_groups){
+        return(html_table_no_row_groups(x = x, ...))
+    }
     first_lab = colnames(x)[1]
     if(first_lab == "row_labels") first_lab = ""
-    # first_lab = htmltools::htmlEscape(first_lab)
-    row_labels = x[[1]]  # htmltools::htmlEscape(x[[1]])
+    row_labels = x[[1]] 
     x[[1]] = NULL # remove first column. This method is needed to prevent column names damaging
-    header = t(split_labels(colnames(x), split = "|", remove_repeated = FALSE))
+    header = t(split_labels(colnames(x), split = "|", fixed = TRUE, remove_repeated = FALSE))
     header_last_row = t(split_labels(colnames(x),
                                      split = "|", 
+                                     fixed = TRUE,
                                      remove_repeated = TRUE))[NROW(header), , drop = FALSE]
-    header[] = htmltools::htmlEscape(header)
-    header_last_row[] = htmltools::htmlEscape(header_last_row)
+   
     for(each in seq_len(NCOL(header))){
         curr_col = header[, each]
         ok = !is.na(curr_col) & curr_col!=""
@@ -96,7 +129,7 @@ htmlTable.etable = function(x, digits = getOption("expss.digits"), ...){
         
     }
     align = rep("r", NCOL(x))
-    row_labels = split_labels(row_labels)
+    row_labels = split_labels(row_labels, split = "|", fixed = TRUE)
     for(each in seq_len(NCOL(row_labels))){
         curr_col = row_labels[, each]
         ok = !is.na(curr_col) & curr_col!=""
@@ -113,12 +146,14 @@ htmlTable.etable = function(x, digits = getOption("expss.digits"), ...){
             x = dtfrm(row_labels[, -(1:2)], x)
             html_header = c(rep("", NCOL(row_labels) - 2), html_header)
             align = c(rep("l", NCOL(row_labels) - 2), align)
-            if(NCOL(header)>0){
-                cgroup = cbind("", cgroup)
-                n.cgroup = cbind(NCOL(row_labels) - 2, n.cgroup)
-            } else {
-                cgroup = matrix("", 1, 1) 
-                n.cgroup = matrix(NCOL(row_labels) - 2, 1, 1)
+            if(NROW(cgroup)>0){
+                if(NCOL(header)>0){
+                    cgroup = cbind("", cgroup)
+                    n.cgroup = cbind(NCOL(row_labels) - 2, n.cgroup)
+                } else {
+                    cgroup = matrix("", 1, 1) 
+                    n.cgroup = matrix(NCOL(row_labels) - 2, 1, 1)
+                }
             }
         }
         rnames = row_labels[,2]
@@ -221,15 +256,144 @@ matrix_to_cgroup = function(header){
 
 #' @export
 #' @rdname htmlTable.etable
-knit_print.etable = function(x, digits = getOption("expss.digits"), ...){
-    res = htmlTable(x, digits = digits, ...)
-    # res = fix_cyrillic_for_rstudio(res)
-    knitr::asis_output(res)
+knit_print.etable = function(x, digits = get_expss_digits(), ...){
+    knitr::knit_print(htmlTable.etable(x, digits = digits, ..., row_groups = TRUE))
+    # knitr::asis_output(res)
 }
 
 
+#' @export
+#' @rdname htmlTable.etable
+repr_html.etable = function(obj, digits = get_expss_digits(), ...){
+    htmlTable(obj, digits = digits, ..., row_groups = FALSE)
+    
+}
 
+#' @export
+#' @rdname htmlTable.etable
+repr_text.etable = function(obj, digits = get_expss_digits(), ...){
+    curr_output = getOption("expss.output")
+    if(!("raw" %in% curr_output)){
+        obj = split_all_in_etable_for_print(obj,
+                                          digits = digits, 
+                                          remove_repeated = TRUE)
+    }
+    if("commented" %in% curr_output){
+        if(NROW(obj)>0 && NCOL(obj)>0){
+            obj = cbind("#" = "#", obj)
+            colnames(obj) = rep("", length(obj))
+        } 
+        
+    }
+    width = getOption("width")
+    on.exit(options(width = width))
+    options(width = 1000)
+    paste(capture.output(print.data.frame(obj, ...,  right = TRUE, row.names = FALSE)),
+          collapse = "\n")
+    
+}
 
+## for Jupyter notebooks where row headings not rendered correctly
+html_table_no_row_groups = function(x, ...){
+    first_lab = colnames(x)[1]
+    if(first_lab == "row_labels") first_lab = ""
+    row_labels = x[[1]]  
+    x[[1]] = NULL # remove first column. This method is needed to prevent column names damaging
+    header = t(split_labels(colnames(x), split = "|", fixed = TRUE, remove_repeated = FALSE))
+    header_last_row = t(split_labels(colnames(x),
+                                     split = "|", 
+                                     fixed = TRUE,
+                                     remove_repeated = TRUE))[NROW(header), , drop = FALSE]
+    for(each in seq_len(NCOL(header))){
+        curr_col = header[, each]
+        ok = !is.na(curr_col) & curr_col!=""
+        header[ok, each] = 
+            paste0("&nbsp;", curr_col[ok], "&nbsp;")
+    }
+    for(each in seq_len(NCOL(header_last_row))){
+        curr_col = header_last_row[, each]
+        ok = !is.na(curr_col) & curr_col!=""
+        header_last_row[ok, each] = 
+            paste0("&nbsp;", curr_col[ok], "&nbsp;")
+    }
+    if(NCOL(header)>0){
+        
+        html_header = header_last_row
+        if(NROW(header)>1){
+            cgroup_list = matrix_to_cgroup(header[-NROW(header), ,drop = FALSE])
+            cgroup = cgroup_list[["cgroup"]]
+            n.cgroup = cgroup_list[["n.cgroup"]]
+        } else {
+            cgroup = matrix(character(0), 0, 0)
+            n.cgroup = matrix(0, 1, 1)    
+        }
+    } else {
+        html_header = character(0)
+        cgroup = matrix(character(0), 0, 0)
+        n.cgroup = matrix(0, 1, 1)
+        
+    }
+    align = rep("r", NCOL(x))
+    row_labels = split_labels(row_labels, split = "|", fixed = TRUE)
+    for(each in seq_len(NCOL(row_labels))){
+        curr_col = row_labels[, each]
+        ok = !is.na(curr_col) & curr_col!=""
+        row_labels[ok, each] = 
+            paste0("&nbsp;", curr_col[ok], "&nbsp;")
+    }
+    if(NCOL(row_labels)==0) row_labels = matrix("", 1, 1)
+    if(NCOL(row_labels) == 1){
+        rnames = row_labels[,1] 
+    } else {
+        if(NCOL(row_labels) > 1){
+            x = dtfrm(row_labels[, -1], x)
+            html_header = c(rep("", NCOL(row_labels) - 1), html_header)
+            align = c(rep("l", NCOL(row_labels) - 1), align)
+            if(NROW(cgroup)>0){
+                if(NCOL(header)>0){
+                    cgroup = cbind("", cgroup)
+                    n.cgroup = cbind(NCOL(row_labels) - 1, n.cgroup)
+                } else {
+                    cgroup = matrix("", 1, 1) 
+                    n.cgroup = matrix(NCOL(row_labels) - 1, 1, 1)
+                }
+            }
+        }
+        rnames = row_labels[,1]
+    }
+    # cgroup = cgroup[-NROW(cgroup), ,drop = FALSE]
+    # n.cgroup = n.cgroup[-NROW(n.cgroup), , drop = FALSE]
+    if(NCOL(x)>0){
+        if(NROW(cgroup)>0){
+            cgroup = cgroup[,colSums(!is.na(cgroup))>0, drop = FALSE]
+            n.cgroup = n.cgroup[,colSums(!is.na(n.cgroup))>0, drop = FALSE]
+                htmlTable(as.dtfrm(x), 
+                          header = html_header,
+                          cgroup = cgroup, 
+                          align = align,
+                          n.cgroup = n.cgroup, 
+                          rnames = rnames, 
+                          rowlabel = first_lab,
+                          ...)   
+            
+        } else {
 
-
-
+                htmlTable(as.dtfrm(x), 
+                          header = html_header,
+                          align = align,
+                          rnames = rnames, 
+                          rowlabel = first_lab,
+                          ...)   
+            
+        }
+    } else {
+        x = rep("", NROW(x))
+        htmlTable(dtfrm(x), 
+                  header = "",
+                  rnames = rnames, 
+                  rowlabel = first_lab,
+                  ...) 
+        
+    }
+    
+}

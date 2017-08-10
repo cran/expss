@@ -5,8 +5,7 @@
 #' If \code{data} is list then \code{where} will be applied to each element of 
 #' the list. For other types (vector/matrix) there is no non-standard
 #' evaluation. There is a special constant \code{.N} which equals to number of
-#' rows in \code{data} for usage in \code{cond} expression. \code{\%where\%} is
-#' infix function with the same functional. See examples. \code{.where} is
+#' rows in \code{data} for usage in \code{cond} expression. \code{.where} is
 #' version for working with default dataset. See \link{default_dataset}.
 #'  
 #' @param data data.frame/matrix/vector/list to be subsetted
@@ -23,20 +22,14 @@
 #' # leave only first five rows
 #' where(iris, 1:5)
 #' 
-#' # infix version
-#' # note that '%where%' have higher precendence than '=='
-#' # so we need to put condition inside brackets
-#' iris %where% (Species == "setosa")
-#' 
-#' iris %where% 1:5
 #' 
 #' # example of .N usage. 
 #' set.seed(42)
-#' train = iris %where% sample(.N, 100)
+#' train = where(iris, sample(.N, 100))
 #' str(train)
 #' 
 #' set.seed(42)
-#' test = iris %where% -sample(.N, 100)
+#' test = where(iris, -sample(.N, 100))
 #' str(test)
 #' 
 #' # list example
@@ -47,24 +40,39 @@
 #' # two random elements from the each list item
 #' where(my_list, sample(.N, 2))
 where = function (data, cond) {
-    UseMethod("where")
+    cond = substitute(cond)
+    parent = parent.frame()
+    where_internal(data, cond, parent)
+}
+
+
+#' @rdname where
+#' @export
+.where = function (cond) {
+    cond = substitute(cond)
+    parent = parent.frame()
+    reference = suppressMessages(default_dataset() )
+    data = ref(reference)
+    ref(reference) = where_internal(data, cond, parent)
+    invisible(data)
+}
+
+# 'cond' is expression - result of 'substitute'
+where_internal = function(data, cond, parent){
+    UseMethod("where_internal")    
 }
 
 #' @export
-where.data.frame = function (data, cond) {
-    cond = substitute(cond)
-    e = evalq(environment(), data, parent.frame())
+where_internal.data.frame = function (data, cond, parent) {
+    e = evalq(environment(), data, parent)
     prepare_env(e, n = NROW(data), column_names = colnames(data))
     cond = calc_cond(cond, envir = e)
     data[cond,, drop = FALSE] 
 }
 
 #' @export
-where.default = function (data, cond) {
-
-    cond = substitute(cond)
-
-    e = evalq(environment(), list(), parent.frame())
+where_internal.default = function (data, cond, parent) {
+    e = evalq(environment(), list(), parent)
     prepare_env(e, n = NROW(data), NULL)
     cond = calc_cond(cond, envir = e)
     
@@ -75,51 +83,12 @@ where.default = function (data, cond) {
     }  
 }
 
-
 #' @export
-where.list = function (data, cond) {
-
-    # cond = substitute(cond)
-    # data_expr = substitute(data)
+where_internal.list = function (data, cond, parent) {
     for(each in seq_along(data)){
-        data[[each]] = eval(
-                            substitute(where(data[[each]], cond)), 
-                            envir = parent.frame(),
-                            enclos = baseenv()
-        )
+        data[[each]] = where_internal(data[[each]], cond, parent)
     }
     data
-}
-
-
-#' @rdname where
-#' @export
-'%where%' = function(data, cond){
-
-    # cond = substitute(cond)
-    # data = substitute(data)
-    eval(
-         substitute(where(data, cond)), 
-         envir = parent.frame(),
-         enclos = baseenv()                
-    )
-}
-
-
-#' @rdname where
-#' @export
-.where = function (cond) {
-
-    # cond = substitute(cond)
-    reference = suppressMessages(default_dataset() )
-    data = ref(reference)
-    data = eval(
-                substitute(where(data, cond)), 
-                envir = parent.frame(),
-                enclos = baseenv()                
-                )
-    ref(reference) = data 
-    invisible(data)
 }
 
 
@@ -131,5 +100,4 @@ calc_cond = function(cond, envir){
     }    
     if(is.logical(cond)) cond = cond & !is.na(cond)
     cond
-    
 }
