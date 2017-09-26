@@ -16,12 +16,14 @@ universal_subset = function(data, index, drop = TRUE){
 # j numeric or logical
 # row.names are ignored
 subset_dataframe = function(x, j, drop = TRUE){
-    if(drop && NCOL(x)<2){
-        return(unlist(x, use.names = FALSE)[j])
+    if(NCOL(x)==1 && drop){
+        return(x[[1]][j])    
     }
     res = lapply(x, `[`, j)
     class(res) = class(x)
-    attr(res, "row.names") <- seq_len(NROW(res[[1]]))
+    if(NCOL(x)>0){
+        attr(res, "row.names") <- seq_len(NROW(res[[1]]))
+    }
     res
 }
 #########################################
@@ -181,6 +183,9 @@ long_datatable_to_table = function(dtable, rows, columns, values){
         {res = dcast(dtable, frm, value.var = values, drop = FALSE, fill = NA, sep = "|")},
         type = "message"
     )
+    # for debugging
+    # mess = numeric(0)
+    # res = dcast(dtable, frm, value.var = values, drop = FALSE, fill = NA, sep = "|")
     stopif(length(mess)>0,
            paste0("Something is going wrong - several elements in one cell in the table (",mess,").")
     )
@@ -198,8 +203,11 @@ long_datatable_to_table = function(dtable, rows, columns, values){
         res = res[, new_order, with = FALSE]
     }
     for(each in rows){
-        res[[each]] = as.character(res[[each]])
-        res[[each]][is.na(res[[each]])] = ""
+        curr = as.character(res[[each]])
+        curr[is.na(curr)] = ""
+        set(res,, each, curr)
+        # res[[each]] = as.character(res[[each]])
+        # res[[each]][is.na(res[[each]])] = ""
     }
     res
 }
