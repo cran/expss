@@ -48,8 +48,8 @@ NULL
 #' @import data.table
 #' @import htmlTable 
 #' @import htmltools 
-#' @import DT
 #' @import magrittr
+#' @import DT
 #' @import foreign stats utils matrixStats
 
 
@@ -60,6 +60,63 @@ setkeyv = data.table::setkeyv
 # fread = data.table::fread
 # '[.data.table' = data.table::`[.data.table`
 
+
+#' @export
+magrittr::`%>%`
+
+#' @export
+magrittr::`%<>%`
+
+#' @export
+magrittr::`%$%`
+
+#' @export
+data.table::data.table
+
+#' @export
+data.table::as.data.table
+
+#' @export
+data.table::is.data.table
+
+#' @export
+data.table::setDF
+
+#' @export
+data.table::setDT
+
+#' @export
+data.table::setkey
+
+#' @export
+data.table::setkeyv
+
+#' @export
+data.table::fread
+
+#' @export
+data.table::fwrite
+
+#' @export
+htmlTable::htmlTable
+
+#' @export
+htmlTable::htmlTableWidget
+
+#' @export
+htmlTable::htmlTableWidgetOutput
+
+#' @export
+htmlTable::interactiveTable
+
+#' @export
+DT::dataTableAjax
+
+#' @export
+DT::dataTableOutput
+
+#' @export
+DT::renderDataTable
 
 
 .onAttach = function(...) {

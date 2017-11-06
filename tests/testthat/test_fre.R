@@ -291,7 +291,6 @@ expect_equal_to_reference(cro_rpct(list(a), list(b), weight = weight), "rds/cro3
 expect_equal_to_reference(cro_tpct(list(a), list(b), weight = weight), "rds/cro3.rds")
 
 
-
 context("cro_fun")
 
 a = c(1,1,1, NA, NA)
@@ -538,6 +537,8 @@ a = c(1,1,1, NA, NA)
 b = c(NA, NA, NA, 1, 1)
 expect_equal_to_reference(cro_mean(a, list(b, total())), "rds/cro_mean1.rds")
 expect_equal_to_reference(cro_sum(a, list(b, total())), "rds/cro_sum1.rds")
+expect_equal_to_reference(calc_cro_sum(sheet(a, b), a, list(b, total())), 
+                          "rds/cro_sum1.rds")
 expect_equal_to_reference(cro_median(a, list(b, total())), "rds/cro_median1.rds")
 
 a = c(1,1,1, 1, 1)
@@ -546,6 +547,7 @@ b = c(1, 1, 2, 2, 2)
 
 expect_equal_to_reference(cro_mean(b, list(a, total())), "rds/cro_mean2.rds")
 expect_equal_to_reference(cro_median(b, list(a, total())), "rds/cro_median2.rds")
+expect_equal_to_reference(calc_cro_median(sheet(a, b), b, list(a, total())), "rds/cro_median2.rds")
 
 weight = rep(1, 5)
 expect_equal_to_reference(cro_mean(b, list(a, total()), weight = weight), "rds/cro_mean2.rds")
@@ -571,6 +573,8 @@ expect_equal_to_reference(cro_sum(b, list(a, total()), weight = weight), "rds/cr
 
 
 expect_equal_to_reference(cro_median(iris[,-5], list(iris$Species, total())), "rds/cro_median8.rds")
+expect_equal_to_reference(calc_cro_median(iris, ..[!perl("Species")], list(Species, total())), 
+                          "rds/cro_median8.rds")
 expect_equal_to_reference(cro_median(iris[,-5], list(iris$Species, total()), weight = rep(1, 150)),
                           "rds/cro_median8.rds")
 expect_equal_to_reference(cro_median(iris[,-5], list(iris$Species, total()), weight = 1),
@@ -581,6 +585,8 @@ expect_equal_to_reference(cro_mean(iris[,-5], list(iris$Species, total())),
 
 
 expect_equal_to_reference(cro_sum(iris[,-5], list(iris$Species, total())), "rds/cro_sum8.rds")
+expect_equal_to_reference(calc_cro_sum(iris, ..[!perl("Species")], list(Species, total())), 
+                          "rds/cro_sum8.rds")
 
 expect_equal_to_reference(cro_fun(iris[,-5], list(iris$Species, total()), fun = mean), "rds/cro_mean8.rds")
 

@@ -175,7 +175,11 @@ modify_internal.data.frame = function (data, expr, parent) {
     l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
     del = setdiff(names(data), names(l))
     if(length(del)){
-        data[, del] = NULL
+        if(data.table::is.data.table(data)){
+            data.table::set(data, j = del, value = NULL)
+        } else {
+            data[, del] = NULL
+        }
     }
     nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
     wrong_rows = nrows!=1L & nrows!=nrow(data)
@@ -187,8 +191,13 @@ modify_internal.data.frame = function (data, expr, parent) {
     
     new_vars = rev(names(l)[!(names(l) %in% names(data))])
     nl = c(names(data), new_vars)
-    data[nl] = l[nl]
-    data
+    if(data.table::is.data.table(data)){
+        data.table::set(data, j = nl, value = l[nl])  
+        invisible(data)
+    } else {
+        data[nl] = l[nl]
+        data
+    }
 }
 
 #' @export
@@ -230,8 +239,8 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
     e = evalq(environment(), data, parent)
     prepare_env(e, n = NROW(data), column_names = colnames(data))
     cond = calc_cond(cond, envir = e)
-    
-    new_data = modify_internal(data[cond,, drop = FALSE], expr, parent)
+    new_data = subset_dataframe(data, cond, drop = FALSE)
+    new_data = modify_internal(new_data, expr, parent)
     del = setdiff(names(data), names(new_data))
     if(length(del)){
         data[, del] = NULL
@@ -242,6 +251,26 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
     data[cond, new_vars] = new_data[new_vars]
     data
 }
+
+# if(length(del)){
+#     if(data.table::is.data.table(data)){
+#         data.table::set(data, j = del, value = NULL)
+#     } else {
+#         data[, del] = NULL
+#     }
+# }
+# if(data.table::is.data.table(data)){
+#     if(is.logical(cond)) cond = which(cond)
+#     data.table::set(data, i = cond, j = names(new_data), new_data)
+#     invisible(data)
+#     
+# } else {
+#     new_vars = names(new_data)[!(names(new_data) %in% names(data))]
+#     data[cond, names(data)] = new_data[names(data)]
+#     data[, new_vars] = NA
+#     data[cond, new_vars] = new_data[new_vars]
+#     data
+# }
 
 #' @export
 modify_if_internal.list = function (data, cond, expr, parent) {

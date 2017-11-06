@@ -47,8 +47,17 @@ expect_error(
 
 
 expect_equal_to_reference(
-    cro_fun(mtcars %>% except("cyl", "am"), col_vars = mtcars$am, fun = combine_functions(w_mean), weight = 2),
+    cro_fun(mtcars %>% except("cyl", "am"),
+            col_vars = mtcars$am, fun = combine_functions(w_mean), weight = 2),
                           "rds/table_summary0.rds")
+
+expect_equal_to_reference(
+    calc_cro_fun(mtcars, ..[!perl("cyl|am")], col_vars = am, 
+                 fun = combine_functions(w_mean), 
+                 weight = 2
+                 ),
+    "rds/table_summary0.rds")
+
 
 
 expect_equal_to_reference(
@@ -103,6 +112,17 @@ cro_fun_df(mtcars %>% except("vs", "am"), col_vars = list("Total", mtcars$am),
                    res
                        })
 ,"rds/table_summary5.rds"
+)
+
+expect_equal_to_reference(
+    calc_cro_fun_df(mtcars, ..[!perl("vs|am")], 
+                    col_vars = list("Total", mtcars$am),
+               fun = function(x) {
+                   res = t(colMeans(x) )
+                   rownames(res) = "mean"
+                   res
+               })
+    ,"rds/table_summary5.rds"
 )
 
 # expect_equal_to_reference(
@@ -340,6 +360,15 @@ expect_equal_to_reference(
     "rds/cro_mean_sd_n3.rds"
 )
 
+expect_equal_to_reference(
+    calc_cro_mean_sd_n(mtcars, 
+                       list(mpg, disp, wt), 
+                       list(total(), am, vs), 
+                                labels = c("m", "s", "n"),
+                                weight = 0.1,
+                                weighted_valid_n = TRUE),
+    "rds/cro_mean_sd_n3.rds"
+)
 
 context("cro_fun unsafe labels")
 
@@ -387,3 +416,12 @@ structure(list(row_labels = "c(1:3, NA, NA, NA)", `c(1, 1, 1, 2, 2, 2)|1` = 0.89
 "c(1, 1, 1, 2, 2, 2)|1", "c(1, 1, 1, 2, 2, 2)|2"), row.names = c(NA, 
 -1L), class = c("etable", "data.frame"))
 )
+
+
+# TODO 
+# a = 1:20
+# 
+# cro_mean_sd_n(list(a))
+# cro_fun(list(a), fun = sum)
+# cro_fun_df(a, fun = colSums)
+# cro(list(1:20))
