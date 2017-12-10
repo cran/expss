@@ -249,7 +249,6 @@ w %>%
 #  write_labelled_spss(w, file  filename = "product_test.csv")
 
 ## ---- fig.height=6, fig.width=7------------------------------------------
-library(knitr)
 with(mtcars, table(am, vs))
 
 boxplot(mpg ~ am, data = mtcars)

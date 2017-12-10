@@ -27,6 +27,12 @@
 \alias{reexports}
 \alias{fwrite}
 \alias{reexports}
+\alias{shift}
+\alias{reexports}
+\alias{first}
+\alias{reexports}
+\alias{last}
+\alias{reexports}
 \alias{htmlTable}
 \alias{reexports}
 \alias{htmlTableWidget}
@@ -49,7 +55,7 @@ below to see their documentation.
 \describe{
   \item{DT}{\code{\link[DT]{dataTableAjax}}, \code{\link[DT]{dataTableOutput}}, \code{\link[DT]{renderDataTable}}}
 
-  \item{data.table}{\code{\link[data.table]{data.table}}, \code{\link[data.table]{as.data.table}}, \code{\link[data.table]{is.data.table}}, \code{\link[data.table]{setDF}}, \code{\link[data.table]{setDT}}, \code{\link[data.table]{setkey}}, \code{\link[data.table]{setkeyv}}, \code{\link[data.table]{fread}}, \code{\link[data.table]{fwrite}}}
+  \item{data.table}{\code{\link[data.table]{data.table}}, \code{\link[data.table]{as.data.table}}, \code{\link[data.table]{is.data.table}}, \code{\link[data.table]{setDF}}, \code{\link[data.table]{setDT}}, \code{\link[data.table]{setkey}}, \code{\link[data.table]{setkeyv}}, \code{\link[data.table]{fread}}, \code{\link[data.table]{fwrite}}, \code{\link[data.table]{shift}}, \code{\link[data.table]{first}}, \code{\link[data.table]{last}}}
 
   \item{htmlTable}{\code{\link[htmlTable]{htmlTable}}, \code{\link[htmlTable]{htmlTableWidget}}, \code{\link[htmlTable]{htmlTableWidgetOutput}}, \code{\link[htmlTable]{interactiveTable}}}
 
