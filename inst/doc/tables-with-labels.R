@@ -248,37 +248,27 @@ w %>%
 ## ---- eval=FALSE---------------------------------------------------------
 #  write_labelled_spss(w, file  filename = "product_test.csv")
 
-## ---- fig.height=6, fig.width=7------------------------------------------
-with(mtcars, table(am, vs))
-
-boxplot(mpg ~ am, data = mtcars)
-
-## ------------------------------------------------------------------------
-# table with dimension names
-use_labels(mtcars, table(am, vs)) 
-
-# linear regression
-use_labels(mtcars, lm(mpg ~ wt + hp + qsec)) %>% summary
-
-## ---- fig.height=6, fig.width=7------------------------------------------
-library(ggplot2)
-use_labels(mtcars, {
-    # 'vars(other)' is needed to get all 'mtcars' data.frame inside expression 
-    ggplot(vars(other)) +
-        geom_point(aes(y = mpg, x = wt, color = qsec)) +
-        facet_grid(am ~ vs)
-}) 
-
-## ---- message=FALSE, warning=FALSE, include=FALSE------------------------
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
 library(expss)
+w = from_text("
+      A  B  C
+      2 15 50
+      1 70 80
+      3 30 40
+      2 30 40
+")
+
+knitr::kable(w, row.names = TRUE, format = "html", table.attr = "style='width:30%;'") 
+knitr::asis_output("<br>")
 
 ## ---- results='hide', message=FALSE, warning=FALSE-----------------------
+library(expss)
 w = from_text("
-    a  b  c
-    2 15 50
-    1 70 80
-    3 30 40
-    2 30 40
+        a  b  c
+        2 15 50
+        1 70 80
+        3 30 40
+        2 30 40
 ")
 
 
@@ -310,6 +300,24 @@ w = from_text("
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  count_col_if(le(1), w$a)
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+library(expss)
+tbl_crit = from_text("
+ Excel R
+  <1 lt(1)
+ <=1 le(1)
+ <>1 ne(1)
+  =1 eq(1)
+ >=1 ge(1)
+  >1 gt(1)
+")
+
+knitr::kable(tbl_crit, row.names = FALSE, 
+             format = "html", 
+             table.attr = "style='width:30%;'", 
+             align = "r") 
+knitr::asis_output("<br>")
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  sum(w, na.rm = TRUE)
@@ -346,6 +354,17 @@ w = from_text("
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  calculate(w, mean_col_if(lt(3), a, data = sheet(b, c)))
+
+## ----echo=FALSE, message=FALSE, warning=FALSE----------------------------
+dict = from_text("
+    X  Y
+    1  apples
+    2  oranges
+    3  peaches
+")
+
+knitr::kable(dict, align = "l", row.names = TRUE, format = "html", table.attr = "style='width:30%;'") 
+knitr::asis_output("<br>")
 
 ## ---- eval=FALSE---------------------------------------------------------
 #  dict = from_text("
