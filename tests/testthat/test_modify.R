@@ -142,6 +142,18 @@ expect_identical(
     result_dfs2
 )
 
+dt_dfs2 = data.table(dfs2)
+dt_result_dfs2 = data.table(result_dfs2)
+set.seed(1)
+dt_dfs3 = modify_if(dt_dfs2, test %in% 2:4,
+          {
+              b_total = sum_row(b_1 %to% b_5)
+              aa = aa + 1
+              random_numer = runif(.n)
+          })
+
+expect_identical(dt_dfs2, dt_result_dfs2)
+expect_identical(dt_dfs3, dt_result_dfs2)
 
 set.seed(1)
 expect_identical(
@@ -197,10 +209,10 @@ result_dfs2$random_numer = NULL
 
 
 result_dfs2$b_total = NULL
+dfs2$b_total = NULL
 expect_identical(
     modify_if(dfs2, test %in% 2:4,
               {
-                  b_total = NULL
                   aa = aa + 1
               }), 
     result_dfs2
@@ -210,7 +222,6 @@ expect_identical(
 expect_identical(
     modify_if(dfs2, 2:4,
               {
-                  b_total = NULL
                   aa = aa + 1
               }), 
     result_dfs2
@@ -272,9 +283,10 @@ expect_identical(iris2, iris[,-5])
 
 iris2 = iris
 
-iris2 = modify_if(iris2, Sepal.Length<5, {Species = NULL})
+expect_error(modify_if(iris2, Sepal.Length<5, {Species = NULL}))
+expect_error(modify_if(iris2, Sepal.Length<5, {Sepal.Width = 1:3}))
 
-expect_identical(iris2, iris[,-5])
+
 
 
 #### 
@@ -358,8 +370,14 @@ mtcars = apply_labels(mtcars,
                    carb = "Number of carburetors"
 )
 
-res = with(mtcars, table(am, vs))
 
+
+expect_identical(
+    use_labels(mtcars, summary(..data)), 
+    summary(names2labels(mtcars))
+)
+
+res = with(mtcars, table(am, vs))
 expect_identical(use_labels(unvr(mtcars), table(am, vs)), res)
 
 names(dimnames(res)) = c(var_lab(mtcars$am), var_lab(mtcars$vs))
@@ -387,3 +405,45 @@ expect_identical(
     use_labels(mtcars, table(am, vs)), 
     res
 )
+
+
+
+context("do_if new")
+
+data(iris)
+
+iris2 = iris
+
+iris2$nest = iris[,-5]
+res = iris2
+res$nest_sum[res$Species=="versicolor"] = rowSums(res$nest[res$Species=="versicolor", ])
+res$nest[res$Species=="versicolor", ] = res$nest[res$Species=="versicolor", ]*3
+
+
+wah = do_if(iris2, Species=="versicolor", {
+    nest_sum = rowSums(nest)
+    nest = nest*3
+    
+})
+
+expect_identical(wah, res)
+
+iris2 = iris
+iris2$new_var = NA*1
+
+expect_identical(
+    modify_if(iris, Sepal.Length>10, {
+        Sepal.Width = Sepal.Length/Petal.Length
+        new_var = 42
+    }),
+    iris2
+)
+
+expect_identical(
+    modify_if(data.table(iris), Sepal.Length>10, {
+        Sepal.Width = Sepal.Length/Petal.Length
+        new_var = 42
+    }),
+    data.table(iris2)
+)
+

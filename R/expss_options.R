@@ -1,4 +1,4 @@
-#' Options for contolling behaviour of the package
+#' Options for controlling behavior of the package
 #' 
 #' All options can be set with \code{options(option.name = option.value)} or
 #' with special functions (see below). You can get value of option with
@@ -6,9 +6,9 @@
 #' \itemize{
 #' \item{\code{expss.digits} }{ Number of digits after decimal separator which
 #' will be shown for tables. This parameter is supported in the
-#' \link[expss]{datatable}, \link[expss]{htmlTable.etable} and \code{print}
+#' \link[expss]{as.datatable_widget}, \link[expss]{htmlTable.etable} and \code{print}
 #' methods. \code{NULL} is default and means one digit. \code{NA} means no
-#' rounding. There is convenience function for this option:
+#' rounding. There is a convenience function for this option:
 #' \code{expss_digits}.}
 #' \item{\code{expss.enable_value_labels_support} }{By default, all labelled 
 #' variables will use labels as labels for factor levels when \link{factor} is 
@@ -31,7 +31,11 @@
 #' script. Option \code{raw} disables any formatting and all tables are printed
 #' as data.frames. Shortcuts for options: \code{expss_output_default()}, 
 #' \code{expss_output_raw()}, \code{expss_output_viewer()},
-#' \code{expss_output_commented()} and \code{expss_output_rnotebook()}.}}
+#' \code{expss_output_commented()} and \code{expss_output_rnotebook()}.}
+#' \item{\code{expss_fix_encoding_on}/\code{expss_fix_encoding_off} }{ If you
+#' expreience problems with character experience in RStudio Viewer/RNotebooks under Windows
+#' try \code{expss_fix_encoding_on()}. In some cases it can help.}
+#' }
 #' 
 #' @param digits integer. Number of digits after decimal point. \code{NULL} is
 #'   default and means 1 digit. \code{NA} means no rounding.
@@ -95,4 +99,16 @@ expss_output_viewer = function(){
 #' @export
 expss_output_rnotebook = function(){
     options(expss.output = "rnotebook")
+}
+
+#' @rdname expss.options
+#' @export
+expss_fix_encoding_on = function(){
+    options(expss.fix_encoding = TRUE)
+}
+
+#' @rdname expss.options
+#' @export
+expss_fix_encoding_off = function(){
+    options(expss.fix_encoding = NULL)
 }

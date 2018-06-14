@@ -11,7 +11,8 @@
 #' similar to \code{\link[base]{with}} in base R but make available 
 #' full-featured \code{\%to\%} and \code{.N} in the expressions. See 
 #' \link{vars}. Function \code{use_labels} is shortcut for \code{calculate} with
-#' argument \code{use_labels} set to \code{TRUE}.}}
+#' argument \code{use_labels} set to \code{TRUE}. When \code{use_labels} is TRUE
+#' there is a special shortcut for entire data.frame - \code{..data}.}}
 #' \item{{\code{do_if}}{ modifies only rows for which \code{cond} equals to
 #' TRUE. Other rows remain unchanged. Newly created variables also will have
 #' values only in rows for which \code{cond} have TRUE. There will be NA's in
@@ -282,38 +283,83 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
     e = evalq(environment(), data, parent)
     prepare_env(e, n = NROW(data), column_names = colnames(data))
     cond = calc_cond(cond, envir = e)
-    new_data = subset_dataframe(data, cond, drop = FALSE)
-    new_data = modify_internal(new_data, expr, parent)
-    del = setdiff(names(data), names(new_data))
-    if(length(del)){
-        data[, del] = NULL
+    if(is.logical(cond)) {
+        cond_integer = which(cond)
+    } else {
+        cond_integer = cond
+    }    
+    e = evalq(environment(), list(), parent)
+    orig_names = colnames(data)
+    number_of_rows = length(cond_integer)
+    prepare_env(e, n = length(cond_integer), column_names = orig_names)
+    if(is.data.table(data)){
+        set_var = function(var_name, v){
+            data.table::set(data, i = cond_integer, j = var_name, value = v)    
+        }
+    } else {
+        set_var = function(var_name, v){
+            if(is.matrix(data[[var_name]]) || is.data.frame(data[[var_name]])){
+                data[[var_name]][cond_integer, ] <<- v 
+            } else {
+                data[[var_name]][cond_integer] <<- v
+            }                
+        }
     }
-    new_vars = names(new_data)[!(names(new_data) %in% names(data))]
-    data[cond, names(data)] = new_data[names(data)]
-    data[, new_vars] = NA
-    data[cond, new_vars] = new_data[new_vars]
-    data
+    binding = function(var_name){
+        var_name
+        function(v) {
+            if (missing(v)){
+                return(universal_subset(data[[var_name]], cond_integer, drop = FALSE))
+            } else {
+                nrows = NROW(v)
+                if(nrows!=1 && nrows!=number_of_rows){
+                    stop(paste0("Bad number of rows in '", var_name, "': ",  nrows,
+                                " instead of ",
+                                number_of_rows, " rows."))    
+                }
+                set_var(var_name, v)
+            }
+            invisible(v)
+        }
+    }
+    for(j in names(data)){
+        makeActiveBinding(j, binding(j), e)
+    }
+    eval(expr, envir = e, enclos = baseenv())
+    clear_env(e)
+    remove_active_bindings(e)
+    l = as.list(e, all.names = TRUE)
+    if(length(l)>0){
+        nrows = vapply(l, NROW, 1, USE.NAMES = FALSE)
+        wrong_rows = nrows!=1L & nrows!= number_of_rows
+        if(any(wrong_rows)){
+            er_message = utils::head(paste0("'", names(l)[wrong_rows], 
+                                            "' has ", nrows[wrong_rows], " rows"), 5)
+            er_message = paste(er_message, collapse = ", ")
+            stop(paste0("Bad number of rows: ", er_message, " instead of ",
+                        number_of_rows, " rows."))
+        }
+        
+        new_vars = rev(names(l)[!(names(l) %in% names(data))])
+        if(is.data.table(data)){
+            data[cond_integer, (new_vars) := l[new_vars] ]
+            # data.table::set(data, j = new_vars, value = l[new_vars]) # doesn't work :(     
+        } else {
+            for(i in new_vars){
+                data[[i]] = NA 
+                data[[i]][cond_integer] = l[[i]]                 
+            }
+        }
+    }
+    if(is.data.table(data)){
+        invisible(data)
+    } else {
+        data    
+    }
+    
 }
 
-# if(length(del)){
-#     if(data.table::is.data.table(data)){
-#         data.table::set(data, j = del, value = NULL)
-#     } else {
-#         data[, del] = NULL
-#     }
-# }
-# if(data.table::is.data.table(data)){
-#     if(is.logical(cond)) cond = which(cond)
-#     data.table::set(data, i = cond, j = names(new_data), new_data)
-#     invisible(data)
-#     
-# } else {
-#     new_vars = names(new_data)[!(names(new_data) %in% names(data))]
-#     data[cond, names(data)] = new_data[names(data)]
-#     data[, new_vars] = NA
-#     data[cond, new_vars] = new_data[new_vars]
-#     data
-# }
+
 
 #' @export
 modify_if_internal.list = function (data, cond, expr, parent) {
@@ -361,7 +407,7 @@ calculate_internal.data.frame = function (data, expr, parent, use_labels = FALSE
                 }
             }
             substitution_list = extract_var_labs_as_list_with_symbols(data)
-            expr = substitute_symbols(expr, substitution_list)
+            expr = substitute_symbols(expr, c(substitution_list, list(..data = quote(expss::vars(other)))))
             data = names2labels(data) 
         }
     }
