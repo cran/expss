@@ -47,7 +47,8 @@
 #'                  tab_stat_mean() %>% 
 #'                  tab_cells(cyl) %>% 
 #'                  tab_stat_cpct() %>% 
-#'                  tab_pivot()
+#'                  tab_pivot() %>% 
+#'                  set_caption("Table 1. Some variables from mtcars dataset.")
 #'
 #' library(shiny)
 #' shinyApp(
@@ -72,6 +73,7 @@ as.datatable_widget.default = function(data, ...){
     DT::datatable(data, ...)
 }
 
+
 #' @export
 #' @rdname as.datatable_widget
 as.datatable_widget.etable = function(data, 
@@ -87,13 +89,13 @@ as.datatable_widget.etable = function(data,
         header = t(split_labels(colnames(data), split = "|", fixed = TRUE, remove_repeated = FALSE))
         row_labels = split_labels(row_labels, split = "|", fixed = TRUE, remove_repeated = !repeat_row_labels)
         if(length(row_labels)){
-            row_labels = dtfrm(row_labels)    
+            row_labels = sheet(row_labels)    
         } else {
-            row_labels = dtfrm(matrix("", nrow = nrow(data), ncol = 1))
+            row_labels = sheet(matrix("", nrow = nrow(data), ncol = 1))
         }
         
         if(show_row_numbers) {
-            row_labels = dtfrm(seq_len(nrow(row_labels)), row_labels)    
+            row_labels = sheet(seq_len(nrow(row_labels)), row_labels)    
         }
         colnames(row_labels) = rep("", ncol(row_labels))
         if(nrow(header)>0){
@@ -107,10 +109,10 @@ as.datatable_widget.etable = function(data,
         data = cbind(row_labels, data)
     } else {
         if(show_row_numbers) {
-            row_labels = dtfrm(seq_len(nrow(data))) 
+            row_labels = sheet(seq_len(nrow(data))) 
             
         } else {
-            row_labels = as.dtfrm(matrix(NA, nrow = nrow(data), ncol = 0))
+            row_labels = as.sheet(matrix(NA, nrow = nrow(data), ncol = 0))
         }
         data = cbind(row_labels, data)
         header = '<table class="display"><thead><tr><th> </th></thead></table>'
@@ -235,7 +237,25 @@ matrix_header_to_html = function(corner, m_cols){
 }
 
 
-
+#' @export
+#' @rdname as.datatable_widget
+as.datatable_widget.with_caption = function(data, 
+                                      repeat_row_labels = FALSE, 
+                                      show_row_numbers = FALSE,
+                                      digits = get_expss_digits(),
+                                      ...){
+    caption = get_caption(data)
+    data = set_caption(data, NULL)
+    as.datatable_widget(
+        data,
+        repeat_row_labels = repeat_row_labels, 
+        show_row_numbers = show_row_numbers,
+        digits = digits,
+        ...,
+        caption = caption
+        
+    )
+}
 
 
 

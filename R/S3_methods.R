@@ -34,30 +34,34 @@ c.labelled = function(..., recursive = FALSE)
 #' @export
 rep.labelled = function (x, ...){
     y= NextMethod()
-    y = set_var_attr(y, var_attr(x))
-    class(y) = class(x)
+    y = restore_attributes(y, x)
     y	
 }
 
 #' @export
 '[.labelled' = function (x, ...){
     y = NextMethod()
-    y = set_var_attr(y, var_attr(x))
+    y = restore_attributes(y, x)
     y
 }
 
 #' @export
 '[[.labelled' = function (x, ...){
     y = NextMethod()
-    y = set_var_attr(y, var_attr(x))
+    y = restore_attributes(y, x)
     y
 }
+
+#' @export
+'[.labelled_spss' = `[.labelled`
+#' @export
+'[[.labelled_spss' = `[[.labelled`
 
 # two assignment methods are needed to prevent state with inconsistent class and mode
 # (such as 'numeric' in class but mode is character)
 #' @export
 '[<-.labelled' = function (x, ..., value){
-    class(x) = setdiff(class(x), "labelled")
+    class(x) = setdiff(class(x), c("labelled", "labelled_spss"))
     y = NextMethod()
     class(y) = c("labelled", class(y))
     y
@@ -65,29 +69,46 @@ rep.labelled = function (x, ...){
 
 #' @export
 '[[<-.labelled' = function (x, ..., value){
-    class(x) = setdiff(class(x), "labelled")
+    class(x) = setdiff(class(x), c("labelled", "labelled_spss"))
     y = NextMethod()
     class(y) = c("labelled", class(y))
     y
 }
 
-var_attr = function(x){
-    list(label = var_lab(x), labels = val_lab(x))
-}
+# var_attr = function(x){
+#     list(label = var_lab(x), labels = val_lab(x))
+# }
+# 
+# set_var_attr = function(x, value){
+#     #####
+#     # we bypass interfaces set_val_lab, set_var_lab to 
+#     # skip perfomance unfriendly sorting of labels
+#     attr(x, "label") = value[["label"]]
+#     attr(x, "labels") = value[["labels"]]
+#     if(length(value[["label"]])==0 && length(value[["labels"]])==0){
+#         class(x) = setdiff(class(x), c("labelled", "labelled_spss"))
+#     } else {
+#         class(x) = union("labelled", class(x))
+#     }
+#     x
+# }
 
-set_var_attr = function(x, value){
-    #####
+restore_attributes = function(new_var, old_var){
+    # "measurement", "spss_measure", "spss.measure", "measure",
+    preserved_attributes = c("label",  "format.spss", "measure",  
+                             "display_width", "labels", "na_values", "na_range")
     # we bypass interfaces set_val_lab, set_var_lab to 
     # skip perfomance unfriendly sorting of labels
-    attr(x, "label") = value[["label"]]
-    attr(x, "labels") = value[["labels"]]
-    if(length(value[["label"]])==0 && length(value[["labels"]])==0){
-        class(x) = setdiff(class(x), "labelled")
-    } else {
-        class(x) = union("labelled", class(x))
+    for(each_attr in preserved_attributes){
+        attr_value = attr(old_var, each_attr, exact = TRUE)
+        if(!is.null(attr_value)){
+            attr(new_var, each_attr) = attr_value
+        }
     }
-    x
-}
+    # we use new_var class for such functions as `as.integer.labelled`
+    class(new_var) = unique(c("labelled", class(new_var), use.names = FALSE))
+    new_var
+} 
 
 ### All subsetting methods are so strange because
 ### NextMethod doesn't work and I don't know why 
@@ -131,14 +152,14 @@ subset_helper = function(x, i, j, drop, class_name){
 #' @export
 as.double.labelled = function (x, ...){
     y = NextMethod()
-    y = set_var_attr(y, var_attr(x))
+    y = restore_attributes(y, x)
     y	
 }
 
 #' @export
 as.integer.labelled = function (x, ...){
     y = NextMethod()
-    y = set_var_attr(y, var_attr(x))
+    y = restore_attributes(y, x)
     y	
 }
 
@@ -175,8 +196,12 @@ labelled_to_character_internal = function(x, prepend_varlab, ...) {
 #' @export
 unique.labelled = function(x, ...){
     y = NextMethod()
-    if(!identical(getOption("expss.enable_value_labels_support"), 0)){
-        y = set_var_attr(y, var_attr(x))
+    labels_support = getOption("expss.enable_value_labels_support", 1) 
+    if(!identical(labels_support, 0)){
+        if(identical(labels_support, 2)){
+            y = unique(c(y, val_lab(x), use.names = FALSE))
+        }
+        y = restore_attributes(y, x)
     }
     y
 }
@@ -252,7 +277,7 @@ print.labelled = function(x, max = 50, max_labels = 20, ...){
         cat("\n")
     }
     if(!is.null(vallab)){
-        vallab = sort_asc(dtfrm(Value = vallab, Label = names(vallab)),"Value") 
+        vallab = sort_asc(sheet(Value = vallab, Label = names(vallab)),"Value") 
         vallab = setNames(vallab, NULL)
         # colnames(vallab) = gsub(".", " ", colnames(vallab), perl = TRUE)
         cat("VALUE LABELS:")
@@ -359,10 +384,42 @@ t.etable = function(x){
     col_names = colnames(x)[-1]
     data = x[,-1]
     class(data) = class(data) %d% "etable"
-    res = dtfrm(col_names, t(data))
+    res = sheet(col_names, t(data))
     res =setNames(res, c("row_labels", row_labels))
     class(res) = union("etable", class(res))
     res
+}
+
+#' @export
+print.with_caption = function(x, digits = get_expss_digits(), remove_repeated = TRUE, ...,  right = TRUE){
+  curr_output = getOption("expss.output")
+  if(!is.null(curr_output)){
+    if("rnotebook" %in% curr_output){
+      res = htmlTable(x, digits = digits)
+      res = fix_cyrillic_for_rstudio(res)
+      print(res)
+      return(invisible(NULL))
+    }
+    if("viewer" %in% curr_output){
+      res = htmlTable(x, digits = digits)
+      res = fix_cyrillic_for_rstudio(res)
+      attr(res, "html") = NULL
+      class(res) = class(res) %d% "html"
+      print(res)
+      return(invisible(NULL))
+    }
+    
+  }
+  caption = get_caption(x)
+  if("commented" %in% curr_output){
+    cat(" # ", caption,  sep = "")  
+  } else if("raw" %in% curr_output){
+    cat(caption,  "\n", sep = "") 
+  } else {
+    cat(" ", caption,  sep = "")  
+  }
+  print(set_caption(x, NULL), digits = digits, remove_repeated = remove_repeated, ...,  right = right)
+  invisible(x)
 }
 
 # #' @export
@@ -373,7 +430,7 @@ t.etable = function(x){
 #     if (!("data.frame" %in% new_class)) new_class = union("data.frame", new_class)
 #     if (!("etable" %in% new_class)) new_class = union("etable", new_class)
 #     
-#     res = dtfrm(...)
+#     res = sheet(...)
 #     class(res) = new_class
 #     res    
 #     

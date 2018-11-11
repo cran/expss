@@ -27,22 +27,22 @@ expect_identical(vlookup_df(c('rows1','rows5','rows2','rows2'),
                             dict,result_column = c("small","cap", "names"),
                             lookup_column = 'row.names'),
                  reset_rownames(
-                 dtfrm(dict[c(1,5,2,2),c("small","cap")], row_names = rownames(dict)[c(1,5,2,2)])))
+                 sheet(dict[c(1,5,2,2),c("small","cap")], row_names = rownames(dict)[c(1,5,2,2)])))
 
 expect_identical(vlookup_df(c('rows1','rows5','rows2','rows2'), 
                             dict, result_column = c("row.names", "small","cap"),
                             lookup_column = 'row.names'),
                  reset_rownames(
-                     dtfrm(
+                     sheet(
                          row_names = rownames(dict)[c(1,5,2,2)], 
                          dict[c(1,5,2,2),c("small","cap")])))
 
 expect_identical(vlookup_df(c('z','d','f','d'),
                             dict_mat,
                             lookup_column = 'small'),
-                 reset_rownames(as.dtfrm(dict_mat)[c(26,4,6,4),, drop = FALSE]))
+                 reset_rownames(as.sheet(dict_mat)[c(26,4,6,4),, drop = FALSE]))
 expect_identical(vlookup_df(c('rows1','rows5','rows2','rows2'),dict_mat,result_column = c("small","cap"),lookup_column = 'row.names'),
-                 reset_rownames(as.dtfrm(dict)[c(1,5,2,2),c("small","cap")]))
+                 reset_rownames(as.sheet(dict)[c(1,5,2,2),c("small","cap")]))
 
 expect_error(vlookup(iris, mtcars))
 expect_error(vlookup(c('rows1','rows5','rows2','rows2'),dict,result_column = c("small","cap"),lookup_column = 'row.names'))
@@ -65,9 +65,9 @@ expect_identical(vlookup(c("f","d","b"), dict, result_column = NULL, lookup_colu
 expect_identical(vlookup(c("f","d","b"), dict, result_column = NULL, lookup_column='rownames'), c(6L, 4L, 2L))
 expect_identical(vlookup(c("f","d","b"), dict, result_column = NULL, lookup_column='names'), c(6L, 4L, 2L))
 
-expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='row.names'),dtfrm(row_names = c("f","d","b")))
-expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='rownames'),dtfrm(row_names = c("f","d","b")))
-expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='names'),dtfrm(row_names = c("f","d","b")))
+expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='row.names'),sheet(row_names = c("f","d","b")))
+expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='rownames'),sheet(row_names = c("f","d","b")))
+expect_identical(vlookup_df(c(6, 4, 2), dict, result_column='names'),sheet(row_names = c("f","d","b")))
 
 expect_identical(vlookup(c(1, NA, 2), 
                          dict = sheet(a = c(2, NA), b= c(3, 2))
@@ -148,7 +148,7 @@ context("add_columns")
 sh1 = sheet(a = 1:5, b = 5:1)
 sh2 = sheet(a = 4:2, d = 4:2)
 
-res = from_text_csv("
+res = text_to_columns_csv("
                 a,b,d
                 1,5,NA
                 2,4,2
@@ -175,7 +175,7 @@ expect_identical(add_columns(sh1, sh2, by = "a", ignore_duplicates = TRUE), res)
 
 sh2 = sheet(a = 4:2, d = 4:2)
 
-res = from_text_csv("
+res = text_to_columns_csv("
                     a,b,d
                     1,5,NA
                     2,4,4
@@ -186,7 +186,7 @@ res = from_text_csv("
 
 expect_identical(add_columns(sh1, sh2, by = c("b" = "a")), res)
 
-res = from_text_csv("
+res = text_to_columns_csv("
                 a,b,b_1
                     1,5,NA
                     2,4,2
@@ -202,7 +202,7 @@ expect_identical(suppressWarnings(add_columns(sh1, sh2, by = "a")), res)
 
 sh2 = sheet(a = 4:2, b = 2:4, d = c(NA, NA, 42L))
 
-res = from_text_csv("
+res = text_to_columns_csv("
                 a,b,d
                     1,5,NA
                     2,4,42
@@ -218,7 +218,7 @@ sh2 = sheet(a = 4:2, ee = 2:4, d = c(NA, NA, 42L))
 expect_identical(add_columns(sh1, sh2, by = c("b" = "ee", "a")), res)
 
 sh2 = sheet(a = 4:2, b = 2:4, d = c(NA, NA, 42L))
-res = from_text_csv("
+res = text_to_columns_csv("
                 a,b,d
                     1,5,NA
                     2,4,NA
@@ -239,7 +239,7 @@ context("add_columns data.table")
 # data.table is modified by reference
 sh1 = data.table(a = 1:5, b = 5:1)
 sh2 = data.table(a = 4:2, d = 4:2)
-res = data.table(from_text_csv("
+res = data.table(text_to_columns_csv("
                 a,b,d
                 1,5,NA
                 2,4,2
@@ -280,7 +280,7 @@ expect_identical(add_columns(sh1, sh2, by = c(a = "e")), res)
 # only dict is data.table
 sh1 = sheet(a = 1:5, b = 5:1)
 sh2 = data.table(a = 4:2, d = 4:2)
-res = from_text_csv("
+res = text_to_columns_csv("
                 a,b,d
                1,5,NA
                2,4,2

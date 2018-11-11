@@ -13,17 +13,6 @@ context("[")
 expect_identical(var_lab(vec_with_lab[1]),var_lab(vec_with_lab))
 expect_identical(val_lab(vec_with_lab[1]),val_lab(vec_with_lab))
 
-aaa = matrix(1:9, 3)
-bbb = aaa[1:2, 1:2]
-class(aaa) = "labelled"
-expect_identical(aaa[1,3], 7L)
-expect_identical(aaa[1:2, 1:2], bbb)
-
-aaa = matrix(1:9, 3)
-bbb = aaa[1:2, 1:2]
-class(aaa) = c("labelled", class(aaa))
-expect_identical(aaa[1,3], 7L)
-expect_identical(aaa[1:2, 1:2], bbb)
 
 context("data.frame[")
 dfs = data.frame(a = vec_with_lab,b= vec_with_lab,stringsAsFactors = FALSE)
@@ -163,7 +152,7 @@ expect_identical(factor(aa), factor(1:3, levels = 1:3, labels = c("c", "b", "a")
 context("unique.labelled")
 a = c(1, 1, 0, NA)
 var_lab(a) = "This is a"
-val_lab(a) = c("a" = 1, b = 0)
+val_lab(a) = c("a" = 1, b = 0, d = 2)
 
 expect_identical(unique(a), a[-1])
 
@@ -172,6 +161,11 @@ expect_identical(unique(a), c(1, 0, NA))
 
 options(expss.enable_value_labels_support = 1)
 expect_identical(unique(a), a[-1])
+expss_enable_value_labels_support_extreme()
+expect_identical(unique(a), c(a[-1], 2))
+expss_enable_value_labels_support()
+expect_identical(unique(a), a[-1])
+
 
 context("print.labelled/str.labelled")
 
@@ -228,7 +222,7 @@ expect_identical(print(x), x)
 # 
 # tbl_df = table_summary_df(mtcars %>% except(vs, am), col_vars = mtcars$am, fun = function(x){
 #     
-#     dtfrm(res_num = seq_along(x), parameter = names(x), mean = colMeans(x))
+#     sheet(res_num = seq_along(x), parameter = names(x), mean = colMeans(x))
 # },  row_labels = c("row_vars", "row_vars_values", "res_num", "parameter"),
 # hide = "res_num",
 # use_result_row_order = FALSE
@@ -279,13 +273,13 @@ expect_true(is.etable(res))
 expect_identical(as.etable(mtcars, rownames_as_row_labels = FALSE), res)
 
 
-res = dtfrm(row_labels = rownames(mtcars), mtcars)
+res = sheet(row_labels = rownames(mtcars), mtcars)
 class(res) = union("etable", class(res))
 expect_identical(as.etable(mtcars, rownames_as_row_labels = TRUE), res)
 expect_identical(as.etable(mtcars), res)
-expect_identical(as.etable(1:3), as.etable(as.dtfrm(x = 1:3)))
+expect_identical(as.etable(1:3), as.etable(as.sheet(x = 1:3)))
 
-res = as.dtfrm(matrix(1:9, 3))
+res = as.sheet(matrix(1:9, 3))
 colnames(res) = rep("", 3)
 class(res) = union("etable", class(res))
 expect_identical(as.etable(matrix(1:9, 3)), res)

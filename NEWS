@@ -1,3 +1,14 @@
+0.8.8 (11.11.2018)
+================
+* add '*.xlsx' export for tables via 'openxlsx' package. See ?xl_write
+* add 'set_caption' function and support for it in 'htmlTable', 'as.datatable_widget' and *.xlsx export
+* add function 'expss_enable_value_labels_support_extreme'
+* small bugfixes and performance improvement
+* 'from_text' renamed to 'text_to_columns'
+* 'by_groups' is deprecated now. Use 'take' from 'maditr' instead.
+* 'dtfrm'/'as.dtfrm' are finally removed. Use 'sheet'/'as.sheet' instead
+* It seems nobody uses 'lst'/'.lst' functions so they are removed.    
+
 0.8.7 (12.06.2018)
 ================
 * fix long-standing bug with broken html rendering in knitr (issue #6)
@@ -36,7 +47,7 @@
 * fix bug with single column "mrset"
 * fix bug with significance tests on tables with complex headers
 * add uboxing possibilities for ..[] (..[] = list/data.frame will create separate variables from that list/data.frame)
-* add 'from_text' for creation data.frame from text lines
+* add 'text_to_columns' for creation data.frame from text lines
 * improve performance of 'cro_*'
 * remove deprecated function ".set"
 

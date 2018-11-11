@@ -368,7 +368,7 @@ format_table = function(wide_datable, row_var_lab, col_var_lab){
     wide_datable[ , row_labels := remove_unnecessary_splitters(row_labels)] 
     wide_datable[ , row_labels := make_items_unique(row_labels)] 
     colnames(wide_datable) = remove_unnecessary_splitters(colnames(wide_datable)) 
-    wide_datable = as.dtfrm(wide_datable)
+    wide_datable = as.sheet(wide_datable)
     class(wide_datable) = union("etable", class(wide_datable))
     wide_datable
 }
@@ -425,7 +425,7 @@ make_function_for_cro = function(fun, ..., need_weight = TRUE){
                 }
                 each_res
             })
-            res = as.dtfrm(rbindlist(res, use.names = TRUE, fill = TRUE))
+            res = as.sheet(rbindlist(res, use.names = TRUE, fill = TRUE))
             # we need convert to factor to keep all row_labels as levels in case of aggregation 
             # of data with zero rows
             res$row_labels = make_items_unique(res[["row_labels"]])
@@ -446,7 +446,7 @@ make_function_for_cro = function(fun, ..., need_weight = TRUE){
                 }
                 each_res
             })
-            res = as.dtfrm(rbindlist(res, use.names = TRUE, fill = TRUE))
+            res = as.sheet(rbindlist(res, use.names = TRUE, fill = TRUE))
             # we need convert to factor to keep all row_labels as levels in case of aggregation 
             # of data with zero rows
             res$row_labels = make_items_unique(res[["row_labels"]])
@@ -469,7 +469,7 @@ make_dataframe_with_row_labels = function(res){
         }
         new_df = matrix(NA, nrow= NROW(res), ncol = NCOL(res))
         new_df[] = res
-        new_df = as.dtfrm(new_df)
+        new_df = as.sheet(new_df)
         rownames(new_df) = NULL
         
         row_labels = dm_names[[1]]
@@ -481,7 +481,7 @@ make_dataframe_with_row_labels = function(res){
         res = new_df
     } else {
         ####
-        if(is.matrix(res) || is_list(res)) res = as.dtfrm(res)
+        if(is.matrix(res) || is_list(res)) res = as.sheet(res)
         ####
         if(is.data.frame(res)) {
             if("row_labels" %in% names(res)){
@@ -497,7 +497,7 @@ make_dataframe_with_row_labels = function(res){
         } else {
         #### usual vectors and unknowns    
             row_labels = names(res)
-            res = setNames(dtfrm(res), rep("|", NCOL(res)))
+            res = setNames(sheet(res), rep("|", NCOL(res)))
         } 
     }
     
@@ -608,26 +608,28 @@ cro_mean = function(cell_vars,
     col_vars = test_for_null_and_make_list(col_vars, str_col_vars)
     
     cro_fun(cell_vars = cell_vars, 
-               col_vars = col_vars, 
-               row_vars = row_vars, 
-               weight = weight,
-               subgroup = subgroup,
-               fun = w_mean,
-               unsafe = TRUE
+            col_vars = col_vars, 
+            row_vars = row_vars, 
+            weight = weight,
+            subgroup = subgroup,
+            # here we heavy rely on the fact that weight already checked on NA and negative values
+            fun = function(x, weight = NULL) matrixStats::weightedMean(x, w = weight, na.rm = TRUE),
+            unsafe = TRUE
     )
 }
+
 
 
 #' @export
 #' @rdname cro_fun
 cro_mean_sd_n = function(cell_vars, 
-                    col_vars = total(), 
-                    row_vars = total(label = ""),
-                    weight = NULL,
-                    subgroup = NULL,
-                    weighted_valid_n = FALSE,
-                    labels = NULL
-                    
+                         col_vars = total(), 
+                         row_vars = total(label = ""),
+                         weight = NULL,
+                         subgroup = NULL,
+                         weighted_valid_n = FALSE,
+                         labels = NULL
+                         
 ){
     
     str_cell_vars = expr_to_character(substitute(cell_vars))
@@ -645,12 +647,21 @@ cro_mean_sd_n = function(cell_vars,
         stopif(length(labels)!=3, "'cro_mean_sd_n' - 'labels' should be vector of three elements.")
     }
     if(weighted_valid_n){
+        # here we heavy rely on the fact that weight already checked on NA and negative values
         fun = function(x, weight = NULL) {
-            c(w_mean(x, weight), w_sd(x, weight), valid_n(x, weight))
+            c(
+                matrixStats::weightedMean(x, w = weight, na.rm = TRUE),
+                weight_helper(matrixStats::weightedSd)(x, weight, na.rm = TRUE), 
+                if(is.null(weight)) sum(!is.na(x)) else sum(weight, na.rm = TRUE)
+            )
         }
     } else {
         fun = function(x, weight = NULL) {
-            c(w_mean(x, weight), w_sd(x, weight), unweighted_valid_n(x, weight))
+            c(
+                matrixStats::weightedMean(x, w = weight, na.rm = TRUE),
+                weight_helper(matrixStats::weightedSd)(x, weight, na.rm = TRUE),
+                sum(!is.na(x))
+            )
         }
     }
     cro_fun(cell_vars = cell_vars, 
@@ -686,7 +697,11 @@ cro_sum = function(cell_vars,
                          row_vars = row_vars, 
                          weight = weight,
                          subgroup = subgroup,
-                         fun = w_sum,
+                         fun = if(is.null(weight)){
+                             function(x) sum(x, na.rm = TRUE)
+                         } else {
+                             function(x, weight = NULL) sum(x*weight, na.rm = TRUE)
+                         },
                          unsafe = TRUE
     )
 }
@@ -713,7 +728,13 @@ cro_median = function(cell_vars,
                          row_vars = row_vars, 
                          weight = weight,
                          subgroup = subgroup,
-                         fun = w_median,
+                         fun = function(x, weight = NULL){
+                             matrixStats::weightedMedian(x = x, 
+                                                         w = weight, 
+                                                         na.rm = TRUE, 
+                                                         interpolate = TRUE, 
+                                                         ties = "weighted")
+                         },
                          unsafe = TRUE
     )
 }

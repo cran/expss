@@ -17,33 +17,35 @@
 \usage{
 tab_significance_options(data, sig_level = 0.05, min_base = 2,
   delta_cpct = 0, delta_means = 0, compare_type = "subtable",
-  bonferroni = FALSE, subtable_marks = "greater", inequality_sign = "both"
-  \%in\% subtable_marks, sig_labels = LETTERS,
-  sig_labels_previous_column = c("v", "^"), sig_labels_first_column = c("-",
-  "+"), keep = c("percent", "cases", "means", "sd", "bases"),
-  total_marker = "#", total_row = 1, digits = get_expss_digits(),
-  na_as_zero = FALSE, var_equal = FALSE, mode = c("replace", "append"))
+  bonferroni = FALSE, subtable_marks = "greater",
+  inequality_sign = "both" \%in\% subtable_marks, sig_labels = LETTERS,
+  sig_labels_previous_column = c("v", "^"),
+  sig_labels_first_column = c("-", "+"), keep = c("percent", "cases",
+  "means", "sd", "bases"), total_marker = "#", total_row = 1,
+  digits = get_expss_digits(), na_as_zero = FALSE, var_equal = FALSE,
+  mode = c("replace", "append"))
 
-tab_last_sig_cpct(data, sig_level = 0.05, delta_cpct = 0, min_base = 2,
-  compare_type = "subtable", bonferroni = FALSE,
-  subtable_marks = c("greater", "both", "less"), inequality_sign = "both"
-  \%in\% subtable_marks, sig_labels = LETTERS,
-  sig_labels_previous_column = c("v", "^"), sig_labels_first_column = c("-",
-  "+"), keep = c("percent", "bases"), na_as_zero = FALSE,
-  total_marker = "#", total_row = 1, digits = get_expss_digits(),
-  mode = c("replace", "append"), label = NULL)
-
-tab_last_sig_means(data, sig_level = 0.05, delta_means = 0, min_base = 2,
-  compare_type = "subtable", bonferroni = FALSE,
-  subtable_marks = c("greater", "both", "less"), inequality_sign = "both"
-  \%in\% subtable_marks, sig_labels = LETTERS,
-  sig_labels_previous_column = c("v", "^"), sig_labels_first_column = c("-",
-  "+"), keep = c("means", "sd", "bases"), var_equal = FALSE,
+tab_last_sig_cpct(data, sig_level = 0.05, delta_cpct = 0,
+  min_base = 2, compare_type = "subtable", bonferroni = FALSE,
+  subtable_marks = c("greater", "both", "less"),
+  inequality_sign = "both" \%in\% subtable_marks, sig_labels = LETTERS,
+  sig_labels_previous_column = c("v", "^"),
+  sig_labels_first_column = c("-", "+"), keep = c("percent", "bases"),
+  na_as_zero = FALSE, total_marker = "#", total_row = 1,
   digits = get_expss_digits(), mode = c("replace", "append"),
   label = NULL)
 
-tab_last_sig_cases(data, sig_level = 0.05, min_base = 2, keep = c("cases",
-  "bases"), total_marker = "#", total_row = 1,
+tab_last_sig_means(data, sig_level = 0.05, delta_means = 0,
+  min_base = 2, compare_type = "subtable", bonferroni = FALSE,
+  subtable_marks = c("greater", "both", "less"),
+  inequality_sign = "both" \%in\% subtable_marks, sig_labels = LETTERS,
+  sig_labels_previous_column = c("v", "^"),
+  sig_labels_first_column = c("-", "+"), keep = c("means", "sd",
+  "bases"), var_equal = FALSE, digits = get_expss_digits(),
+  mode = c("replace", "append"), label = NULL)
+
+tab_last_sig_cases(data, sig_level = 0.05, min_base = 2,
+  keep = c("cases", "bases"), total_marker = "#", total_row = 1,
   digits = get_expss_digits(), mode = c("replace", "append"),
   label = NULL)
 
@@ -51,27 +53,28 @@ tab_last_round(data, digits = get_expss_digits())
 
 tab_last_add_sig_labels(data, sig_labels = LETTERS)
 
-significance_cases(x, sig_level = 0.05, min_base = 2, keep = c("cases",
-  "bases"), total_marker = "#", total_row = 1,
+significance_cases(x, sig_level = 0.05, min_base = 2,
+  keep = c("cases", "bases"), total_marker = "#", total_row = 1,
   digits = get_expss_digits())
 
 significance_cpct(x, sig_level = 0.05, delta_cpct = 0, min_base = 2,
   compare_type = "subtable", bonferroni = FALSE,
-  subtable_marks = c("greater", "both", "less"), inequality_sign = "both"
-  \%in\% subtable_marks, sig_labels = LETTERS,
-  sig_labels_previous_column = c("v", "^"), sig_labels_first_column = c("-",
-  "+"), keep = c("percent", "bases"), na_as_zero = FALSE,
-  total_marker = "#", total_row = 1, digits = get_expss_digits())
+  subtable_marks = c("greater", "both", "less"),
+  inequality_sign = "both" \%in\% subtable_marks, sig_labels = LETTERS,
+  sig_labels_previous_column = c("v", "^"),
+  sig_labels_first_column = c("-", "+"), keep = c("percent", "bases"),
+  na_as_zero = FALSE, total_marker = "#", total_row = 1,
+  digits = get_expss_digits())
 
 add_sig_labels(x, sig_labels = LETTERS)
 
-significance_means(x, sig_level = 0.05, delta_means = 0, min_base = 2,
-  compare_type = "subtable", bonferroni = FALSE,
-  subtable_marks = c("greater", "both", "less"), inequality_sign = "both"
-  \%in\% subtable_marks, sig_labels = LETTERS,
-  sig_labels_previous_column = c("v", "^"), sig_labels_first_column = c("-",
-  "+"), keep = c("means", "sd", "bases"), var_equal = FALSE,
-  digits = get_expss_digits())
+significance_means(x, sig_level = 0.05, delta_means = 0,
+  min_base = 2, compare_type = "subtable", bonferroni = FALSE,
+  subtable_marks = c("greater", "both", "less"),
+  inequality_sign = "both" \%in\% subtable_marks, sig_labels = LETTERS,
+  sig_labels_previous_column = c("v", "^"),
+  sig_labels_first_column = c("-", "+"), keep = c("means", "sd",
+  "bases"), var_equal = FALSE, digits = get_expss_digits())
 }
 \arguments{
 \item{data}{data.frame/intermediate_table for \code{tab_*} functions.}
@@ -79,11 +82,11 @@ significance_means(x, sig_level = 0.05, delta_means = 0, min_base = 2,
 \item{sig_level}{numeric. Significance level - by default it equals to \code{0.05}.}
 
 \item{min_base}{numeric. Significance test will be conducted if both
-columns have bases greater than \code{min_base}. By default it equals to \code{2}.}
+columns have bases greater or equal to \code{min_base}. By default it equals to \code{2}.}
 
 \item{delta_cpct}{numeric. Minimal delta between percent for which we mark 
 significant differences (in percent points) - by default it equals to zero.
-Note that, for example, for minimal 5 percent difference
+Note that, for example, for minimal 5 percent point difference
 \code{delta_cpct} should be equals 5, not 0.05.}
 
 \item{delta_means}{numeric. Minimal delta between means for which we mark 
@@ -170,7 +173,7 @@ as in \link[stats]{t.test}.}
 table with counts in the result of \link{cro_cases}. Results are calculated
 with the same formula as in \link[stats]{chisq.test} without continuity
 correction.}} 
-There are four type of comparisons which can be conducted simultaneously 
+There are three type of comparisons which can be conducted simultaneously 
 (argument \code{compare_type}). \code{subtable} provide comparison between
 all columns inside each subtable. \code{previous_column} is comparison of
 each column in the subtable with previous column. It is useful if columns are
