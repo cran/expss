@@ -247,7 +247,7 @@ if(require(openxlsx, quietly = TRUE, warn.conflicts = FALSE)){
         res = xl_write(res_list, wb, sh, row = 1, col = 1, gap = 2, rownames = TRUE)
         # saveWorkbook(wb, "tables.xlsx", overwrite = TRUE)
         
-        context("custom format")
+        # context("custom format")
         mtcars = apply_labels(mtcars,
                               mpg = "Miles/(US) gallon",
                               hp = "Gross horsepower"
@@ -349,6 +349,19 @@ if(require(openxlsx, quietly = TRUE, warn.conflicts = FALSE)){
         )
         # saveWorkbook(wb, "tables.xlsx", overwrite = TRUE)
         
+        my_formatter = function(tbl){
+            greater_than_total = tbl[,-1]>tbl[[2]]
+            which(greater_than_total, arr.ind = TRUE)
+        }
+        wb = createWorkbook()
+        sh = addWorksheet(wb, "Tables")
+        res = xl_write(mtcars_table, wb, sh, row = 2, col = 2, 
+                       additional_cells_formats = list(
+                           list(my_formatter, createStyle(textDecoration =  "bold", fontColour = "blue"))
+                        
+                       )
+        )
+        # saveWorkbook(wb, "tables.xlsx", overwrite = TRUE)
         wb = createWorkbook()
         sh = addWorksheet(wb, "Tables")
         res = xl_write(mtcars_table, wb, sh, row = 2, col = 2, 
