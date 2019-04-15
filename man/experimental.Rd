@@ -2,10 +2,10 @@
 % Please edit documentation in R/zzz_experimental.R
 \name{experimental}
 \alias{experimental}
-\alias{.modify}
-\alias{.modify_if}
-\alias{.do_if}
 \alias{.compute}
+\alias{.do_if}
+\alias{.modify_if}
+\alias{.modify}
 \alias{.calculate}
 \alias{.calc}
 \alias{.val_lab}
@@ -26,13 +26,13 @@
 \alias{.cro_fun_df}
 \title{Experimental functions for operations with default dataset}
 \usage{
-.modify(expr)
-
-.modify_if(cond, expr)
+.compute(expr)
 
 .do_if(cond, expr)
 
-.compute(expr)
+.modify_if(cond, expr)
+
+.modify(expr)
 
 .calculate(expr, use_labels = FALSE)
 

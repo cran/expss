@@ -139,16 +139,6 @@ read_labelled_csv = function(filename,
                              dec = ".",
                              undouble_quotes = TRUE,
                              ...){
-    # w = utils::read.table(file = filename,
-    #                header = TRUE,
-    #                sep = sep,
-    #                dec = dec,
-    #                stringsAsFactors = FALSE,
-    #                na.strings = "",
-    #                fileEncoding = fileEncoding,
-    #                check.names = FALSE,
-    #                ...
-    #                )
     w = data.table::fread(filename, 
               sep = sep,  
               header= TRUE, 
@@ -176,13 +166,6 @@ read_labelled_csv = function(filename,
     w
   
 }
-
-# @export
-# @rdname write_labels
-# fread_df = data.table::fread
-# 
-# formals(fread_df)$data.table = FALSE
-# formals(fread_df)$integer64 = "character"
 
 
 #' @export
@@ -413,6 +396,8 @@ write_labelled_spss = function(x,
     writeLines(text = syntax, con = conn)
     writeLines(text = "\n\n\n\n", con = conn)
     write_labels_spss(x, filename = conn)
+    syntax = sprintf("\nSAVE OUTFILE='%s'.\nEXECUTE.\n", paste0(normalizePath(filename, mustWork = FALSE), ".sav"))
+    writeLines(text = syntax, con = conn)
     invisible(NULL) 
 }
 
@@ -498,7 +483,7 @@ make_make_labs_spss = function(vars,named_vec){
     named_vec = named_vec[sorted]
     
     if (length(vars)>1) {
-        vars = paste0("VAL LAB ",paste(vars,collapse = " "))
+        vars = paste0("VAL LAB ",paste0(vars[1], " TO ", vars[length(vars)]))
     } else {
         vars = paste0("VAL LAB ",vars)
     }
@@ -509,13 +494,3 @@ make_make_labs_spss = function(vars,named_vec){
     
 }
 
-# apply_labels_from_file = function(x, filename, fileEncoding = ""){
-#     
-#     if (file.exists(filename)){
-#         source(filename, local = TRUE, encoding = fileEncoding, verbose = FALSE)
-#     } else {
-#         warning(paste(filename,"file doesn't exists. Labels will not be applied to data."))
-#     }
-#     x
-#     
-# }

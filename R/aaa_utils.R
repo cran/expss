@@ -688,6 +688,17 @@ remove_class = function(x, ...){
 }
 
 ############
+
+
+
+#' Bug workaround
+#' 
+#' Function is added to workaround strange bug with data.table (issue #10).
+#' @param ... arguments
+#'
+#' @return list 
+#' @export
+#'
 ## copied from https://github.com/Rdatatable/data.table/blob/master/R/utils.R
 ## added exclusively to workaround strange bug with data.table (issue #10)
 name_dots <- function(...) {
@@ -708,4 +719,17 @@ name_dots <- function(...) {
     still_empty = vnames==""
     if (any(still_empty)) vnames[still_empty] = paste0("V", which(still_empty))
     list(vnames=vnames, novname=novname)
+}
+
+# dots result of substitute(list(...))
+# return list of expressions 
+get_named_expressions = function(dots){
+    res = as.list(dots)[-1]
+    vnames = names(res)
+    if (is.null(vnames)) {
+        vnames = rep.int("", length(res))
+    } else {
+        vnames[is.na(vnames)] = ""
+    }
+    setNames(res, vnames)
 }

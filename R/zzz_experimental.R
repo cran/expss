@@ -117,13 +117,9 @@
 #' default_dataset(NULL)
 #' @export
 #' @name experimental
-.modify = function (expr) {
-    # based on 'within' from base R by R Core team
+.compute = function (expr) {
     reference = suppressMessages(default_dataset())
-    data = ref(reference)
-    parent = parent.frame()
-    expr = substitute(expr)
-    data = modify_internal(data, expr, parent)
+    data = eval.parent(substitute(compute(ref(reference), expr)))
     ref(reference) = data
     invisible(data)
 }
@@ -132,14 +128,10 @@
 
 #' @export
 #' @rdname experimental
-.modify_if = function (cond, expr) {
+.do_if = function (cond, expr) {
     # based on 'within' from base R by R Core team
     reference = suppressMessages(default_dataset())
-    data = ref(reference)
-    cond = substitute(cond)
-    expr = substitute(expr)
-    parent = parent.frame()
-    data = modify_if_internal(data, cond, expr, parent)
+    data = eval.parent(substitute(do_if(ref(reference), cond, expr)))
     ref(reference) = data
     invisible(data)
 }
@@ -157,12 +149,12 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 
 #' @export
 #' @rdname experimental
-.do_if = .modify_if
+.modify_if = .do_if 
 
 
 #' @export
 #' @rdname experimental
-.compute = .modify
+.modify = .compute 
 
 
 #' @export
@@ -170,9 +162,7 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 .calculate = function (expr, use_labels = FALSE) {
     reference = suppressMessages(default_dataset() )
     data = ref(reference)
-    expr = substitute(expr)
-    parent = parent.frame()
-    calculate_internal(data, expr, parent, use_labels = use_labels)
+    eval.parent(substitute(calculate(ref(reference), expr, use_labels = use_labels)))
 } 
 
 #' @export

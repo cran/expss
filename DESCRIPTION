@@ -1,9 +1,8 @@
 Package: expss
 Type: Package
-Title: Tables with Labels and Some Useful Functions from Spreadsheets
-        and 'SPSS' Statistics
-Version: 0.8.10
-Date: 2018-12-12
+Title: Tables, Labels and Some Useful Functions from Spreadsheets and
+        'SPSS' Statistics
+Version: 0.8.11
 Maintainer: Gregory Demin <gdemin@gmail.com>
 Authors@R: person("Gregory", "Demin", email = "gdemin@gmail.com",
          role = c("aut", "cre"))
@@ -13,23 +12,23 @@ Depends: R (>= 3.3.0),
 Imports: foreign, utils, stats, magrittr (>= 1.5), htmlTable (>=
         1.11.0), matrixStats (>= 0.51.0), data.table (>= 1.10),
 Suggests: DT, htmltools, knitr, repr, ggplot2, testthat, openxlsx
-Description: Package provides tabulation functions with support for 'SPSS'-style 
-        labels, multiple / nested banners, weights, multiple-response variables 
+Description: Package computes and displays tables with support for 'SPSS'-style 
+        labels, multiple and nested banners, weights, multiple-response variables 
         and significance testing. There are facilities for nice output of tables 
-        in 'knitr', 'Shiny', R and 'Jupyter' notebooks, '*.xlsx' files. Proper methods 
+        in 'knitr', 'Shiny', '*.xlsx' files, R and 'Jupyter' notebooks. Methods 
         for labelled variables add value labels support to base R functions and to 
-        some functions from other packages. Additionally, the package offers 
-        useful functions for data processing in marketing research / social 
-        surveys - popular data transformation functions from 'SPSS' Statistics 
-        ('RECODE', 'COUNT', 'COMPUTE', 'DO IF', etc.) and 'Excel' ('COUNTIF', 
-        'VLOOKUP', etc.). Package is intended to help people to move data 
-        processing from 'Excel'/'SPSS' to R.
+        some functions from other packages. Additionally, the package brings 
+        popular data transformation functions from 'SPSS' Statistics and 'Excel': 
+        'RECODE', 'COUNT', 'COMPUTE', 'DO IF', 'COUNTIF', 'VLOOKUP' and etc. 
+        These functions are very useful for data processing in marketing research 
+        surveys. Package intended to help people to move data 
+        processing from 'Excel' and 'SPSS' to R.
 VignetteBuilder: knitr
 LazyData: yes
 License: GPL (>= 2)
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2018-12-11 13:00:29 UTC; demin
+Packaged: 2019-04-14 23:59:28 UTC; gregory
 Author: Gregory Demin [aut, cre]
 Repository: CRAN
-Date/Publication: 2018-12-11 13:20:03 UTC
+Date/Publication: 2019-04-15 04:22:37 UTC

@@ -32,6 +32,9 @@
 #' @param data data.frame/list of data.frames. If \code{data} is list of
 #'   data.frames then expression \code{expr} will be evaluated inside each
 #'   data.frame separately.
+#' @param ... expressions that should be evaluated in the context of data.frame
+#'   \code{data}. It can be arbitrary code in curly brackets or assignments. See
+#'   examples.
 #' @param expr expression that should be evaluated in the context of data.frame \code{data}
 #' @param cond logical vector or expression. Expression will be evaluated in the context of the data.  
 #' @param use_labels logical. Experimental feature. If it equals to \code{TRUE} 
@@ -66,7 +69,7 @@
 #' 
 #' # set values to existing/new variables
 #' compute(dfs, {
-#'     (b_1 %to% b_5) %into% subst('new_b`1:5`')
+#'     (b_1 %to% b_5) %into% text_expand('new_b{1:5}')
 #' })
 #' 
 #' # .new_var usage
@@ -87,8 +90,6 @@
 #' name1 = "a"
 #' name2 = "new_var"
 #' 
-#' # example with short notation but it can be applied only for simple cases - 
-#' # when 'name' is vector of length 1
 #' compute(dfs, {
 #'      ..$name2 = ..$name1*2    
 #' })
@@ -154,23 +155,37 @@
 #'        summary()
 #' 
 #' @export
-modify =  function (data, expr) {
-    parent = parent.frame()
-    expr = substitute(expr)
-    modify_internal(data, expr, parent = parent)
-}
-
-
-modify_internal =  function (data, expr, parent) {
-    UseMethod("modify_internal")
+compute =  function (data, ...) {
+    UseMethod("compute")
 }
 
 #' @export
-modify_internal.data.frame = function (data, expr, parent) {
+compute.list = function (data, ...) {
+    for(each in seq_along(data)){
+        data[[each]] = eval.parent(substitute(compute(data[[each]], ...)))
+    }
+    data
+}
+
+#' @export
+compute.data.frame = function (data, ...) {
     # based on 'within' from base R by R Core team
-    e = evalq(environment(), data, parent)
+    dots = substitute(list(...))
+    dots = get_named_expressions(dots)
+    e = evalq(environment(), data, parent.frame())
     prepare_env(e, n = nrow(data), column_names = colnames(data))
-    eval(expr, envir = e, enclos = baseenv())
+    for(i in seq_along(dots)){
+        curr_name = names(dots)[i]
+        expr = dots[[i]]
+        if(curr_name != ""){
+            lhs_expr = parse(text = curr_name)
+            if(length(lhs_expr)!=1){
+                stop(paste0("'compute': incorrect expression '", curr_name, "'."))
+            }
+            expr = bquote(.(lhs_expr[[1]])<-.(expr))
+        }
+        eval(expr, envir = e, enclos = baseenv())
+    }
     clear_env(e)
     l = as.list(e, all.names = TRUE)
     l = l[!vapply(l, is.null, NA, USE.NAMES = FALSE)]
@@ -194,9 +209,10 @@ modify_internal.data.frame = function (data, expr, parent) {
 
 
 #' @export
-modify_internal.data.table = function (data, expr, parent) {
-    # based on 'within' from base R by R Core team
-    e = evalq(environment(), list(), parent)
+compute.data.table = function (data, ...) {
+    dots = substitute(list(...))
+    dots = get_named_expressions(dots)
+    e = evalq(environment(), list(), parent.frame())
     orig_names = colnames(data)
     prepare_env(e, n = nrow(data), column_names = orig_names)
     binding = function(var_name){
@@ -213,7 +229,18 @@ modify_internal.data.table = function (data, expr, parent) {
     for(j in names(data)){
         makeActiveBinding(j, binding(j), e)
     }
-    eval(expr, envir = e, enclos = baseenv())
+    for(i in seq_along(dots)){
+        curr_name = names(dots)[i]
+        expr = dots[[i]]
+        if(curr_name != ""){
+            lhs_expr = parse(text = curr_name)
+            if(length(lhs_expr)!=1){
+                stop(paste0("'compute': incorrect expression '", curr_name, "'."))
+            }
+            expr = bquote(.(lhs_expr[[1]])<-.(expr))
+        }
+        eval(expr, envir = e, enclos = baseenv())
+    }
     clear_env(e)
     remove_active_bindings(e)
     l = as.list(e, all.names = TRUE)
@@ -244,43 +271,34 @@ remove_active_bindings = function(env){
     invisible(env)
 }
 
-#' @export
-modify_internal.list = function (data, expr, parent) {
-    for(each in seq_along(data)){
-        data[[each]] = modify_internal(data[[each]], expr, parent = parent)
-    }
-    data
-}
+
 
 
 
 #' @export
-#' @rdname modify
-compute = modify
+#' @rdname compute
+modify = compute 
 
 
 #' @export
-#' @rdname modify
-modify_if = function (data, cond, expr){
-    cond = substitute(cond)
-    expr = substitute(expr)
-    parent = parent.frame()
-    modify_if_internal(data, cond, expr, parent = parent)
+#' @rdname compute
+do_if = function (data, cond, ...){
+    UseMethod("do_if")
 }
 
 
 #' @export
-#' @rdname modify
-do_if = modify_if
+#' @rdname compute
+modify_if = do_if 
 
-modify_if_internal = function (data, cond, expr, parent){
-    UseMethod("modify_if_internal")
-} 
 
 #' @export
-modify_if_internal.data.frame = function (data, cond, expr, parent) {
+do_if.data.frame = function (data, cond, ...) {
     # based on 'within' from base R by R Core team
-    e = evalq(environment(), data, parent)
+    cond = substitute(cond)
+    dots = substitute(list(...))
+    dots = get_named_expressions(dots)
+    e = evalq(environment(), data, parent.frame())
     prepare_env(e, n = NROW(data), column_names = colnames(data))
     cond = calc_cond(cond, envir = e)
     if(is.logical(cond)) {
@@ -288,7 +306,7 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
     } else {
         cond_integer = cond
     }    
-    e = evalq(environment(), list(), parent)
+    e = evalq(environment(), list(), parent.frame())
     orig_names = colnames(data)
     number_of_rows = length(cond_integer)
     prepare_env(e, n = length(cond_integer), column_names = orig_names)
@@ -325,7 +343,18 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
     for(j in names(data)){
         makeActiveBinding(j, binding(j), e)
     }
-    eval(expr, envir = e, enclos = baseenv())
+    for(i in seq_along(dots)){
+        curr_name = names(dots)[i]
+        expr = dots[[i]]
+        if(curr_name != ""){
+            lhs_expr = parse(text = curr_name)
+            if(length(lhs_expr)!=1){
+                stop(paste0("'do_if': incorrect expression '", curr_name, "'."))
+            }
+            expr = bquote(.(lhs_expr[[1]])<-.(expr))
+        }
+        eval(expr, envir = e, enclos = baseenv())
+    }
     clear_env(e)
     remove_active_bindings(e)
     l = as.list(e, all.names = TRUE)
@@ -362,9 +391,9 @@ modify_if_internal.data.frame = function (data, cond, expr, parent) {
 
 
 #' @export
-modify_if_internal.list = function (data, cond, expr, parent) {
+do_if.list = function (data, cond, ...) {
     for(each in seq_along(data)){
-        data[[each]] = modify_if_internal(data[[each]], cond, expr, parent = parent)
+        data[[each]] = eval.parent(substitute(do_if(data[[each]], cond, ...)))
     }
     data
 }
@@ -372,29 +401,23 @@ modify_if_internal.list = function (data, cond, expr, parent) {
 ########
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 calculate =  function (data, expr, use_labels = FALSE) {
-    expr = substitute(expr)
-    parent = parent.frame()
-    calculate_internal(data, expr, parent, use_labels = use_labels)
+    UseMethod("calculate")
 }
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 use_labels =  function (data, expr) {
-    expr = substitute(expr)
-    parent = parent.frame()
-    calculate_internal(data, expr, parent, use_labels = TRUE)
+    eval.parent(substitute(calculate(data, expr, use_labels = TRUE)))
 }
 
 
-calculate_internal =  function (data, expr, parent, use_labels = FALSE) {
-    UseMethod("calculate_internal")
-}
 
 #' @export
-calculate_internal.data.frame = function (data, expr, parent, use_labels = FALSE) {
+calculate.data.frame = function (data, expr, use_labels = FALSE) {
     # based on 'within' from base R by R Core team
+    expr = substitute(expr)
     if(use_labels){
         all_labs = all_labels(data)
         if(length(all_labs)>0){
@@ -411,15 +434,15 @@ calculate_internal.data.frame = function (data, expr, parent, use_labels = FALSE
             data = names2labels(data) 
         }
     }
-    e = evalq(environment(), data, parent)
+    e = evalq(environment(), data, parent.frame())
     prepare_env(e, n = nrow(data), column_names = colnames(data))
     eval(expr, envir = e, enclos = baseenv())
 }
 
 #' @export
-calculate_internal.list = function (data, expr, parent, use_labels = FALSE) {
+calculate.list = function (data, expr, use_labels = FALSE) {
     for(each in seq_along(data)){
-        data[[each]] = calculate_internal(data[[each]], expr, parent, use_labels)
+        data[[each]] = eval.parent(substitute(calculate(data[[each]], expr, use_labels = use_labels)))
     }
     data
 }
@@ -453,29 +476,29 @@ extract_var_labs_as_list_with_symbols = function(data){
 }
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 calc = calculate
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 '%calc%' = function (data, expr) {
-    expr = substitute(expr)
-    parent = parent.frame()
-    calculate_internal(data, expr, parent, use_labels = FALSE)
+    eval.parent(substitute(calculate(data, expr, use_labels = FALSE)))
 }
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 '%use_labels%' = use_labels
 
 #' @export
-#' @rdname modify
+#' @rdname compute
 '%calculate%' = function (data, expr) {
-    expr = substitute(expr)
-    parent = parent.frame()
-    calculate_internal(data, expr, parent, use_labels = FALSE)
+    eval.parent(substitute(calculate(data, expr, use_labels = FALSE)))
 }
 
 
-
+calculate_internal = function(data, expr, parent){
+    e = evalq(environment(), data, parent)
+    prepare_env(e, n = nrow(data), column_names = colnames(data))
+    eval(expr, envir = e, enclos = baseenv())
+}
 

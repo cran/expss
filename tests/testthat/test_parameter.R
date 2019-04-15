@@ -1,4 +1,6 @@
 context("..")
+suppressWarnings(RNGversion("3.5.0"))
+
 
 data(iris)
 
@@ -25,6 +27,7 @@ expect_identical(res_iris, test_iris)
 
 
 
+
 k = 42
 test_iris = iris
 test_iris$i1 = 42
@@ -44,7 +47,29 @@ res_iris = compute(iris,
 
 expect_identical(res_iris, test_iris)
 
+res_iris = compute(iris, 
+                   {
+                       for(i in c(~i1, ~i2, ~i3)){
+                           ..$i = k
+                       }
+                       
+                       rm(i)
+                   })
 
+
+expect_identical(res_iris, test_iris)
+
+res_iris = compute(iris, 
+                   {
+                       for(i in list(quote(i1), quote(i2), quote(i3))){
+                           ..$i = k
+                       }
+                       
+                       rm(i)
+                   })
+
+
+expect_identical(res_iris, test_iris)
 
 data(iris)
 
@@ -83,6 +108,7 @@ res_iris = compute(iris,
                          rm(i)
                      })
 
+
 expect_identical(res_iris, test_iris)
 
 
@@ -101,6 +127,9 @@ res_iris = compute(res_iris, {
 })
 
 expect_identical(res_iris, test_iris)
+
+###########
+
 
 test_iris = iris
 test_iris$log = iris$Sepal.Length

@@ -13,6 +13,9 @@
 #' \item{\code{..f}}{ returns data.frame with all variables which names contain
 #' supplied pattern. Arguments for this function can be unquoted. It is a
 #' shortcut for \code{vars(fixed(pattern))}.}
+#' \item{\code{..t}}{ returns data.frame with variables which names are stored
+#' in the supplied arguments. Expressions in characters in curly brackets are
+#' expanded. See \link{text_expand}.}
 #' \item{\code{..[]}}{ returns data.frame with all variables by their names or 
 #' by criteria (see \link{criteria}).  Names at the top-level can be unquoted 
 #' (non-standard evaluation). For standard evaluation of parameters you can 
@@ -64,6 +67,10 @@
 #'     b_total = sum_row(..f(b_))
 #' })
 #' 
+#' compute(dfs, {
+#'     b_total = sum_row(..t("b_{1:5}"))
+#' })
+#' 
 #' # In global environement
 #' a = rep(10, 5)
 #' a1 = rep(1, 5)
@@ -77,6 +84,7 @@
 #' vars(perl("^a[0-9]$"))
 #' ..[perl("^a[0-9]$")]
 #' ..p("^a[0-9]$")
+#' ..t("a{1:5}")
 #' 
 #' # sum each row
 #' sum_row(a1 %to% a5)
@@ -221,13 +229,44 @@ expr_internal_to = as.call(list(as.name(":::"), as.name("expss"), as.name(".inte
 
 ###################################
 internal_parameter_set = function(name, value, envir){
-    stopif(length(name)!=1, "'..' - variable name should be a vector of length 1.")
-    name = as.character(name)
-    assign(name, value = value, pos = envir, inherits = FALSE)
-    name
+    
+    if(is.character(name)){
+        expr = parse(text = name)
+        if(length(expr)!=1){
+            stop(paste0("'..$': incorrect expression '", name, "'."))
+        }
+        expr = expr[[1]]
+    } else if(inherits(name, "formula")){
+        expr = name[[2]]    
+    } else if(is.language(name)){
+        expr = name
+    } else {
+        stop("'..' - variable name should be character, formula or language.")    
+    }
+    expr = bquote(.(expr)<-.(value))
+    eval(expr, envir = envir, enclos = baseenv())
+    invisible(NULL)
 }
 
 internal_parameter_get = function(name, envir){
+    
+    if(is.character(name)){
+        expr = parse(text = name)
+        if(length(expr)!=1){
+            stop(paste0("'..$': incorrect expression '", name, "'."))
+        }
+        expr = expr[[1]]
+    } else if(inherits(name, "formula")){
+        expr = name[[2]]    
+    } else if(is.language(name)){
+        expr = name
+    } else {
+        stop("'..' - variable name should be character, formula or language.")    
+    }
+    eval(expr, envir = envir, enclos = baseenv())
+}
+
+get_parameter = function(name, envir){
     stopif(length(name)!=1, "'..' - variable name should be a vector of length 1.")
     name = as.character(name)
     get(name, pos = envir, inherits = TRUE)
@@ -249,13 +288,14 @@ print.parameter = function(x, ...){
 
 #' @export
 '$.parameter' = function(x, name){
-    name = internal_parameter_get(name, envir = parent.frame())  
+    name = get_parameter(name, envir = parent.frame())  
     internal_parameter_get(name, envir = parent.frame())  
 }
 
 #' @export
 '$<-.parameter' = function(x, name, value){
-    name = internal_parameter_get(name, envir = parent.frame())
+    # value = substitute(value)
+    name = get_parameter(name, envir = parent.frame())
     internal_parameter_set(name, value, envir = parent.frame())
     x
 }
@@ -292,8 +332,8 @@ expr_internal_parameter = as.call(list(as.name(":::"), as.name("expss"), as.name
 
 #' @export
 '$.internal_parameter' = function(x, name){
-    name = internal_parameter_get(name, envir = parent.frame())  
-    name  
+    get_parameter(name, envir = parent.frame())  
+    
 }
 
 #' @export
@@ -324,7 +364,7 @@ expr_internal_parameter = as.call(list(as.name(":::"), as.name("expss"), as.name
     res = vector(length(patterns), mode = "list")
     for(i in seq_along(patterns)){
         patt  = patterns[[i]]
-        res[[i]] = eval(substitute(vars_list(fixed(patt))), envir = parent.frame())    
+        res[[i]] = eval.parent(substitute(vars_list(fixed(patt))))    
     }
     
     res = do.call(sheet, flat_list(res))
@@ -341,12 +381,25 @@ expr_internal_parameter = as.call(list(as.name(":::"), as.name("expss"), as.name
     res = vector(length(patterns), mode = "list")
     for(i in seq_along(patterns)){
         patt  = patterns[[i]]
-        res[[i]] = eval(substitute(vars_list(perl(patt))), envir = parent.frame())    
+        res[[i]] = eval.parent(substitute(vars_list(perl(patt))))    
     }
     
     res = do.call(sheet, flat_list(res))
     if(anyDuplicated(names(res))) {
         warning(paste(c("..f - duplicated names:", names(res)), collapse = " "))
+    }
+    res   
+}
+
+
+#' @export
+#' @rdname vars
+..t = function(...){
+    all_names = eval.parent(substitute(text_expand(...)))
+    res = eval.parent(substitute(vars_list(all_names)))    
+    res = do.call(sheet, flat_list(res))
+    if(anyDuplicated(names(res))) {
+        warning(paste(c("..t - duplicated names:", names(res)), collapse = " "))
     }
     res   
 }

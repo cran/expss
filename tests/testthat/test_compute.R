@@ -1,4 +1,6 @@
-context("modify")
+context("compute")
+suppressWarnings(RNGversion("3.5.0"))
+
 aa = 10 %r% 5
 a_ = 20 %r% 5
 a_1 = 1 %r% 5
@@ -22,8 +24,8 @@ dfs = data.frame(
     b_5 = 15 %r% 5 
 )
 
-expect_error(modify(dfs, {.n = 42}))
-expect_error(modify(dfs, {.N = 42}))
+expect_error(compute(dfs, {.n = 42}))
+expect_error(compute(dfs, {.N = 42}))
 
 
 
@@ -54,7 +56,7 @@ expect_identical(calc(dfs, runif(.N)), result_dfs$random_numer)
 
 set.seed(1)
 expect_identical(
-    modify(dfs, {
+    compute(dfs, {
         b_total = sum_row(vars(b_1 %to% b_5))
         random_numer = runif(.n)
     }), 
@@ -63,7 +65,43 @@ expect_identical(
 
 set.seed(1)
 expect_identical(
-    modify(dfs, {
+    compute(dfs, 
+        b_total = sum_row(vars(b_1 %to% b_5)),
+        random_numer = runif(.n)
+    ), 
+    result_dfs
+)
+
+set.seed(1)
+expect_identical(
+    compute(dfs, 
+            b_total <- sum_row(vars(b_1 %to% b_5)),
+            random_numer <- runif(.n)
+    ), 
+    result_dfs
+)
+
+set.seed(1)
+expect_identical(
+    compute(dfs, 
+            {b_total = sum_row(vars(b_1 %to% b_5))},
+            {random_numer = runif(.n)}
+    ), 
+    result_dfs
+)
+
+
+expect_error(
+    compute(dfs, 
+            'b_total = sum_row(vars(b_1 %to% b_5))
+            a_total = 1
+            ' =
+            {random_numer = runif(.n)}
+    )
+)
+set.seed(1)
+expect_identical(
+    compute(dfs, {
         b_total = sum_row(vars(from("b_1") & to("b_5")))
         random_numer = runif(.n)
     }), 
@@ -83,7 +121,7 @@ expect_identical(
 
 # Bad number of rows: 'random_numer' has 2 rows instead of 5 rows. 
 expect_error(
-    modify(dfs, {
+    compute(dfs, {
         random_numer = runif(2)
     })
 )
@@ -94,31 +132,31 @@ expect_error(
 
 result_dfs$random_numer = NULL
 expect_identical(
-    modify(dfs, {
+    compute(dfs, {
         b_total = sum_row(b_1 %to% b_5)
     }), 
     result_dfs
 )
 
 
-context("modify magrittr")
+context("compute magrittr")
 
 expect_identical(
-    dfs %>% modify( {
+    dfs %>% compute( {
         b_total = sum_row(vars(from("b_1") & to("b_5")))
     }), 
     result_dfs
 )
 
 expect_identical(
-    dfs %>% modify( {
+    dfs %>% compute( {
         b_total = sum_row(vars(b_1 %to% b_5))
     }), 
     result_dfs
 )
 
 expect_identical(
-    dfs %>% modify( {
+    dfs %>% compute( {
         b_total = sum_row(b_1 %to% b_5)
     }), 
     result_dfs
@@ -127,13 +165,13 @@ expect_identical(
 
 
 
-context("modify_if")
+context("do_if")
 set.seed(1)
 
 result_dfs2[result_dfs2$test %in% 2:4, "random_numer"] = runif(3) 
 set.seed(1)
 expect_identical(
-    modify_if(dfs2, test %in% 2:4,
+    do_if(dfs2, test %in% 2:4,
               {
                   b_total = sum_row(b_1 %to% b_5)
                   aa = aa + 1
@@ -145,7 +183,7 @@ expect_identical(
 dt_dfs2 = data.table(dfs2)
 dt_result_dfs2 = data.table(result_dfs2)
 set.seed(1)
-dt_dfs3 = modify_if(dt_dfs2, test %in% 2:4,
+dt_dfs3 = do_if(dt_dfs2, test %in% 2:4,
           {
               b_total = sum_row(b_1 %to% b_5)
               aa = aa + 1
@@ -157,7 +195,7 @@ expect_identical(dt_dfs3, dt_result_dfs2)
 
 set.seed(1)
 expect_identical(
-    modify_if(dfs2, 2:4,
+    do_if(dfs2, 2:4,
               {
                   b_total = sum_row(b_1 %to% b_5)
                   aa = aa + 1
@@ -169,7 +207,7 @@ expect_identical(
 
 set.seed(1)
 expect_identical(
-    modify_if(dfs2, test %in% 2:4,
+    do_if(dfs2, test %in% 2:4,
               {
                   b_total = sum_row(b_1 %to% b_5)
                   aa = aa + 1
@@ -192,15 +230,15 @@ expect_identical(
 
 
 expect_error(
-    modify_if(dfs2, test %in% 2:4,
+    do_if(dfs2, test %in% 2:4,
               {
                   a_total = sum_row(a_1 %to% a_5)
                   b_total = sum_row(b_1 %to% b_5)
                   aa = aa + 1
               })
 )
-expect_error(modify_if(dfs2,test %in% 2:4,  {.n = 42}))
-expect_error(modify_if(dfs2,test %in% 2:4,  {.N = 42}))
+expect_error(do_if(dfs2,test %in% 2:4,  {.n = 42}))
+expect_error(do_if(dfs2,test %in% 2:4,  {.N = 42}))
 
 
 
@@ -211,7 +249,7 @@ result_dfs2$random_numer = NULL
 result_dfs2$b_total = NULL
 dfs2$b_total = NULL
 expect_identical(
-    modify_if(dfs2, test %in% 2:4,
+    do_if(dfs2, test %in% 2:4,
               {
                   aa = aa + 1
               }), 
@@ -220,14 +258,14 @@ expect_identical(
 
 
 expect_identical(
-    modify_if(dfs2, 2:4,
+    do_if(dfs2, 2:4,
               {
                   aa = aa + 1
               }), 
     result_dfs2
 )
 
-context("modify labels")
+context("compute labels")
 
 result_dfs3 = dfs
 result_dfs3$b_total = with(dfs, sum_row(b_1, b_2, b_4, b_5))
@@ -235,7 +273,7 @@ var_lab(result_dfs3$aa) = "my label"
 val_lab(result_dfs3$aa) = c(one = 1, two = 2)
 
 expect_identical(
-    modify(dfs, {
+    compute(dfs, {
         b_total = sum_row(b_1, b_2, b_4, b_5)
         var_lab(aa) = "my label"
         val_lab(aa) = c(one = 1, two = 2)
@@ -245,12 +283,23 @@ expect_identical(
     result_dfs3
 )
 
+expect_identical(
+    compute(dfs, 
+        b_total = sum_row(b_1, b_2, b_4, b_5),
+        'var_lab(aa)' = "my label",
+        'val_lab(aa)' = c(one = 1, two = 2)
+        
+        
+    ),
+    result_dfs3
+)
+
 
 
 result_dfs3$b_total = NULL
 result_dfs3$aa = 1
 expect_identical(
-    modify(dfs, {
+    compute(dfs, {
         b_total = NULL
         aa = 1
         
@@ -262,7 +311,7 @@ expect_identical(
 # doesn't work
 # result_dfs3$b_total = NULL
 # expect_identical(
-#     modify_if(dfs, 1:5 %in% 2:4, {
+#     do_if(dfs, 1:5 %in% 2:4, {
 #         
 #         var_lab(aa) = "my label"
 #         val_lab(aa) = c(one = 1, two = 2)
@@ -275,7 +324,7 @@ data(iris)
 
 iris2 = iris
 
-iris2 = modify(iris2, {Species = NULL})
+iris2 = compute(iris2, {Species = NULL})
 
 expect_identical(iris2, iris[,-5])
 
@@ -283,14 +332,14 @@ expect_identical(iris2, iris[,-5])
 
 iris2 = iris
 
-expect_error(modify_if(iris2, Sepal.Length<5, {Species = NULL}))
-expect_error(modify_if(iris2, Sepal.Length<5, {Sepal.Width = 1:3}))
+expect_error(do_if(iris2, Sepal.Length<5, {Species = NULL}))
+expect_error(do_if(iris2, Sepal.Length<5, {Sepal.Width = 1:3}))
 
 
 
 
 #### 
-context("modify.list/modify_if.list")
+context("compute.list/do_if.list")
 
 data(iris)
 iris_list = split(iris, iris$Species)
@@ -298,7 +347,7 @@ iris_list = split(iris, iris$Species)
 
 res = lapply(iris_list, function(dfs) {dfs$aggr = sum(dfs$Sepal.Length); dfs})
 
-res0 = modify(iris_list, {aggr = sum(Sepal.Length)})
+res0 = compute(iris_list, {aggr = sum(Sepal.Length)})
 expect_identical(res0, res)
 
 
@@ -313,11 +362,11 @@ res = lapply(iris_list, function(dfs) {
     dfs
     })
 
-res0 = modify_if(iris_list, Sepal.Width>mean(Sepal.Width), {aggr = 1})
+res0 = do_if(iris_list, Sepal.Width>mean(Sepal.Width), {aggr = 1})
 expect_identical(res0, res)
 
 
-context("modify new_var")
+context("compute new_var")
 # data(iris)
 test_iris = iris
 test_iris$new_var = NA
@@ -325,7 +374,7 @@ test_iris$new_logi = FALSE
 test_iris$new_num = 0
 test_iris$new_char = ""
 
-res_iris = modify(iris, {
+res_iris = compute(iris, {
     new_var = .new_var()
     new_logi = .new_logical()
     new_num = .new_numeric()
@@ -340,7 +389,7 @@ test_iris[1:50, "new_logi"] = FALSE
 test_iris[1:50, "new_num"] = 0
 test_iris[1:50, "new_char"] = ""
 
-res_iris = modify_if(iris, Species == "setosa", {
+res_iris = do_if(iris, Species == "setosa", {
     new_var = .new_var()
     new_logi = .new_logical()
     new_num = .new_numeric()
@@ -432,7 +481,7 @@ iris2 = iris
 iris2$new_var = NA*1
 
 expect_identical(
-    modify_if(iris, Sepal.Length>10, {
+    do_if(iris, Sepal.Length>10, {
         Sepal.Width = Sepal.Length/Petal.Length
         new_var = 42
     }),
@@ -440,10 +489,109 @@ expect_identical(
 )
 
 expect_identical(
-    modify_if(data.table(iris), Sepal.Length>10, {
+    do_if(data.table(iris), Sepal.Length>10, {
         Sepal.Width = Sepal.Length/Petal.Length
         new_var = 42
     }),
     data.table(iris2)
 )
 
+context("compute chain")
+data(mtcars)
+mtcars = unlab(mtcars)
+res_mtcars = mtcars
+res_mtcars$mpg2 = res_mtcars$mpg*2
+res_mtcars$mpg4 = res_mtcars$mpg2*2
+res_mtcars$am = NULL
+expect_identical(compute(mtcars, 
+        mpg2 = mpg*2,
+        mpg4 = mpg2*2,
+        am = NULL
+        ),
+        res_mtcars)
+
+expect_identical(compute(mtcars, 
+                         {mpg2 = mpg*2
+                         mpg4 = mpg2*2
+                         am = NULL}
+),
+res_mtcars)
+
+expect_identical(compute(mtcars, 
+                         mpg2 <- mpg*2,
+                         mpg4 <- mpg2*2,
+                         am = NULL
+),
+res_mtcars)
+
+dt_mtcars = as.data.table(mtcars)
+dt_res = as.data.table(res_mtcars)
+
+expect_identical(compute(dt_mtcars, 
+                         mpg2 = mpg*2,
+                         mpg4 = mpg2*2,
+                         am = NULL
+),
+dt_res)
+dt_mtcars = as.data.table(mtcars)
+expect_identical(compute(dt_mtcars, 
+                         {mpg2 = mpg*2
+                         mpg4 = mpg2*2
+                         am = NULL}
+),
+dt_res)
+dt_mtcars = as.data.table(mtcars)
+expect_identical(compute(dt_mtcars, 
+                         mpg2 <- mpg*2,
+                         mpg4 <- mpg2*2,
+                         am = NULL
+),
+dt_res)
+
+
+context("do_if chain")
+data(mtcars)
+res_mtcars = mtcars
+res_mtcars$mpg2[mtcars$cyl>4] = res_mtcars$mpg[mtcars$cyl>4]*2
+res_mtcars$mpg4[mtcars$cyl>4] = res_mtcars$mpg2[mtcars$cyl>4]*2
+expect_identical(do_if(mtcars, cyl>4, 
+                       mpg2 = mpg*2,
+                       mpg4 = mpg2*2
+                       
+),
+res_mtcars)
+
+expect_identical(do_if(mtcars, cyl>4, 
+                       {mpg2 = mpg*2
+                       mpg4 = mpg2*2
+                       }
+),
+res_mtcars)
+
+expect_identical(do_if(mtcars, cyl>4, 
+                       mpg2 <- mpg*2,
+                       mpg4 <- mpg2*2
+),
+res_mtcars)
+
+dt_mtcars = as.data.table(mtcars)
+dt_res = as.data.table(res_mtcars)
+
+expect_identical(do_if(dt_mtcars, cyl>4, 
+                       mpg2 = mpg*2,
+                       mpg4 = mpg2*2
+),
+dt_res)
+dt_mtcars = as.data.table(mtcars)
+expect_identical(do_if(dt_mtcars, cyl>4, 
+                       {mpg2 = mpg*2
+                       mpg4 = mpg2*2
+                       }
+),
+dt_res)
+dt_mtcars = as.data.table(mtcars)
+expect_identical(do_if(dt_mtcars, cyl>4, 
+                       mpg2 <- mpg*2,
+                       mpg4 <- mpg2*2
+),
+dt_res)
