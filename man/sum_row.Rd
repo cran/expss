@@ -21,45 +21,48 @@
 \alias{all_in_col}
 \title{Compute sum/mean/sd/median/max/min/custom function on rows/columns}
 \usage{
-sum_row(...)
+sum_row(..., na.rm = TRUE)
 
-sum_col(...)
+sum_col(..., na.rm = TRUE)
 
-mean_row(...)
+mean_row(..., na.rm = TRUE)
 
-mean_col(...)
+mean_col(..., na.rm = TRUE)
 
-sd_row(...)
+sd_row(..., na.rm = TRUE)
 
-sd_col(...)
+sd_col(..., na.rm = TRUE)
 
-median_row(...)
+median_row(..., na.rm = TRUE)
 
-median_col(...)
+median_col(..., na.rm = TRUE)
 
-max_row(...)
+max_row(..., na.rm = TRUE)
 
-max_col(...)
+max_col(..., na.rm = TRUE)
 
-min_row(...)
+min_row(..., na.rm = TRUE)
 
-min_col(...)
+min_col(..., na.rm = TRUE)
 
 apply_row(fun, ...)
 
 apply_col(fun, ...)
 
-any_in_row(...)
+any_in_row(..., na.rm = TRUE)
 
-any_in_col(...)
+any_in_col(..., na.rm = TRUE)
 
-all_in_row(...)
+all_in_row(..., na.rm = TRUE)
 
-all_in_col(...)
+all_in_col(..., na.rm = TRUE)
 }
 \arguments{
 \item{...}{data. Vectors, matrixes, data.frames, list. Shorter arguments
 will be recycled.}
+
+\item{na.rm}{logical. Contrary to the base 'sum' it is TRUE by default. Should missing values (including NaN)
+be removed?}
 
 \item{fun}{custom function that will be applied to \dots}
 }
@@ -71,14 +74,14 @@ All functions except \code{apply_*} return numeric vector of length
 \description{
 These functions are intended for usage inside \link{modify}, 
 \link{modify_if}, \link[base]{with} and \link[base]{within} functions. 
-sum/mean/sd/median/max/min always omits NA. \code{any_in_*} checks existence 
+sum/mean/sd/median/max/min by default omits NA. \code{any_in_*} checks existence 
 of any TRUE in each row/column. It is equivalent of \link[base]{any} applied 
 to each row/column. \code{all_in_*} is equivalent of \link[base]{all} applied
-to each row/column. They don't remove NA.
+to each row/column.
 }
 \examples{
 ## Inside example
-iris = modify(iris,{
+iris = compute(iris,{
   new_median = median_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
   new_mean = mean_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
   })
@@ -94,21 +97,15 @@ dfs = data.frame(
 )
 
 # calculate sum of b* variables
-modify(dfs, {
+compute(dfs, {
     b_total = sum_row(b_, b_1 \%to\% b_5)
 })
 
 # conditional modification
-modify_if(dfs, test \%in\% 2:4, {
+do_if(dfs, test \%in\% 2:4, {
     b_total = sum_row(b_, b_1 \%to\% b_5)
 })
 
-# Examples from rowSums/colSums manual.
-## Compute row and column sums for a matrix:
-x = cbind(x1 = 3, x2 = c(4:1, 2:5))
-sum_row(x); sum_col(x)
-dimnames(x)[[1]] <- letters[1:8]
-sum_row(x); sum_col(x); mean_row(x); mean_col(x)
 
 }
 \seealso{

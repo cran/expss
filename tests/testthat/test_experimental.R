@@ -13,13 +13,13 @@ data(iris)
 default_iris = iris
 default_dataset(default_iris)
 
-.if_val(Species, from = "setosa", to = "versicolor")
-.recode(Species, from = "virginica", to = "versicolor")
+.if_val(Species, from_to("setosa", factor("versicolor")))
+.recode(Species, from_to("virginica", factor("versicolor")))
 iris$Species[iris$Species == "setosa"] = "versicolor"
 iris$Species[iris$Species == "virginica"] = "versicolor"
 expect_identical(default_iris, iris)
 
-.apply_val_labs(
+.apply_labels(
     Sepal.Length = c("Hard to say"=99),
     Sepal.Width = c("Hard to say"=99)
 )
@@ -45,8 +45,8 @@ default_dataset(default_mtcars)
                                  ")
 })
 
-.apply_var_labs(vs = "Engine")
-.apply_val_labs(vs = c("V-engine" = 0)) 
+.apply_labels(vs = "Engine")
+.apply_labels(vs = c("V-engine" = 0)) 
 .compute({
     add_val_lab(vs) = c("Straight engine" = 1)
 })

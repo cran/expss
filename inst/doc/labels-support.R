@@ -61,7 +61,6 @@ with(mtcars,
          beside = TRUE, 
          legend = TRUE)
      )
-boxplot(mpg ~ am, data = mtcars)
 
 ## ------------------------------------------------------------------------
 # table with dimension names
@@ -70,6 +69,9 @@ use_labels(mtcars, table(am, vs))
 # linear regression
 use_labels(mtcars, lm(mpg ~ wt + hp + qsec)) %>% summary
 
+# boxplot with variable labels
+use_labels(mtcars, boxplot(mpg ~ am))
+
 ## ---- fig.height=6, fig.width=7------------------------------------------
 library(ggplot2, warn.conflicts = FALSE)
 
@@ -77,7 +79,7 @@ use_labels(mtcars, {
     # '..data' is shortcut for all 'mtcars' data.frame inside expression 
     ggplot(..data) +
         geom_point(aes(y = mpg, x = wt, color = qsec)) +
-        facet_grid(am ~ vs)
+        facet_grid(factor(am) ~ factor(vs))
 }) 
 
 ## ------------------------------------------------------------------------

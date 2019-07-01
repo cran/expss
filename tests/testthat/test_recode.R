@@ -1,7 +1,5 @@
-test_that("recode", { 
-    skip_on_cran()
-    
-    
+if(isTRUE(getOption("covr"))) { 
+
     context("recode simple vector")
     suppressWarnings(RNGversion("3.5.0"))
     
@@ -14,6 +12,7 @@ test_that("recode", {
     expect_identical(recode(1:5, 1~-1), c(-1, NA, NA, NA, NA))
     expect_identical(recode(1:5, 1~-1, other ~ copy), c(-1, 2, 3, 4, 5))
     expect_identical(recode(1:5, 1~-1, other() ~ copy()), c(-1, 2, 3, 4, 5))
+    expect_identical(recode(1:5, 1~-1, TRUE ~ copy()), c(-1, 2, 3, 4, 5))
     b = 1:5
     recode(b) = 1~-1
     expect_identical(b, c(-1, 2, 3, 4, 5))
@@ -147,58 +146,61 @@ test_that("recode", {
     
     context("recode 'from, to' notation simple vector")
     
-    expect_identical(recode(1:5, from = list(1, other), to = list(-1, copy)), c(-1, 2, 3, 4, 5))
-    expect_identical(recode(1:5, from = 1:2, to =c(-1, NA)), c(-1, NA, NA, NA, NA))
+    expect_identical(recode(1:5, from_to(list(1, other), to = list(-1, copy))), c(-1, 2, 3, 4, 5))
+    expect_identical(recode(1:5, from_to(1:2, to =c(-1, NA))), c(-1, NA, NA, NA, NA))
     
-    expect_identical(recode(1:5, from = list(1, 2, other), to =list(-1, NA, copy)), c(-1, NA, 3, 4, 5))
+    expect_identical(recode(1:5, from_to(list(1, 2, other), to =list(-1, NA, copy))), c(-1, NA, 3, 4, 5))
     
-    expect_identical(recode(1:5, from = list(gt(2), other), to=list(99, copy)), c(1, 2, 99, 99, 99))
+    expect_identical(recode(1:5, from_to(list(gt(2), other), list(99, copy))), c(1, 2, 99, 99, 99))
     
-    expect_identical(recode(1:5, from = list(gt(2)), to=99), c(NA, NA, 99, 99, 99))
+    expect_identical(recode(1:5, from_to(list(gt(2)), 99)), c(NA, NA, 99, 99, 99))
     
     b = 1:5
-    recode(b, list(gt(2))) = 99 
+    recode(b) = from_to(list(gt(2)), 99) 
     expect_identical(b, c(1, 2, 99, 99, 99))
     
     b = 1:5
-    recode(b, gt(2)) = 99 
+    recode(b) = from_to(gt(2), 99) 
     expect_identical(b, c(1, 2, 99, 99, 99))
     
     
     
-    expect_identical(recode(1:5, from = c(gt(2),other), to = c(99,0)), c(0, 0, 99, 99, 99))
+    expect_identical(recode(1:5, from_to(c(gt(2),other), to = c(99,0))), c(0, 0, 99, 99, 99))
     
     b = 1:5
-    recode(b, c(gt(2),copy)) = c(99,0)
+    recode(b) = from_to(c(gt(2),copy), c(99,0))
     expect_identical(b, c(0, 0, 99, 99, 99))
     
     
     
-    expect_identical(recode(1:5, from = list(1:3,other), to = c(1, NA)), c(1, 1, 1, NA, NA))
+    expect_identical(recode(1:5, from_to(list(1:3,other), to = c(1, NA))), c(1, 1, 1, NA, NA))
     
-    expect_equal(recode(1:5, from = list(1:3, 2:5),  to =1:2), c(1, 1, 1, 2, 2))
+    expect_equal(recode(1:5, from_to(list(1:3, 2:5),  to =1:2)), c(1, 1, 1, 2, 2))
     
-    expect_identical(recode(1:5, from = list(lt(2), lt(3), lt(4),other), to =c(10,  11, 12, NA)), c(10, 11, 12, NA, NA))
+    expect_identical(recode(1:5, from_to(list(lt(2), lt(3), lt(4),other), to =c(10,  11, 12, NA))),
+                     c(10, 11, 12, NA, NA))
     
-    expect_identical(recode(1:5, from = list(4,function(x) (x-1)<2, other),  to = c("four", -1, copy)), c(-1, -1, 3, "four", 5) )
-    expect_identical(recode(1:5, from = list(4,function(x) (x-1)<2),  to = c("four", -1)), c(-1, -1, NA, "four", NA) )
+    expect_identical(recode(1:5, from_to(list(4,function(x) (x-1)<2, other),  to = c("four", -1, copy))),
+                     c(-1, -1, 3, "four", 5) )
+    expect_identical(recode(1:5, from_to(list(4,function(x) (x-1)<2),  to = c("four", -1))),
+                     c(-1, -1, NA, "four", NA) )
     
     x = c(1,3,1,3,NA)
     y = c(8,8,8,9,9)
     z = c(4,4,4,5,5)
     
-    expect_identical(recode(x, from = list(gt(2)), to =list(y)), c(NA, 8, NA, 9, NA))
-    expect_identical(recode(x, from = list(gt(2), other), to =list(y, copy)), c(1, 8, 1, 9, NA))
+    expect_identical(recode(x, from_to(list(gt(2)), to =list(y))), c(NA, 8, NA, 9, NA))
+    expect_identical(recode(x, from_to(list(gt(2), other), to =list(y, copy))), c(1, 8, 1, 9, NA))
     
     
-    expect_identical(recode(x, from = list(gt(2), le(2)), to = list(y,z)), c(4, 8, 4, 9, NA))
-    expect_identical(recode(x, from = list(gt(2), le(2), other), to = list(y,z, copy)), c(4, 8, 4, 9, NA))
+    expect_identical(recode(x, from_to(list(gt(2), le(2)), to = list(y,z))), c(4, 8, 4, 9, NA))
+    expect_identical(recode(x, from_to(list(gt(2), le(2), other), to = list(y,z, copy))), c(4, 8, 4, 9, NA))
     
-    expect_identical(recode(x, from = list(gt(2), le(2),other), to = list(y,z,99)), c(4, 8, 4, 9, 99))
+    expect_identical(recode(x, from_to(list(gt(2), le(2),other), to = list(y,z,99))), c(4, 8, 4, 9, 99))
     
-    expect_identical(recode(x, from = list(z>4, other), to = list(y, copy)), c(1, 3, 1, 9, 9))
+    expect_identical(recode(x, from_to(list(z>4, other), to = list(y, copy))), c(1, 3, 1, 9, 9))
     
-    expect_identical(recode(x, from = list(z>4), to = list(y)), c(NA, NA, NA, 9, 9))
+    expect_identical(recode(x, from_to(list(z>4), to = list(y))), c(NA, NA, NA, 9, 9))
     
     
     
@@ -271,7 +273,7 @@ test_that("recode", {
     v_test[v1 == 9 ] = 9
     fr = list(0, 1, 2:3, 9, other)
     to = list(1, 0, -1, 9, NA)
-    recode(v1, from = fr) = to
+    recode(v1) = from_to(fr, to)
     expect_identical(
         v1
         , v_test)
@@ -288,7 +290,7 @@ test_that("recode", {
     fr = list(1 %thru% 5, 6 %thru% 10, ge(11), other)
     to = list(1, 2, 3, 0)
     expect_identical(
-        recode(qvar, from = fr, to = to),
+        recode(qvar, from_to(fr, to)),
         qvar_test
     )
     
@@ -302,7 +304,7 @@ test_that("recode", {
     fr = list(c('A','B','C'), c('D','E','F') , other)
     to = list("A", "B", " ")
     expect_identical(
-        recode(strngvar, from = fr, to = to),
+        recode(strngvar, from_to(fr, to = to)),
         letters_test
     )
     
@@ -316,7 +318,7 @@ test_that("recode", {
     fr = list(9, 18 %thru% Inf, 0 %thru% 18)
     to = list(NA, 1, 0)
     expect_identical(
-        recode(age, from = fr, to = to),
+        recode(age, from_to(fr, to = to)),
         voter_test
     )
     
@@ -354,9 +356,6 @@ test_that("recode", {
         ifs(b>3 ~ cbind(a,b))
     )
     
-    expect_error(
-        ifs(b>3 ~ t(a))
-    )
     
     expect_error(
         ifs(45 ~ 1)
@@ -376,7 +375,7 @@ test_that("recode", {
     
     a = factor(letters[1:4])
     
-    res = factor(c("a", "z", "c", "d"), levels = c("z", "a", "c", "d"))
+    res = factor(c("a", "z", "c", "d"), levels = c("a", "b", "c", "d", "z"))
     b = recode(a, "b" ~ "z", other ~ copy)
     expect_identical(b, res)
     
@@ -384,14 +383,20 @@ test_that("recode", {
     b = recode(a, "a" ~ factor("z"))
     res2 = res
     res2[2:4] = NA
-    expect_identical(b, factor(res2)) 
+    expect_identical(b, res2) 
     
-    recode(a) = "a" ~ "z"
+    
+    b = recode(a, "a" ~ factor("z"), TRUE ~ copy)
+    expect_identical(b, res) 
+    
+    
+    a = factor(letters[1:4])
+    recode(a) = "a" ~ factor("z")
     expect_identical(a, res)
     
     a = factor(letters[1:4])
     var_lab(a) = "factor"
-    recode(a) = "a" ~ "z"
+    recode(a) = "a" ~ factor("z")
     var_lab(res) = "factor"
     expect_identical(a, res)
     
@@ -415,13 +420,21 @@ test_that("recode", {
     b = recode(a, "2016-10-01" ~ as.POSIXct("2016-10-02"), "2017-05-10" ~ "2017-05-11")
     expect_equal(b, res)
     
+    recode(a) = "2016-10-01" ~ "2016-10-02"
+    expect_identical(a, as.POSIXct(c("2016-10-02", "2017-05-10")))
+    
+    a = as.Date(c("2016-10-01", "2017-05-10"))
+    res = as.Date(c("2016-10-02", "2017-05-11"))
+    b = recode(a, "2016-10-01" ~ as.Date("2016-10-02"), "2017-05-10" ~ "2017-05-11")
+    expect_equal(b, res)
+    
     b = recode(a, "2016-10-01" ~ "2016-10-02", "2017-05-10" ~ "2017-05-11")
     expect_equal(b, as.character(res))
     
     recode(a) = "2016-10-01" ~ "2016-10-02"
-    expect_identical(a, as.POSIXct(c("2016-10-02", "2017-05-10")))
+    expect_identical(a, as.Date(c("2016-10-02", "2017-05-10")))
     
-    context("dot notation")
+    context("recode copy")
     
     a = 1:5
     
@@ -438,32 +451,6 @@ test_that("recode", {
     recode(letters2) = c(other ~ toupper)
     expect_identical(letters2, LETTERS)
     
-    context("ifs incorrect from to")
-    
-    expect_error(ifs(letters, from= c("a", "b")))
-    expect_error(ifs(letters, from= c("a", "b"), to = c("aa")))
-    
-    
-    context("recode list")
-    
-    mk_emtpy_obj = expss:::make_empty_object
-    data(iris)
-    a = 1:4
-    b = 4:1
-    ab = list(a,b, iris)
-    names(ab) = c("a", "b", "c")
-    empty_iris = iris
-    
-    empty_iris[[1]] = NA
-    empty_iris[[2]] = NA
-    empty_iris[[3]] = NA
-    empty_iris[[4]] = NA
-    empty_iris[[5]] = NA
-    rownames(empty_iris) = as.character(1:150)
-    res = list(rep(NA, 4), rep(NA, 4), empty_iris)
-    names(res) = c("a", "b", "c")
-    
-    expect_identical(mk_emtpy_obj(ab), res)
     
     
     context("%into%")
@@ -700,5 +687,16 @@ test_that("recode", {
     # 
     # recode(df[,-1], "" ~ 0, other ~ 1)
     # recode(new_df[,-1]) = c("" ~ 0, other ~ 1)
+    data(iris) 
+    iris_2 = iris
+    res_iris = iris
+    # res_iris$Species = as.character(res_iris$Species)
+    res_iris[, 1:4] = scale(res_iris[, 1:4])
+    recode(iris_2) = c(is.numeric ~ scale, is.factor ~ as.character)
+    expect_equal(iris_2, res_iris)
     
-})
+    char_vec = c("a", "b")
+    fac_vec = recode(char_vec, "b" ~ factor("a"), other ~ copy)
+    expect_equal(fac_vec, factor(c("a", "a")))
+    
+}

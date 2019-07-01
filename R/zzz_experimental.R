@@ -23,8 +23,7 @@
 #' \item{\code{.where}}{ Leave subset of default data.frame which meet
 #' condition. See \link{where}, \link[base]{subset}.}
 #' \item{\code{.recode}}{ Change, rearrange or consolidate the values of an existing
-#' variable inside default data.frame. See \link{recode}.}
-#' \item{\code{.if_val}}{ Shortcut for \code{.recode}. See \link{recode}.} }
+#' variable inside default data.frame. See \link{recode}.} }
 #' Other functions:
 #' \itemize{
 #' \item{\code{.var_lab}}{ Return variable label from default dataset. See
@@ -136,12 +135,8 @@
     invisible(data)
 }
 
-in_place_if_val = function(x, ..., from = NULL, to = NULL){
-    if(is.null(from)){
-        if_val(x) = list(...)
-    } else {
-        if_val(x, from = from) = to
-    }
+in_place_if_val = function(x, ...){
+    if_val(x) = list(...)
     x
 }
 
@@ -180,6 +175,7 @@ in_place_if_val = function(x, ..., from = NULL, to = NULL){
 
 #' @export
 #' @rdname experimental
+#' @usage NULL
 .if_val =  function(x, ...){
     expr = as.character(as.expression(sys.call()))
     expr = parse(text = gsub("^\\.(if_val|recode)","expss:::in_place_if_val", expr, perl = TRUE))
