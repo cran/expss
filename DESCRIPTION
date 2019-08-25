@@ -2,7 +2,7 @@ Package: expss
 Type: Package
 Title: Tables, Labels and Some Useful Functions from Spreadsheets and
         'SPSS' Statistics
-Version: 0.9.0
+Version: 0.9.1
 Maintainer: Gregory Demin <gdemin@gmail.com>
 Authors@R: person("Gregory", "Demin", email = "gdemin@gmail.com",
          role = c("aut", "cre"))
@@ -28,7 +28,7 @@ LazyData: yes
 License: GPL (>= 2)
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2019-07-01 00:49:59 UTC; gregory
+Packaged: 2019-08-25 19:52:40 UTC; gregory
 Author: Gregory Demin [aut, cre]
 Repository: CRAN
-Date/Publication: 2019-07-01 04:20:05 UTC
+Date/Publication: 2019-08-25 21:20:02 UTC
