@@ -28,7 +28,11 @@
 #' tbl_with_caption
 #' 
 #' @export
-set_caption = function(obj, caption){
+set_caption <- function (obj, caption) UseMethod("set_caption")
+
+
+#' @export
+set_caption.etable = function(obj, caption){
     if(length(caption)==0) {
         attr(obj, "caption") = NULL
         obj = remove_class(obj, "with_caption")
@@ -40,10 +44,43 @@ set_caption = function(obj, caption){
 }
 
 #' @export
+set_caption.huxtable = function(obj, caption){
+    huxtable::set_caption(obj, caption) 
+}
+#####################
+
+
+#' @rawNamespace if(getRversion() >= "3.6.0") {
+#' S3method(huxtable::"caption<-", etable)
+#' } else {
+#' export("caption<-.etable")
+#' }
+'caption<-.etable' <- function (obj, value) {
+    expss::set_caption(obj, value)
+}
+
+
+
+
+
+#######################
+#' @export
 #' @rdname set_caption
-get_caption = function(obj){
+get_caption <- function (obj) UseMethod("get_caption")
+
+#' @export
+get_caption.etable = function(obj){
     attr(obj, "caption", exact = TRUE)     
 }
+
+#' @rawNamespace if(getRversion() >= "3.6.0") {
+#' S3method(huxtable::caption, etable)
+#' } else {
+#' export(caption.etable)
+#' }
+caption.etable = get_caption
+
+############
 
 #' @export
 #' @rdname set_caption

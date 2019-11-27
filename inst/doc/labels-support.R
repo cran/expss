@@ -1,4 +1,4 @@
-## ---- message=FALSE, warning=FALSE---------------------------------------
+## ---- message=FALSE, warning=FALSE--------------------------------------------
 library(expss)
 data(mtcars)
 mtcars = apply_labels(mtcars,
@@ -20,7 +20,7 @@ mtcars = apply_labels(mtcars,
 )
 
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 nps = c(-1, 0, 1, 1, 0, 1, 1, -1)
 var_lab(nps) = "Net promoter score"
 val_lab(nps) = num_lab("
@@ -30,7 +30,7 @@ val_lab(nps) = num_lab("
 ")
 
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 var_lab(nps) # get variable label
 val_lab(nps) # get value labels
 
@@ -46,14 +46,14 @@ val_lab(nps) = val_lab(nps) %d% 98
 # or, remove value by name
 val_lab(nps) = val_lab(nps) %n_d% "Other"
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 drop_val_labs(nps)
 drop_var_labs(nps)
 unlab(nps)
 drop_unused_labels(nps)
 prepend_values(nps)
 
-## ---- fig.height=6, fig.width=7------------------------------------------
+## ---- fig.height=6, fig.width=7-----------------------------------------------
 with(mtcars, table(am, vs))
 with(mtcars, 
      barplot(
@@ -62,7 +62,7 @@ with(mtcars,
          legend = TRUE)
      )
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 # table with dimension names
 use_labels(mtcars, table(am, vs)) 
 
@@ -72,7 +72,7 @@ use_labels(mtcars, lm(mpg ~ wt + hp + qsec)) %>% summary
 # boxplot with variable labels
 use_labels(mtcars, boxplot(mpg ~ am))
 
-## ---- fig.height=6, fig.width=7------------------------------------------
+## ---- fig.height=6, fig.width=7-----------------------------------------------
 library(ggplot2, warn.conflicts = FALSE)
 
 use_labels(mtcars, {
@@ -82,7 +82,7 @@ use_labels(mtcars, {
         facet_grid(factor(am) ~ factor(vs))
 }) 
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 nps = c(-1, 0, 1, 1, 0, 1, 1, -1)
 var_lab(nps) = "Net promoter score"
 val_lab(nps) = num_lab("
@@ -92,18 +92,18 @@ val_lab(nps) = num_lab("
              99 Hard to say
 ")
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 expss_disable_value_labels_support()
 table(nps) # there is no labels in the result
 unique(nps)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 expss_enable_value_labels_support()
 # table with labels but there are no label "Hard to say"
 table(nps)
 unique(nps)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 expss_enable_value_labels_support_extreme()
 # now we see "Hard to say" with zero counts
 table(nps) 
@@ -111,19 +111,19 @@ table(nps)
 unique(nps) 
 
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 expss_enable_value_labels_support()
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 str(mtcars)
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 mtcars_subset = mtcars[1:10, ]
 
-## ------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 str(mtcars_subset)
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  # we need to load packages strictly in this order to avoid conflicts
 #  library(haven)
 #  library(expss)
