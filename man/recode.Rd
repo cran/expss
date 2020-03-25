@@ -15,7 +15,11 @@
 \alias{from_to}
 \alias{\%into\%}
 \title{Change, rearrange or consolidate the values of an existing or new variable. Inspired by the RECODE command from SPSS.}
-\format{An object of class \code{numeric} of length 1.}
+\format{
+An object of class \code{numeric} of length 1.
+
+An object of class \code{numeric} of length 1.
+}
 \usage{
 recode(
   x,
@@ -101,9 +105,6 @@ element of \code{from} list:
 \itemize{
 \item{vector/single value}{ All values in \code{x} which equal to elements of the
 vector in LHS will be replaced with RHS.}
-\item{logical vector}{ All elements in \code{x} for which elements of vector
-in LHS is TRUE will be replaced with RHS. It means you can use logical
-condition on the other variable during recoding.}
 \item{function}{ Values for which function gives TRUE will be replaced with 
 RHS. There are some special functions for the convenience - see \link{criteria}}.
 \item{single logical value \code{TRUE}}{ It means all other unrecoded values
@@ -130,7 +131,7 @@ can be useful in expressions with \code{\%thru\%}, e. g. \code{1 \%thru\%
 hi}.
 }
 \examples{
-# some examples from SPSS manual
+# examples from SPSS manual
 # RECODE V1 TO V3 (0=1) (1=0) (2, 3=-1) (9=9) (ELSE=SYSMIS)
 v1  = c(0, 1, 2, 3, 9, 10)
 recode(v1) = c(0 ~ 1, 1 ~ 0, 2:3 ~ -1, 9 ~ 9, TRUE ~ NA)
@@ -231,6 +232,6 @@ a = rnorm(20)
 recode(a, lt(-0.5) ~ abs, other ~ copy) 
 
 # the same example with logical criteria
-recode(a, a<(-.5) ~ abs, other ~ copy) 
+recode(a, when(a<(-.5)) ~ abs, other ~ copy) 
 }
 \keyword{datasets}

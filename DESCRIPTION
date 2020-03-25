@@ -2,7 +2,7 @@ Package: expss
 Type: Package
 Title: Tables, Labels and Some Useful Functions from Spreadsheets and
         'SPSS' Statistics
-Version: 0.10.1
+Version: 0.10.2
 Maintainer: Gregory Demin <gdemin@gmail.com>
 Authors@R: c(
          person("Gregory", "Demin", email = "gdemin@gmail.com",
@@ -15,8 +15,8 @@ BugReports: https://github.com/gdemin/expss/issues
 Depends: R (>= 3.3.0),
 Imports: foreign, utils, stats, magrittr (>= 1.5), htmlTable (>=
         1.11.0), matrixStats (>= 0.51.0), data.table (>= 1.10),
-Suggests: DT, htmltools, knitr, repr, ggplot2, testthat, openxlsx, fst,
-        huxtable, rmarkdown
+Suggests: DT, htmltools, knitr, rmarkdown, repr, ggplot2, testthat,
+        openxlsx, fst, huxtable
 Description: Package computes and displays tables with support for 'SPSS'-style 
         labels, multiple and nested banners, weights, multiple-response variables 
         and significance testing. There are facilities for nice output of tables 
@@ -31,10 +31,10 @@ Description: Package computes and displays tables with support for 'SPSS'-style
 VignetteBuilder: knitr
 LazyData: yes
 License: GPL (>= 2)
-RoxygenNote: 7.0.1
+RoxygenNote: 7.1.0
 NeedsCompilation: no
-Packaged: 2019-11-27 21:25:33 UTC; gregory
+Packaged: 2020-03-25 11:14:06 UTC; Demin.Grigoriy
 Author: Gregory Demin [aut, cre],
   Sebastian Jeworutzki [ctb] (<https://orcid.org/0000-0002-2671-5253>)
 Repository: CRAN
-Date/Publication: 2019-11-27 22:10:02 UTC
+Date/Publication: 2020-03-25 15:00:12 UTC

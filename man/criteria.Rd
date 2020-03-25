@@ -20,6 +20,7 @@
 \alias{gte}
 \alias{thru}
 \alias{\%thru\%}
+\alias{when}
 \alias{is_max}
 \alias{is_min}
 \alias{contains}
@@ -55,6 +56,8 @@ greater_or_equal(x)
 thru(lower, upper)
 
 lower \%thru\% upper
+
+when(x)
 
 is_max(x)
 
@@ -180,7 +183,7 @@ vector after the first occurrence of \code{'x'} and for \code{'x'}.}
 for usage with \code{'recode'}.}
 \item{\code{'items'}}{ returns TRUE for the vector elements with the given
 sequential numbers.}
-\item{\code{'and'}, \code{'or'}, \code{'not'}}{ spreadsheet-style boolean functions.}
+\item{\code{'and'}, \code{'or'}, \code{'not'}}{ are spreadsheet-style boolean functions.}
 } 
 Shortcuts for comparison criteria:
 \itemize{

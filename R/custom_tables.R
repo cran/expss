@@ -90,6 +90,7 @@ SIGNIFICANCE_OPTIONS = "significance_options"
 #' always omitted.}
 #' \item{\code{tab_pivot}}{ finalize table creation and define how different
 #' \code{tab_stat_*} will be combined}
+#' \item{\code{tab_caption}}{ set caption on the table. Should be used after the \code{tab_pivot}.}
 #' \item{\code{tab_transpose}}{ transpose final table after \code{tab_pivot} or last
 #' statistic.}}
 #' @param data data.frame/intermediate_table  
@@ -284,9 +285,9 @@ SIGNIFICANCE_OPTIONS = "significance_options"
 #'     tab_cols(total(), am) %>% 
 #'     tab_stat_fun_df(
 #'         function(x){
-#'             frm = reformulate(".", response = names(x)[1])
+#'             frm = reformulate(".", response = as.name(names(x)[1]))
 #'             model = lm(frm, data = x)
-#'             sheet('Coef. estimate' = coef(model), 
+#'             sheet('Coef.' = coef(model), 
 #'                   confint(model)
 #'             )
 #'         }    
@@ -1106,6 +1107,23 @@ tab_transpose.intermediate_table = function(data){
     )
 }
 
+##################
+
+#' @rdname tables
+#' @export
+tab_caption = function(data, ...){
+    UseMethod("tab_caption")
+}
+
+#' @export
+tab_caption.etable = function(data, ...){
+    set_caption(data, do.call(paste0, list(...)))
+}
+
+#' @export
+tab_caption.intermediate_table = function(data, ...){
+    stop("'tab_caption' should be used after 'tab_pivot'.")
+}
 
 ################
 
