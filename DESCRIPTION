@@ -2,7 +2,7 @@ Package: expss
 Type: Package
 Title: Tables, Labels and Some Useful Functions from Spreadsheets and
         'SPSS' Statistics
-Version: 0.10.2
+Version: 0.10.5
 Maintainer: Gregory Demin <gdemin@gmail.com>
 Authors@R: c(
          person("Gregory", "Demin", email = "gdemin@gmail.com",
@@ -31,10 +31,10 @@ Description: Package computes and displays tables with support for 'SPSS'-style
 VignetteBuilder: knitr
 LazyData: yes
 License: GPL (>= 2)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 NeedsCompilation: no
-Packaged: 2020-03-25 11:14:06 UTC; Demin.Grigoriy
+Packaged: 2020-07-06 11:28:19 UTC; gregory
 Author: Gregory Demin [aut, cre],
   Sebastian Jeworutzki [ctb] (<https://orcid.org/0000-0002-2671-5253>)
 Repository: CRAN
-Date/Publication: 2020-03-25 15:00:12 UTC
+Date/Publication: 2020-07-06 14:40:06 UTC
