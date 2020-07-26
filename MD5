@@ -1,7 +1,7 @@
-3bfacae9bda6e768ab63810d92c2fc45 *DESCRIPTION
-42246f91337ac40843c99cde535731c8 *NAMESPACE
-4614d384ef4b785443d5365897f51175 *NEWS
-1929deae65a88ceef92a1bb8beeb8c9c *R/S3_methods.R
+e6c8de152385c76e7ccb64c976406d86 *DESCRIPTION
+e87be2c8fe2b457ae927e5780b8a7ab8 *NAMESPACE
+43c062bd0e7d0fda440e3ff38ea70c56 *NEWS
+9413b90c9b6ed2f6e9309ba7bf3079a8 *R/S3_methods.R
 f3402c0165e63e999b4fa10a2613adb8 *R/aaa_utils.R
 d2e6cf28df97c3e4526af8c21ad589f9 *R/add_rows.R
 67b6e3fce36e9ffcca27610f34a293dd *R/apply_labels.R
@@ -21,7 +21,7 @@ c85529c4434f89cc2bceca18c87df7b6 *R/cro.R
 244522a33893c17c49a1dd6192287128 *R/dichotomy.R
 af42b54576f102e9d7901333b29b48c2 *R/do_repeat.R
 eb66b8004dad9a7bc9773550962e0e07 *R/drop_empty.R
-a2d799d151b30f64d8115e4c9b33cb06 *R/expss.R
+11ccfde4c40f0bd598a1df2c81047a0e *R/expss.R
 bcc34305507888d79c0a49c6a3e45781 *R/expss_options.R
 bf634f92a9f3611d6bdd100aa355ef28 *R/fctr.R
 c457de257ed1c8507f79b1e3aa2f77b8 *R/fre.R
@@ -30,7 +30,7 @@ a17c5ae2d9a11a9a41c2edb563c8feee *R/html_table.R
 a322d6e36fffe7563025a3e3bfdeece0 *R/if_na.R
 4861eca98f9b52ad7f34cedf23fbde5f *R/info.R
 eb1ce4a8c8b665b379dc4bfe8a101667 *R/keep.R
-e2d49d7fc45032cb7d7ca53f218eb01f *R/labels.R
+29321e74b5ee54e6a205d5e20d703227 *R/labels.R
 e8c876fded83271844c2d745cd89f0e1 *R/match.R
 e5c9bd544044953062be9e86bd743749 *R/merge.R
 956c2b4f162c9b1748386d79afded84b *R/mrset.R
@@ -70,16 +70,16 @@ e5b63d42cdf506b020c6684bb17dbf53 *R/vlookup.R
 0270660f2f7e0d73318d3201f1d82aad *data/product_test.RData
 c6f66c5d440fa86ec007edb661c57782 *inst/doc/examples.R
 9ab4edf82d6951480cebe9d7a50b2a03 *inst/doc/examples.Rmd
-6cb4de746c47e515c5e1cf7120b089dc *inst/doc/examples.html
+795fa5915ed51968f030382e2dcbd594 *inst/doc/examples.html
 bdce185580d9ad6d0eab10fd09bb8604 *inst/doc/labels-support.R
 a674f04e8bd708ab11c219835dead952 *inst/doc/labels-support.Rmd
-c47f39d747a77bee63dde754b4ef2fc1 *inst/doc/labels-support.html
+608c2823e5ee7bfddfee33febb5dd41b *inst/doc/labels-support.html
 f478a9156a4ea134edd7a6ff03107587 *inst/doc/tables-with-labels.R
 f1e3da66a4e4f5817333e99edc831875 *inst/doc/tables-with-labels.Rmd
-fff9f6f714615b6c31fb992dfa69925b *inst/doc/tables-with-labels.html
+b12b6a388f2c91d0998ea3ee1b373933 *inst/doc/tables-with-labels.html
 38f7bc15219f65f707286d6e89ef05a3 *inst/doc/xlsx-export.R
 8e2bb48ff00afc2534b35c8f4825e61d *inst/doc/xlsx-export.Rmd
-d1bf484084c19852b5b415c90b1d7645 *inst/doc/xlsx-export.html
+178d74ee18dabaac2e48069d7ba0bbc9 *inst/doc/xlsx-export.html
 1bd64345224424cd23f783bbe289fb61 *man/add_rows.Rd
 50880f025ead3c498250c262a0ceb0dc *man/apply_labels.Rd
 daab0b7b191c9b1dd3fec47e29450843 *man/as.category.Rd
@@ -119,7 +119,7 @@ d7fe6289d55c8a5e0b2892ee8031882d *man/prop.Rd
 ab7f73cd04a3027c92c2306350188e5e *man/qc.Rd
 5824cf4b19da9605048d24d6d465af32 *man/read_spss.Rd
 d089bc6fd346de9f231ba660d944f41c *man/recode.Rd
-155e802837fbbf2068593d8985a49522 *man/reexports.Rd
+24c821564b4d745c85af7eb057e5ef1c *man/reexports.Rd
 1b47827cb6614a04a316202548434333 *man/ref.Rd
 1cc37cffe2d1276623ed5258853b52d5 *man/set_caption.Rd
 9af692f20b86753689702ed79c0e14e7 *man/sheet.Rd
@@ -134,7 +134,7 @@ dec4a691790df9088b54a0433fd190c0 *man/tab_sort_asc.Rd
 32be97b8cebff410dbc02f527ba8dac1 *man/unlab.Rd
 cf09d46803103a2665d9c03cdcd594a3 *man/val_lab.Rd
 96c22274fba7113d14ce60e8be526f69 *man/values2labels.Rd
-e8d32874e557ead74b2ef0513a51b9df *man/var_lab.Rd
+a347dc3f712c269ba7d5e97a572a6cc2 *man/var_lab.Rd
 6acaca3208aa0b39d370ee5ec0ad16e6 *man/vars.Rd
 358d6d9f63891f1110726f7a27d86995 *man/vectors.Rd
 7042cdcedf7c50a38a1995bc84d34ecc *man/vlookup.Rd
@@ -988,7 +988,7 @@ dce1b1f01da20a1c10c99896bd001022 *tests/testthat/test_info.R
 249df870dcde155c4e13fb825cc8bfbf *tests/testthat/test_match.R
 5b9b343b8c1e1242ceaade758af3bcee *tests/testthat/test_mean_if.R
 bec94913d483df2bd11f84c2bba79caf *tests/testthat/test_merge.R
-c7944caf2508a0bf892412cc09fbe870 *tests/testthat/test_methods.R
+37926c2f97b292182f1f9ad4d792a7a8 *tests/testthat/test_methods.R
 591f6ab35c3da7252f9d701a1d89b06b *tests/testthat/test_mrset.R
 3782114877fabfdc797d440cb714b1c6 *tests/testthat/test_na_if.R
 333db75cabc283c94a04cdf3098abf48 *tests/testthat/test_names2labels.R
