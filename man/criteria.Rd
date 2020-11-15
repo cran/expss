@@ -3,6 +3,7 @@
 \name{criteria}
 \alias{criteria}
 \alias{as.criterion}
+\alias{is.criterion}
 \alias{equals}
 \alias{eq}
 \alias{not_equals}
@@ -33,6 +34,7 @@
 \alias{to}
 \alias{items}
 \alias{not_na}
+\alias{is_na}
 \alias{other}
 \alias{and}
 \alias{or}
@@ -40,6 +42,8 @@
 \title{Criteria functions}
 \usage{
 as.criterion(crit)
+
+is.criterion(x)
 
 equals(x)
 
@@ -107,16 +111,18 @@ items(...)
 
 not_na(x)
 
+is_na(x)
+
 other(x)
 
 and(...)
 
 or(...)
 
-not()
+not(x)
 }
 \arguments{
-\item{crit}{vector of values/function which returns logical or vector. It will be
+\item{crit}{vector of values/function which returns logical or logical vector. It will be
 converted to function of class criterion.}
 
 \item{x}{vector}

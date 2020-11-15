@@ -3,11 +3,18 @@ context("criteria")
 expect_equal(gt(5)(5), FALSE)
 expect_equal((5 | gt(5))(5), TRUE)
 expect_equal(or(5, gt(5))(5), TRUE)
+expect_true(or(is.numeric, is.character)(5))
+expect_true(or(is.numeric, is.character)("a"))
+expect_false(or(is.numeric, is.character)(FALSE))
+expect_error(or("a",2))
 
 
 expect_equal((6 & gt(5))(5), FALSE)
 expect_equal((6 & gt(5))(6), TRUE)
 expect_equal(and(6, gt(5))(6), TRUE)
+expect_false(and(is.numeric, is.character)(1))
+expect_true(and(is.numeric, is.integer)(1L))
+expect_error(and("a",2))
 
 expect_equal((gt(5) & 6)(5), FALSE)
 expect_equal((gt(5) & 6)(6), TRUE)
@@ -25,7 +32,18 @@ expect_identical(num_crit(1:4), c(FALSE, FALSE, FALSE, TRUE))
 
 logi_crit = when(c(TRUE, FALSE, FALSE, TRUE))
 expect_identical(logi_crit(1:4), c(TRUE, FALSE, FALSE, TRUE))
+expect_identical(when(is.numeric)(c(1,2,3)), TRUE)
+expect_identical(when(is.numeric)(TRUE), FALSE)
+expect_identical(when(1:2)(1:3), c(TRUE, TRUE, FALSE))
+expect_identical(when(not_na)(1), TRUE)
+expect_identical(when(not_na)(NA), FALSE)
 
+expect_identical(when(is_na)(1), FALSE)
+expect_identical(when(is_na)(NA), TRUE)
+expect_identical(when(is_na())(1), FALSE)
+expect_identical(when(is_na())(NA), TRUE)
+expect_identical(is_na(1), FALSE)
+expect_identical(is_na(NA), TRUE)
 
 fun_crit = as.criterion(function(x) x>2)
 
@@ -46,7 +64,10 @@ expect_error(suppressWarning(perl(pattern)(test_str)))
 
 expect_true(not(contains(pattern))(test_str))
 expect_true(not(fixed(pattern))(test_str))
+expect_true(not(is.numeric)("a"))
 expect_false(not(regex(pattern))(test_str))
+expect_false(not(is.numeric)(1))
+expect_error(not("a"))
 
 
 test_str = c("Abc", "abc", "bcd", "a")
