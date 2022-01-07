@@ -21,7 +21,7 @@ mtcars = apply_labels(mtcars,
 )
 
 mtcars_table = mtcars %>% 
-    calc_cro_cpct(
+    cross_cpct(
         cell_vars = list(cyl, gear),
         col_vars = list(total(), am, vs)
     ) %>% 
@@ -40,7 +40,7 @@ xl_write(mtcars_table, wb, sh)
 #  saveWorkbook(wb, "table1.xlsx", overwrite = TRUE)
 
 ## -----------------------------------------------------------------------------
-banner = calc(mtcars, list(total(), am, vs))
+banner = with(mtcars, list(total(), am, vs))
 
 ## -----------------------------------------------------------------------------
 list_of_tables = lapply(mtcars, function(variable) {

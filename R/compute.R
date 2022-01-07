@@ -41,6 +41,7 @@
 #'   data.frame/list of modified data.frames, \code{calculate} returns value of
 #'   the evaluated expression/list of values.
 #' @examples
+#' 
 #' dfs = data.frame(
 #'     test = 1:5,
 #'     a = rep(10, 5),
@@ -53,72 +54,38 @@
 #' 
 #' 
 #' # compute sum of b* variables and attach it to 'dfs'
-#' compute(dfs, {
-#'     b_total = sum_row(b_1 %to% b_5)
-#'     var_lab(b_total) = "Sum of b"
+#' let(dfs, 
+#'     b_total = sum_row(b_1 %to% b_5),
+#'     b_total = set_var_lab(b_total, "Sum of b"),
 #'     random_numbers = runif(.N) # .N usage
-#' })
+#' ) %>% print()
 #' 
 #' # calculate sum of b* variables and return it
-#' calculate(dfs, sum_row(b_1 %to% b_5))
+#' query(dfs, sum_row(b_1 %to% b_5))
 #' 
 #' 
 #' # set values to existing/new variables
-#' compute(dfs, {
-#'     (b_1 %to% b_5) %into% text_expand('new_b{1:5}')
-#' })
+#' let(dfs, 
+#'     columns('new_b{1:5}') := b_1 %to% b_5
+#' ) %>% print()
 #' 
-#' # .new_var usage
-#' compute(dfs, {
-#'     new_var = .new_var()
-#'     new_var[1] = 1 # this is not possible without preliminary variable creation
-#' })
 #' 
 #' # conditional modification
-#' do_if(dfs, test %in% 2:4, {
-#'     a = a + 1    
-#'     b_total = sum_row(b_1 %to% b_5)
+#' let_if(dfs, test %in% 2:4, 
+#'     a = a + 1,    
+#'     b_total = sum_row(b_1 %to% b_5),
 #'     random_numbers = runif(.N) # .N usage
-#' })
+#' ) %>% print()
 #' 
 #' 
 #' # variable substitution
 #' name1 = "a"
 #' name2 = "new_var"
 #' 
-#' compute(dfs, {
-#'      ..$name2 = ..$name1*2    
-#' })
+#' let(dfs, 
+#'      (name2) := get(name1)*2    
+#' ) %>% print()
 #' 
-#' compute(dfs, {
-#'      for(name1 in paste0("b_", 1:5)){
-#'          name2 = paste0("new_", name1) 
-#'          ..$name2 = ..$name1*2 
-#'      }
-#'      rm(name1, name2) # we don't need this variables as columns in 'dfs'
-#' })
-#' 
-#' # square brackets notation
-#' compute(dfs, {
-#'      ..[(name2)] = ..[(name1)]*2  
-#' })
-#' 
-#' compute(dfs, {
-#'      for(name1 in paste0("b_", 1:5)){
-#'          ..[paste0("new_", name1)] = ..$name1*2 
-#'      }
-#'      rm(name1) # we don't need this variable as column in 'dfs'
-#' })
-#' 
-#' # '..$' doesn't work for case below so we need to use square brackets form
-#' name1 = paste0("b_", 1:5)
-#' name2 = paste0("new_", name1)
-#' compute(dfs, {
-#'      for(i in 1:5){
-#'          ..[name2[i]] = ..[name1[i]]*3
-#'      }
-#'      rm(i) # we don't need this variable as column in 'dfs'
-#' })
 #' 
 #' # 'use_labels' examples. Utilization of labels in base R.
 #' data(mtcars)
@@ -152,11 +119,13 @@
 #' 
 #' @export
 compute =  function (data, ...) {
+    .Deprecated(msg = "'compute'/'modify' is deprecated and will be removed in the next version. Please, use 'let' from maditr package.")
     UseMethod("compute")
 }
 
 #' @export
 compute.list = function (data, ...) {
+
     for(each in seq_along(data)){
         data[[each]] = eval.parent(substitute(compute(data[[each]], ...)))
     }
@@ -277,6 +246,7 @@ modify = compute
 #' @export
 #' @rdname compute
 do_if = function (data, cond, ...){
+    .Deprecated(msg = "'do_if'/'modify_if' is deprecated and will be removed in the next version. Please, use 'let_if' from maditr package.")
     UseMethod("do_if")
 }
 
@@ -403,7 +373,22 @@ calculate =  function (data, expr, use_labels = FALSE) {
 #' @export
 #' @rdname compute
 use_labels =  function (data, expr) {
-    eval.parent(substitute(calculate(data, expr, use_labels = TRUE)))
+    expr = substitute(expr)
+    all_labs = all_labels(data)
+    if(length(all_labs)>0){
+        if(anyDuplicated(names(all_labs))){
+            dupl = duplicated(names(all_labs)) | duplicated(names(all_labs), fromLast = TRUE)
+            all_labs = all_labs[dupl]
+            names(all_labs) = paste(names(all_labs), colnames(data)[all_labs])
+            for(each in seq_along(all_labs)){
+                var_lab(data[[all_labs[each]]]) = names(all_labs)[each]
+            }
+        }
+        substitution_list = extract_var_labs_as_list_with_symbols(data)
+        expr = substitute_symbols(expr, c(substitution_list, list(..data = names2labels(data))))
+        data = names2labels(data) 
+    }
+    eval(expr = expr, envir = data, enclos = parent.frame())
 }
 
 
@@ -412,22 +397,6 @@ use_labels =  function (data, expr) {
 calculate.data.frame = function (data, expr, use_labels = FALSE) {
     # based on 'within' from base R by R Core team
     expr = substitute(expr)
-    if(use_labels){
-        all_labs = all_labels(data)
-        if(length(all_labs)>0){
-            if(anyDuplicated(names(all_labs))){
-                dupl = duplicated(names(all_labs)) | duplicated(names(all_labs), fromLast = TRUE)
-                all_labs = all_labs[dupl]
-                names(all_labs) = paste(names(all_labs), colnames(data)[all_labs])
-                for(each in seq_along(all_labs)){
-                    var_lab(data[[all_labs[each]]]) = names(all_labs)[each]
-                }
-            }
-            substitution_list = extract_var_labs_as_list_with_symbols(data)
-            expr = substitute_symbols(expr, c(substitution_list, list(..data = quote(expss::vars(other)))))
-            data = names2labels(data) 
-        }
-    }
     e = evalq(environment(), data, parent.frame())
     prepare_env(e, n = nrow(data), column_names = colnames(data))
     eval(expr, envir = e, enclos = baseenv())
@@ -472,22 +441,6 @@ extract_var_labs_as_list_with_symbols = function(data){
 #' @export
 #' @rdname compute
 calc = calculate
-
-#' @export
-#' @rdname compute
-'%calc%' = function (data, expr) {
-    eval.parent(substitute(calculate(data, expr, use_labels = FALSE)))
-}
-
-#' @export
-#' @rdname compute
-'%use_labels%' = use_labels
-
-#' @export
-#' @rdname compute
-'%calculate%' = function (data, expr) {
-    eval.parent(substitute(calculate(data, expr, use_labels = FALSE)))
-}
 
 
 calculate_internal = function(data, expr, parent){

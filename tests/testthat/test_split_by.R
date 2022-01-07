@@ -1,24 +1,7 @@
 context("split_by")
 
 data(airquality)
-aq_list = airquality %>% 
-    split_by(Month) %>% 
-    compute({
-        Ozone_zscore = scale(Ozone)
-    }) 
 
-expect_equal_to_reference(aq_list, "rds/split_by1.rds",  update = FALSE)
-
-aq_list = airquality %>% 
-    split_by(Month) %>% 
-    compute({
-        Ozone_zscore = scale(Ozone)
-    }) 
-
-expect_equal_to_reference(aq_list, "rds/split_by1.rds",  update = FALSE)
-
-aq2 = aq_list %>% split_off()
-expect_equal_to_reference(aq2, "rds/split_by2.rds",  update = FALSE)
 
 data(mtcars)
 # add labels to dataset
@@ -48,67 +31,6 @@ expect_equal_to_reference(mtcars_list, "rds/split_by4.rds",  update = FALSE)
 
 mtcars_list = mtcars %>% split_by(am, vs, drop = TRUE)
 expect_equal_to_reference(mtcars_list, "rds/split_by3.rds",  update = FALSE)
-
-
-regr = mtcars_list %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        sheet(Estimate = coef(res), confint(res))
-    }) %>% 
-    split_off(groups = TRUE, rownames = TRUE)
-expect_equal_to_reference(regr, "rds/split_by5.rds",  update = FALSE)
-
-regr = mtcars_list %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        sheet(Estimate = coef(res), confint(res))
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by6.rds",  update = FALSE)
-
-regr = mtcars_list %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        cbind(Estimate = coef(res), confint(res))
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by6.rds",  update = FALSE)
-
-regr = mtcars_list %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        list(Estimate = coef(res), confint(res))
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by6.rds",  update = FALSE)
-
-
-regr = mtcars_list %>% 
-    unname() %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        sheet(Estimate = coef(res), confint(res))
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by7.rds",  update = FALSE)
-
-
-
-
-regr = mtcars_list %>% 
-    use_labels({
-        res = lm(mpg ~ hp + disp + wt)
-        coef(res)
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by8.rds",  update = FALSE)
-
-regr = mtcars_list %>% 
-    use_labels({
-        cor(cbind(mpg, hp, disp, wt, qsec))
-    }) %>% 
-    split_off(groups = "transmission-engine", rownames = "variables")
-expect_equal_to_reference(regr, "rds/split_by9.rds",  update = FALSE)
 
 
 dt_mtcars = as.data.table(mtcars)

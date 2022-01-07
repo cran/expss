@@ -1,18 +1,26 @@
-
 #' Merge two tables/data.frames
 #'
 #' \code{\%merge\%} is infix shortcut for base \link[base]{merge} with 
 #' \code{all.x = TRUE} and  \code{all.y = FALSE} (left join). There is also 
-#' special method for combining results of \code{cro_*} and \code{fre}. For them
+#' special method for combining results of \code{cross_*} and \code{fre}. For them
 #' \code{all = TRUE} (full join). It allows make complex tables from simple
 #' ones. See examples. Strange result is possible if one or two arguments have
 #' duplicates in first column (column with labels).
 #'
-#' @seealso \link{fre}, \link{cro}, \link{cro}, \link{cro_fun}, \link[base]{merge}
+#' @seealso \link{fre}, \link{cross_cpct}, \link{cross_fun}, \link[base]{merge}
 #'
-#' @param x data.frame or results of \code{fre}/\code{cro_*}/\code{table_*}
-#' @param y data.frame or results of \code{fre}/\code{cro_*}/\code{table_*}
-#'
+#' @param x data.frame or results of \code{fre}/\code{cross_*}/\code{table_*}
+#' @param y data.frame or results of \code{fre}/\code{cross_*}/\code{table_*}
+#' @param by for 'etable' object default is 1 (first column). For details see \link[base]{merge}
+#' @param by.x For details see \link[base]{merge}
+#' @param by.y For details see \link[base]{merge}
+#' @param all For details see \link[base]{merge}
+#' @param all.x For details see \link[base]{merge}
+#' @param all.y For details see \link[base]{merge}
+#' @param sort For details see \link[base]{merge}
+#' @param suffixes For details see \link[base]{merge}
+#' @param incomparables For details see \link[base]{merge}
+#' @param ... arguments to be passed to or from methods.
 #' @return data.frame
 #' @name merge.etable
 #' @export
@@ -37,31 +45,21 @@
 #' )
 #'
 #' # table by 'am'
-#' tab1 = calculate(mtcars, cro_cpct(gear, am))
+#' tab1 = cross_cpct(mtcars, gear, am)
 #' # table with percents
-#' tab2 = calculate(mtcars, cro_cpct(gear, vs))
+#' tab2 = cross_cpct(mtcars, gear, vs)
 #'
 #' # combine tables
-#' tab1 %merge% tab2
+#' tab1 %>% merge(tab2)
 #'
 #' # complex tables
 #' # table with counts
-#' counts = calculate(mtcars, cro(list(vs, am, gear, carb), list("Count")))
+#' counts = cross_cases(mtcars, list(vs, am, gear, carb), list("Count"))
 #' # table with percents
-#' percents = calculate(mtcars, cro_cpct(list(vs, am, gear, carb), list("Column, %")))
+#' percents = cross_cpct(mtcars, list(vs, am, gear, carb), list("Column, %"))
 #'
 #' # combine tables
-#' counts %merge% percents
-'%merge%' = function(x, y) UseMethod('%merge%')
-
-#' @export
-'%merge%.default' = function(x, y) {
-    common = intersect(colnames(x), colnames(y))
-    stopif(!length(common), "`%merge%` - there are no common column names between `x` and `y`.")
-    merge(x, y, all.x = TRUE, all.y = FALSE)
-}
-
-
+#' counts %>% merge(percents)
 #' @export
 merge.etable = function(x, y,
                         by = 1,
@@ -92,9 +90,6 @@ merge.etable = function(x, y,
 
 
 
-
-#' @export
-'%merge%.etable' = function(x, y) merge.etable(x, y)
 
 merge_table = function(x, y,
                        by.x,

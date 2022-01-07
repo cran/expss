@@ -5,9 +5,9 @@
 \alias{read_spss_to_list}
 \title{Read an SPSS Data File}
 \usage{
-read_spss(file, reencode = TRUE)
+read_spss(file, reencode = TRUE, use_missings = FALSE, ...)
 
-read_spss_to_list(file, reencode = TRUE)
+read_spss_to_list(file, reencode = TRUE, use_missings = FALSE, ...)
 }
 \arguments{
 \item{file}{Character string: the name of the file or URL to read.}
@@ -15,11 +15,14 @@ read_spss_to_list(file, reencode = TRUE)
 \item{reencode}{logical: should character strings be re-encoded to the current locale.
 The default is TRUE. NA means to do so in a UTF-8 locale, only. Alternatively, a
 character string specifying an encoding to assume for the file.}
+
+\item{use_missings}{logical: should information on user-defined missing
+values be used to set the corresponding values to NA?}
+
+\item{...}{further parameters for \link[foreign]{read.spss}}
 }
 \value{
-\code{read_spss} returns data.frame. 
-
-\code{read_spss_to_list} returns list of variables from SPSS files.
+\code{read_spss} returns data.frame.
 }
 \description{
 \code{read_spss} reads data from a file stored in SPSS *.sav format. It
@@ -33,7 +36,6 @@ package \code{foreign}.
 \dontrun{
 
 w = read_spss("project_123.sav") # to data.frame
-list_w = read_spss_to_list("project_123.sav") # to list
 
 }
 }

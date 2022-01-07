@@ -45,7 +45,7 @@ if(FALSE){ # isTRUE(getOption("covr"))
   expect_equal_to_reference(as_hux(set_caption(mtcars_table, "My caption")) ,
                             "rds/as_hux3_no_rowgroups_caption.rds",  update = TRUE)
   
-    mtcars_table = calculate(mtcars,
+    mtcars_table = query(mtcars,
                            cro_mean(list(mpg, hp), list(am %nest% vs)) )
   expect_equal_to_reference(as_hux(mtcars_table) ,
                             "rds/as_hux10.rds",  update = TRUE)
@@ -68,16 +68,16 @@ if(FALSE){ # isTRUE(getOption("covr"))
                             "rds/as_hux12single2.rds",  update = TRUE)
   
   new_am = mtcars$am
-  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-    cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total"))  %>% 
+    merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
   
   expect_equal_to_reference(as_hux(mtcars_table) ,
                             "rds/as_hux13.rds",  update = TRUE)
 
   var_lab(new_am) = "|"
   val_lab(new_am) = setNames(0:1, c("", " "))
-  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-    cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total"))  %>% 
+    merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
   colnames(mtcars_table)[7] = ""
   # FIXME
   # expect_equal_to_reference(as_hux(mtcars_table) ,
@@ -109,11 +109,11 @@ if(FALSE){ # isTRUE(getOption("covr"))
   # expect_equal_to_reference(as_hux(res), "rds/as_hux15.rds",  update = TRUE)
   
   res = product_test %>%
-    compute({
-      total = 1
-      var_lab(total) = "Total"
-      val_lab(total) = setNames(1, " ")
-    }) %>% 
+    let(
+      total = 1,
+      total = set_var_lab(total, "Total"),
+      total = set_val_lab(total, setNames(1, " "))
+    ) %>% 
     tab_cols(total) %>%
     tab_cells(unvr(mrset(a1_1 %to% a1_6))) %>%
     tab_stat_cpct() %>%
@@ -123,11 +123,11 @@ if(FALSE){ # isTRUE(getOption("covr"))
   expect_equal_to_reference(as_hux(res), "rds/as_hux16.rds",  update = TRUE)
   
   # single row header
-  res = mtcars %>% calc(cro(am, list(unvr(vs))))
+  res = mtcars %>% query(cro(am, list(unvr(vs))))
   expect_equal_to_reference(as_hux(res), "rds/as_hux17.rds",  update = TRUE)
   
   # single row header
-  res = mtcars %>% calc(cro(list(unvr(am)), list(unvr(vs))))
+  res = mtcars %>% query(cro(list(unvr(am)), list(unvr(vs))))
   expect_equal_to_reference(as_hux(res), "rds/as_hux18.rds",  update = TRUE)
   
   # temp = function(x) as_hux:::print.as_hux(x, useViewer = TRUE)

@@ -509,39 +509,43 @@ if(isTRUE(getOption("covr"))) {
                           ")
     
     set.seed(1)
-    pr_t = compute(product_test, {
-        # recode age by groups
-        age_cat = if_val(s2a, lo %thru% 25 ~ 1, lo %thru% hi ~ 2)
-        
-        var_lab(c1) = "Preferences"
-        val_lab(c1) = num_lab("
-                           1 VSX123 
-                           2 SDF456
-                           3 Hard to say
-                           ")
-        
-        var_lab(age_cat) = "Age"
-        val_lab(age_cat) = c("18 - 25" = 1, "26 - 35" = 2)
-        
-        var_lab(a1_1) = "Likes. VSX123"
-        var_lab(b1_1) = "Likes. SDF456"
-        val_lab(a1_1) = codeframe_likes
-        val_lab(b1_1) = codeframe_likes
-        
-        var_lab(a22) = "Overall quality. VSX123"
-        var_lab(b22) = "Overall quality. SDF456"
-        val_lab(a22) = num_lab("
-                           1 Extremely poor 
-                           2 Very poor
-                           3 Quite poor
-                           4 Neither good, nor poor
-                           5 Quite good
-                           6 Very good
-                           7 Excellent
-                           ")
-        val_lab(b22) = val_lab(a22)
-        wgt = runif(.N, 0.25, 4)
-    })
+    pr_t = product_test %>% 
+        let(
+            # recode age by groups
+            age_cat = if_val(s2a, lo %thru% 25 ~ 1, lo %thru% hi ~ 2),
+            wgt = runif(.N, 0.25, 4)
+        ) %>% 
+        apply_labels(
+            
+            c1 = "Preferences",
+            c1 = num_lab("
+                   1 VSX123 
+                   2 SDF456
+                   3 Hard to say
+                   "),
+            
+            age_cat = "Age",
+            age_cat = c("18 - 25" = 1, "26 - 35" = 2),
+            
+            a1_1 = "Likes. VSX123",
+            b1_1 = "Likes. SDF456",
+            a1_1 = codeframe_likes,
+            b1_1 = codeframe_likes,
+            
+            a22 = "Overall quality. VSX123",
+            b22 = "Overall quality. SDF456",
+            a22 = num_lab("
+                   1 Extremely poor 
+                   2 Very poor
+                   3 Quite poor
+                   4 Neither good, nor poor
+                   5 Quite good
+                   6 Very good
+                   7 Excellent
+                   "),
+            b22 = val_lab(a22)
+            
+        )
     
     
     
@@ -572,7 +576,7 @@ if(isTRUE(getOption("covr"))) {
     )
     
     # for code coverage
-    res = pr_t %calc% cro_cases(list(mrset(a1_1 %to% a1_6), a22),
+    res = pr_t %>% cross_cases(list(mrset(a1_1 %to% a1_6), a22),
                                 list(mrset(b1_1 %to% b1_6), b22),
                                 total_statistic = c("u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct",
                                                     "w_cases", "w_responses", "w_cpct", "w_rpct", "w_tpct")
@@ -583,7 +587,7 @@ if(isTRUE(getOption("covr"))) {
         "rds/ctable20_1.rds",  update = FALSE
     )
     
-    res = pr_t %calc% cro_cases(list(mrset(a1_1 %to% a1_6), a22),
+    res = pr_t %>% cross_cases(list(mrset(a1_1 %to% a1_6), a22),
                                 list(mrset(b1_1 %to% b1_6), b22),
                                 weight = 1,
                                 total_statistic = c("u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct")

@@ -6,24 +6,22 @@ suppressWarnings(RNGversion("3.5.0"))
 context("cro_fun_df")
 
 data(mtcars)
-mtcars = modify(mtcars,{
-    var_lab(mpg) = "Miles/(US) gallon"
-    var_lab(cyl) = "Number of cylinders"
-    var_lab(disp) = "Displacement (cu.in.)"
-    var_lab(hp) = "Gross horsepower"
-    var_lab(drat) = "Rear axle ratio"
-    var_lab(wt) = "Weight (lb/1000)"
-    var_lab(qsec) = "1/4 mile time"
+mtcars = apply_labels(mtcars,
+                      mpg = "Miles/(US) gallon",
+                      cyl = "Number of cylinders",
+                      disp = "Displacement (cu.in.)",
+                      hp = "Gross horsepower",
+                      drat = "Rear axle ratio",
+                      wt = "Weight (lb/1000)",
+                      qsec = "1/4 mile time",
+                      vs = "V/S",
+                      vs = c("Straight" = 0, "V" = 1),
+                      am = "Transmission (0 = automatic, 1 = manual)",
+                      am = c(" automatic" = 0, " manual" =  1),
+                      gear = "Number of forward gears",
+                      carb = "Number of carburetors"
+)
 
-    var_lab(vs) = "V/S"
-    val_lab(vs) = c("Straight" = 0, "V" = 1)
-
-    var_lab(am) = "Transmission (0 = automatic, 1 = manual)"
-    val_lab(am) = c(" automatic" = 0, " manual" =  1)
-
-    var_lab(gear) = "Number of forward gears"
-    var_lab(carb) = "Number of carburetors"
-})
 
 expect_equal_to_reference(
     mtcars %$% cro_fun_df(mpg, 
@@ -167,7 +165,7 @@ expect_equal_to_reference(
 )
 
 expect_equal_to_reference(
-    mtcars[FALSE,] %calc% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars[FALSE,] %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                            col_vars = list(total(1), am), 
                                            fun = colMeans
     )
@@ -175,12 +173,12 @@ expect_equal_to_reference(
 )
 
 expect_identical(
-    mtcars[FALSE,] %$% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars[FALSE,] %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                            col_vars = list(total(1), am), 
                                            fun = colMeans
     )
     ,
-    mtcars %$% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                            col_vars = list(total(1), am), 
                                            fun = colMeans,
                              subgroup = FALSE
@@ -188,11 +186,11 @@ expect_identical(
 )
 
 expect_identical(
-    mtcars[FALSE,] %$% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars[FALSE,] %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                            col_vars = am, 
                                            fun = colMeans
     )
-    ,    mtcars %$% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    ,    mtcars %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                                 col_vars = am, 
                                                 fun = colMeans,
                                   subgroup = FALSE
@@ -202,11 +200,11 @@ expect_identical(
 
 
 expect_identical(
-    mtcars %>% where(cyl == 6) %calc% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars[mtcars$cyl == 6,] %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                            col_vars = am, 
                                            fun = colMeans
     ),
-    mtcars %calc% cro_fun_df(vars(!fixed("vs") & !fixed("am")), 
+    mtcars %>% cross_fun_df(vars(!fixed("vs") & !fixed("am")), 
                                   col_vars = am, 
                                   fun = colMeans,
                                   subgroup = cyl==6
@@ -293,7 +291,7 @@ expect_equal_to_reference(
 
 val_lab(mtcars$am) = val_lab(mtcars$am)[1:2] 
 expect_equal_to_reference(
-    calc_cro_pearson(mtcars, ..[!perl("vs|am")], col_vars = am)
+    cross_pearson(mtcars, ..[!perl("vs|am")], col_vars = am)
     ,"rds/table_cor_1.rds",  update = FALSE
 )
 
@@ -303,18 +301,18 @@ expect_equal_to_reference(
 )
 
 expect_equal_to_reference(
-    calc_cro_spearman(mtcars, ..[!perl("vs|am")], col_vars = am)
+    cross_spearman(mtcars, ..[!perl("vs|am")], col_vars = am)
     ,"rds/table_cor_2.rds",  update = FALSE
 )
 
 expect_equal_to_reference(
-    mtcars %>% where(FALSE) %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am)
+    mtcars[FALSE,] %>% cross_pearson(vars(!perl("vs|am")), col_vars = am)
     ,"rds/table_cor_1a.rds",  update = FALSE
 )
 
 
 expect_equal_to_reference(
-    mtcars %>% where(FALSE) %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am)
+    mtcars[FALSE,] %>% cross_pearson(vars(!perl("vs|am")), col_vars = am)
     ,"rds/table_cor_1a.rds",  update = FALSE
 )
 
@@ -329,52 +327,52 @@ expect_equal_to_reference(
 )
 
 expect_identical(
-    mtcars %>% where(FALSE) %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am)
+    mtcars[FALSE,] %>% cross_pearson(vars(!perl("vs|am")), col_vars = am)
     ,
-    mtcars  %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am, subgroup = FALSE)
+    mtcars %>% cross_pearson(vars(!perl("vs|am")), col_vars = am, subgroup = FALSE)
 )
 
 expect_identical(
-    mtcars %>% where(FALSE) %calc% cro_spearman(vars(!perl("vs|am")), col_vars = am)
+    mtcars[FALSE,] %>% cross_spearman(vars(!perl("vs|am")), col_vars = am)
     ,
-    mtcars  %calc% cro_spearman(vars(!perl("vs|am")), col_vars = am, subgroup = FALSE)
+    mtcars %>% cross_spearman(vars(!perl("vs|am")), col_vars = am, subgroup = FALSE)
 )
 
 expect_identical(
-    mtcars %>% where(cyl == 8) %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am)
+    mtcars[mtcars$cyl == 8,] %>% cross_pearson(vars(!perl("vs|am")), col_vars = am)
     ,
-    mtcars  %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am, subgroup = (cyl == 8))
+    mtcars %>% cross_pearson(vars(!perl("vs|am")), col_vars = am, subgroup = (cyl == 8))
 )
 
 
 expect_identical(
-    mtcars %>% where(cyl > 4) %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am, row_vars = cyl)
+    mtcars[mtcars$cyl > 4,] %>% cross_pearson(vars(!perl("vs|am")), col_vars = am, row_vars = cyl)
     ,
-    mtcars  %calc% cro_pearson(vars(!perl("vs|am")), col_vars = am, row_vars = cyl, subgroup = (cyl > 4))
+    mtcars %>% cross_pearson(vars(!perl("vs|am")), col_vars = am, row_vars = cyl, subgroup = (cyl > 4))
 )
 
 expect_identical(
-    mtcars %>% where(cyl == 8) %calc% cro_spearman(vars(!perl("vs|am")), col_vars = am)
+    mtcars[mtcars$cyl == 8,] %>% cross_spearman(vars(!perl("vs|am")), col_vars = am)
     ,
-    mtcars  %calc% cro_spearman(vars(!perl("vs|am")), col_vars = am, subgroup = (cyl == 8))
+    mtcars %>% cross_spearman(vars(!perl("vs|am")), col_vars = am, subgroup = (cyl == 8))
 )
 
 set.seed(1)
 weight = runif(nrow(mtcars), 1,2)
 expect_equal_to_reference(
-    cro_pearson(mtcars %>% except(vs, am), col_vars = mtcars$am, weight = weight)
+    cro_pearson(mtcars %>% columns(-vs, -am), col_vars = mtcars$am, weight = weight)
     ,"rds/table_cor_3.rds",  update = FALSE
 )
 expect_equal_to_reference(
-    cro_spearman(mtcars %>% except(vs, am), col_vars = mtcars$am, weight = weight)
+    cro_spearman(mtcars %>% columns(-vs, -am), col_vars = mtcars$am, weight = weight)
     ,"rds/table_cor_4.rds",  update = FALSE
 )
 
 
-expect_equal(cro_pearson(mtcars %>% except(vs, am), col_vars = "Total")[[2]],
-             unname(cor(mtcars %>% except(vs, am))[,1]))
-expect_equal(cro_spearman(mtcars %>% except(vs, am), col_vars = "Total")[[2]],
-             unname(cor(mtcars %>% except(vs, am), method = "spearman")[,1]))
+expect_equal(cro_pearson(mtcars %>% columns(-vs, -am), col_vars = "Total")[[2]],
+             unname(cor(mtcars %>% columns(-vs, -am))[,1]))
+expect_equal(cro_spearman(mtcars %>% columns(-vs, -am), col_vars = "Total")[[2]],
+             unname(cor(mtcars %>% columns(-vs, -am), method = "spearman")[,1]))
 
 
 context("table_summary_df datetime")
@@ -407,7 +405,7 @@ expect_equal_to_reference(
 )
 
 expect_equal_to_reference(
-    calc_cro_mean(mtcars, list(mpg, mpg, mpg, mpg), list(am)),
+    cross_mean(mtcars, list(mpg, mpg, mpg, mpg), list(am)),
     "rds/cro_fun_df_duplicated_names.rds",  update = FALSE
 )
 

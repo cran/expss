@@ -72,17 +72,18 @@ All functions except \code{apply_*} return numeric vector of length
   on supplied \code{fun} function.
 }
 \description{
-These functions are intended for usage inside \link{compute}, and
-\link{do_if}. sum/mean/sd/median/max/min by default omits NA. \code{any_in_*}
+These functions are intended for usage inside \link[maditr]{let}, and
+\link[maditr]{let_if}. sum/mean/sd/median/max/min by default omits NA. \code{any_in_*}
 checks existence of any TRUE in each row/column. It is equivalent of
 \link[base]{any} applied to each row/column. \code{all_in_*} is equivalent of
 \link[base]{all} applied to each row/column.
 }
 \examples{
-iris = compute(iris, {
-  new_median = median_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
-  new_mean = mean_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
-  })
+iris = iris \%>\% 
+    let( 
+        new_median = median_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width),
+        new_mean = mean_row(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+    )
   
 dfs = data.frame(
     test = 1:5,
@@ -95,19 +96,23 @@ dfs = data.frame(
 )
 
 # calculate sum of b* variables
-compute(dfs, {
-    b_total = sum_row(b_, b_1 \%to\% b_5)
-})
+dfs \%>\% 
+    let( 
+        b_total = sum_row(b_, b_1 \%to\% b_5)
+    ) \%>\% 
+    print()
 
 # conditional modification
-do_if(dfs, test \%in\% 2:4, {
-    b_total = sum_row(b_, b_1 \%to\% b_5)
-})
+dfs \%>\% 
+    let_if(test \%in\% 2:4, 
+        b_total = sum_row(b_, b_1 \%to\% b_5)
+    ) \%>\% 
+    print()
 
 
 }
 \seealso{
-\link{compute}, \link{do_if}, \link{\%to\%}, \link{count_if},
+\link{\%to\%}, \link{count_if},
   \link{sum_if}, \link{mean_if}, \link{median_if}, \link{sd_if},
   \link{min_if}, \link{max_if}
 }

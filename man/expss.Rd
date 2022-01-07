@@ -18,7 +18,7 @@ in the vignette and in the help.
 \item{SUM }{\link{sum_row}}
 \item{MIN }{\link{min_row}}
 \item{MAX }{\link{max_row}}
-\item{VLOOKUP }{\link{vlookup}}
+\item{VLOOKUP }{\link[maditr]{vlookup}}
 \item{COUNTIF }{\link{count_if}}
 \item{AVERAGEIF }{\link{mean_row_if}}
 \item{SUMIF }{\link{sum_row_if}}
@@ -28,18 +28,15 @@ in the vignette and in the help.
 \item{IFNA }{\link{if_na}}
 \item{MATCH }{\link{match_row}}
 \item{INDEX }{\link{index_row}}
-\item{PIVOT TABLES }{\link{tables}, \link{cro_fun}, \link{cro}}
+\item{PIVOT TABLES }{\link{tables}, \link{cross_fun}, \link{cross_cpct}}
 }
 }
 
 \section{SPSS}{
 
 \itemize{
-\item{COMPUTE }{\link{compute}}
 \item{RECODE }{\link{recode}}
 \item{COUNT }{\link{count_row_if}}
-\item{DO IF }{\link{do_if}}
-\item{DO REPEAT }{\link{do_repeat}}
 \item{VARIABLE LABELS }{\link{var_lab}}
 \item{VALUE LABELS }{\link{val_lab}}
 \item{ANY }{\link{any_in_row}}

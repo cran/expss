@@ -92,28 +92,40 @@ correlation matrix of a numeric matrix/data.frame}}
 \details{
 If argument of correlation functions is data.frame with variable labels then
 variables names will be replaced with labels. If this is undesirable behavior
-use \link{unvr} function: \code{w_cor(unvr(x))}. Weighted spearman
-correlation coefficients are calculated with rounded to nearest integer
-weights. It gives the same result as in SPSS Statistics software. By now this
-algorithm is not memory efficient.
+use \link{drop_var_labs} function: \code{w_cor(drop_var_labs(x))}. Weighted
+Spearman correlation coefficients are calculated with weights rounded to nearest
+integer. It gives the same result as in SPSS Statistics software. By
+now this algorithm is not memory efficient.
 }
 \examples{
 data(mtcars)
-dfs = mtcars \%>\% keep(mpg, disp, hp, wt)
+dfs = mtcars \%>\% columns(mpg, disp, hp, wt)
 
 with(dfs, w_mean(hp, weight = 1/wt))
 
 # apply labels
-dfs = modify(dfs, {
-         var_lab(mpg) = "Miles/(US) gallon"
-         var_lab(disp) = "Displacement (cu.in.)"
-         var_lab(hp) = "Gross horsepower"
-         var_lab(wt) = "Weight (1000 lbs)"
-})
+mtcars = mtcars \%>\% 
+    apply_labels(
+        mpg = "Miles/(US) gallon",
+        cyl = "Number of cylinders",
+        disp = "Displacement (cu.in.)",
+        hp = "Gross horsepower",
+        drat = "Rear axle ratio",
+        wt = "Weight (lb/1000)",
+        qsec = "1/4 mile time",
+        vs = "Engine",
+        vs = c("V-engine" = 0, 
+                "Straight engine" = 1),
+        am = "Transmission",
+        am = c(automatic = 0, 
+                manual=1),
+        gear = "Number of forward gears",
+        carb = "Number of carburetors"
+    )
 
 # weighted correlations with labels
 w_cor(dfs, weight = 1/dfs$wt)
 
 # without labels
-w_cor(unvr(dfs), weight = 1/dfs$wt)
+w_cor(drop_var_labs(dfs), weight = 1/dfs$wt)
 }

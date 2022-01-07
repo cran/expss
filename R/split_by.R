@@ -23,20 +23,9 @@
 #' @return \code{split_by} returns list of data.frames/\code{split_off}
 #'   returns data.frame
 #' @export
-#' @seealso \link[base]{split}, \link{compute}, \link{calculate},
-#'   \link{do_repeat}, \link{where}
+#' @seealso \link[base]{split}
 #'
 #' @examples
-#' # example from base R 'split'
-#' data(airquality)
-#' airquality2 = airquality %>% 
-#'     split_by(Month) %>% 
-#'     compute({
-#'         Ozone_zscore = scale(Ozone)
-#'     }) %>% 
-#'     split_off() 
-#'     
-#' head(airquality2)
 #' 
 #' # usage of 'groups', 'rownames'
 #' data(mtcars)
@@ -59,8 +48,8 @@
 #'                                    ")
 #'     ) %>% 
 #'     split_by(am, vs) %>% 
-#'     use_labels({
-#'         res = lm(mpg ~ hp + disp + wt)
+#'     to_list({
+#'         res = lm(mpg ~ hp + disp + wt, data = .x)
 #'         cbind(Coef. = coef(res), confint(res))
 #'     }) %>% 
 #'     split_off(groups = TRUE, rownames = "variable")
@@ -74,7 +63,7 @@ split_by = function(data, ..., drop = TRUE){
 split_by.data.frame = function(data, ..., drop = TRUE){
     variables_names = substitute(list(...))
     stopif(length(variables_names)==0, "'split_by' - no grouping variables.")
-    splitter = eval.parent(substitute(keep(data, ...)))
+    splitter = eval.parent(substitute(columns(data, ...)))
     splitter = do.call(nest, splitter)
     if(drop && is.labelled(splitter)){
         splitter = drop_unused_labels(splitter)

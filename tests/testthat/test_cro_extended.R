@@ -2,17 +2,17 @@ context("cro extended")
 suppressWarnings(RNGversion("3.5.0"))
 
 data(mtcars)
-mtcars = modify(mtcars,{
-    var_lab(vs) = "Engine"
-    val_lab(vs) = c("V-engine" = 0,
-                    "Straight engine" = 1)
-    var_lab(am) = "Transmission"
-    val_lab(am) = c(automatic = 0,
-                    manual=1)
-})
+
+var_lab(mtcars$vs) = "Engine"
+val_lab(mtcars$vs) = c("V-engine" = 0,
+                "Straight engine" = 1)
+var_lab(mtcars$am) = "Transmission"
+val_lab(mtcars$am) = c(automatic = 0,
+                manual=1)
+
 
 expect_known_value(cro(mtcars$am, mtcars$vs), "rds/table_cases1.rds",  update = FALSE)
-expect_known_value(calc_cro_cases(mtcars, am, vs), "rds/table_cases1.rds",  update = FALSE)
+expect_known_value(cross_cases(mtcars, am, vs), "rds/table_cases1.rds",  update = FALSE)
 expect_known_value(cro(mtcars$am, mtcars$vs, total_row_position = "none"), "rds/table_cases2.rds",  update = FALSE)
 expect_known_value(cro(mtcars$am, mtcars$vs, total_row_position = "above"), "rds/table_cases3.rds",  update = FALSE)
 expect_known_value(cro(mtcars$am, mtcars$vs, total_row_position = "below"), "rds/table_cases1.rds",  update = FALSE)
@@ -82,23 +82,24 @@ expect_known_value(cro(list(mrset("Total")), list(mrset(mult2)), weight = weight
 # with(mtcars, cro(am, vs))
 
 data(mtcars)
-mtcars = modify(mtcars,{
-    var_lab(mpg) = "Miles/(US) gallon"
-    var_lab(cyl) = "Number of cylinders"
-    var_lab(disp) = "Displacement (cu.in.)"
-    var_lab(hp) = "Gross horsepower"
-    var_lab(drat) = "Rear axle ratio"
-    var_lab(wt) = "Weight (lb/1000)"
-    var_lab(qsec) = "1/4 mile time"
-    var_lab(vs) = "Engine"
-    val_lab(vs) = c("V-engine" = 0,
-                    "Straight engine" = 1)
-    var_lab(am) = "Transmission"
-    val_lab(am) = c(automatic = 0,
-                    manual=1)
-    var_lab(gear) = "Number of forward gears"
-    var_lab(carb) = "Number of carburetors"
-})
+mtcars = mtcars %>% 
+    apply_labels(
+        mpg = "Miles/(US) gallon",
+        cyl = "Number of cylinders",
+        disp = "Displacement (cu.in.)",
+        hp = "Gross horsepower",
+        drat = "Rear axle ratio",
+        wt = "Weight (lb/1000)",
+        qsec = "1/4 mile time",
+        vs = "Engine",
+        vs = c("V-engine" = 0, 
+                "Straight engine" = 1),
+        am = "Transmission",
+        am = c(automatic = 0, 
+                manual=1),
+        gear = "Number of forward gears",
+        carb = "Number of carburetors"
+    )
 expect_known_value(cro(list(mtcars$am), list(mtcars$vs)), "rds/table_cases1.rds",  update = FALSE)
 expect_known_value(cro(list(mtcars$am, mtcars$vs), list(mtcars$vs)), "rds/table_cases22.rds",  update = FALSE)
 expect_known_value(cro(list(mtcars$am, list(mtcars$vs)), list(mtcars$vs)), "rds/table_cases22.rds",  update = FALSE)
@@ -226,42 +227,42 @@ val_lab(product_test$a1_1) = codeframe_likes
 var_lab(product_test$b1_1) = "Likes. SDF456"
 val_lab(product_test$b1_1) = codeframe_likes
 expect_known_value(
-    calc(product_test, cro(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
+    query(product_test, cro(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
     "rds/cro_mult_by_mult.rds",  update = FALSE)
 
 expect_known_value(
-    calc(product_test, cro_cpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
+    query(product_test, cro_cpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
     "rds/cro_cpct_mult_by_mult.rds",  update = FALSE)
 
 expect_known_value(
-    calc_cro_cpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
+    cross_cpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
     "rds/cro_cpct_mult_by_mult.rds",  update = FALSE)
 
 expect_known_value(
-    calc(product_test, cro_cpct_responses(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
+    query(product_test, cro_cpct_responses(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
     "rds/cro_cpct_responses_mult_by_mult.rds",  update = FALSE)
 
 
 expect_known_value(
-    calc_cro_cpct_responses(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
+    cross_cpct_responses(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
     "rds/cro_cpct_responses_mult_by_mult.rds",  update = FALSE)
 
 
 expect_known_value(
-    calc(product_test, cro_rpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
+    query(product_test, cro_rpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
     "rds/cro_rpct_mult_by_mult.rds",  update = FALSE)
 
 expect_known_value(
-    calc_cro_rpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
+    cross_rpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
     "rds/cro_rpct_mult_by_mult.rds",  update = FALSE)
 
 
 expect_known_value(
-    calc(product_test, cro_tpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
+    query(product_test, cro_tpct(mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6))),
     "rds/cro_tpct_mult_by_mult.rds",  update = FALSE)
 
 expect_known_value(
-    calc_cro_tpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
+    cross_tpct(product_test, mrset(a1_1 %to% a1_6), mrset(b1_1 %to% b1_6)),
     "rds/cro_tpct_mult_by_mult.rds",  update = FALSE)
 
 set.seed(1)
@@ -277,7 +278,7 @@ expect_known_value(
 )
 
 expect_known_value(
-    calc_cro_cpct(df, mdset(var_orange, var_banana, var_melon, var_mango), list(area)),
+    cross_cpct(df, mdset(var_orange, var_banana, var_melon, var_mango), list(area)),
     "rds/cro_mdset_names_of_result.rds",  update = FALSE
 )
 

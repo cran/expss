@@ -2,15 +2,47 @@
 % Please edit documentation in R/merge.R
 \name{merge.etable}
 \alias{merge.etable}
-\alias{\%merge\%}
 \title{Merge two tables/data.frames}
 \usage{
-x \%merge\% y
+\method{merge}{etable}(
+  x,
+  y,
+  by = 1,
+  by.x = by,
+  by.y = by,
+  all = TRUE,
+  all.x = all,
+  all.y = all,
+  sort = FALSE,
+  suffixes = c("", ""),
+  incomparables = NULL,
+  ...
+)
 }
 \arguments{
-\item{x}{data.frame or results of \code{fre}/\code{cro_*}/\code{table_*}}
+\item{x}{data.frame or results of \code{fre}/\code{cross_*}/\code{table_*}}
 
-\item{y}{data.frame or results of \code{fre}/\code{cro_*}/\code{table_*}}
+\item{y}{data.frame or results of \code{fre}/\code{cross_*}/\code{table_*}}
+
+\item{by}{for 'etable' object default is 1 (first column). For details see \link[base]{merge}}
+
+\item{by.x}{For details see \link[base]{merge}}
+
+\item{by.y}{For details see \link[base]{merge}}
+
+\item{all}{For details see \link[base]{merge}}
+
+\item{all.x}{For details see \link[base]{merge}}
+
+\item{all.y}{For details see \link[base]{merge}}
+
+\item{sort}{For details see \link[base]{merge}}
+
+\item{suffixes}{For details see \link[base]{merge}}
+
+\item{incomparables}{For details see \link[base]{merge}}
+
+\item{...}{arguments to be passed to or from methods.}
 }
 \value{
 data.frame
@@ -18,7 +50,7 @@ data.frame
 \description{
 \code{\%merge\%} is infix shortcut for base \link[base]{merge} with 
 \code{all.x = TRUE} and  \code{all.y = FALSE} (left join). There is also 
-special method for combining results of \code{cro_*} and \code{fre}. For them
+special method for combining results of \code{cross_*} and \code{fre}. For them
 \code{all = TRUE} (full join). It allows make complex tables from simple
 ones. See examples. Strange result is possible if one or two arguments have
 duplicates in first column (column with labels).
@@ -43,22 +75,22 @@ mtcars = apply_labels(mtcars,
 )
 
 # table by 'am'
-tab1 = calculate(mtcars, cro_cpct(gear, am))
+tab1 = cross_cpct(mtcars, gear, am)
 # table with percents
-tab2 = calculate(mtcars, cro_cpct(gear, vs))
+tab2 = cross_cpct(mtcars, gear, vs)
 
 # combine tables
-tab1 \%merge\% tab2
+tab1 \%>\% merge(tab2)
 
 # complex tables
 # table with counts
-counts = calculate(mtcars, cro(list(vs, am, gear, carb), list("Count")))
+counts = cross_cases(mtcars, list(vs, am, gear, carb), list("Count"))
 # table with percents
-percents = calculate(mtcars, cro_cpct(list(vs, am, gear, carb), list("Column, \%")))
+percents = cross_cpct(mtcars, list(vs, am, gear, carb), list("Column, \%"))
 
 # combine tables
-counts \%merge\% percents
+counts \%>\% merge(percents)
 }
 \seealso{
-\link{fre}, \link{cro}, \link{cro}, \link{cro_fun}, \link[base]{merge}
+\link{fre}, \link{cross_cpct}, \link{cross_fun}, \link[base]{merge}
 }

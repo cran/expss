@@ -216,13 +216,13 @@ if(require(openxlsx, quietly = TRUE, warn.conflicts = FALSE)){
         res_list = c(res_list, list(mtcars_table))
         colnames(mtcars_table)[1] = "My table"
         new_am = mtcars$am
-        mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-            cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+        mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %>% 
+            merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
         res_list = c(res_list, list(mtcars_table))
         var_lab(new_am) = "|"
         val_lab(new_am) = setNames(0:1, c("", " "))
-        mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-            cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+        mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %>% 
+            merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
         colnames(mtcars_table)[7] = ""
         res_list = c(res_list, list(mtcars_table))
         data("product_test")
@@ -235,11 +235,13 @@ if(require(openxlsx, quietly = TRUE, warn.conflicts = FALSE)){
             tab_pivot(stat_position = "inside_columns")
         res_list = c(res_list, list(mtcars_table))
         mtcars_table = product_test %>%
-            compute({
+            let(
                 total = 1
-                var_lab(total) = "Total"
-                val_lab(total) = setNames(1, " ")
-            }) %>% 
+            ) %>% 
+            apply_labels(
+                total = "Total",
+                total = setNames(1, " ")
+            ) %>% 
             tab_cols(total) %>%
             tab_cells(unvr(mrset(a1_1 %to% a1_6))) %>%
             tab_stat_cpct() %>%

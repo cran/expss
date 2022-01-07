@@ -254,7 +254,7 @@ applies function on each variable in cells separately, \code{tab_stat_fun_df}
 gives to function each data.frame in cells as a whole 
 \link[data.table]{data.table} with all names converted to variable labels (if
 labels exists). So it is not recommended to rely on original variables names 
-in your \code{fun}. For details see \link{cro_fun}. You can provide several
+in your \code{fun}. For details see \link{cross_fun}. You can provide several
 functions as arguments. They will be combined as with
 \link{combine_functions}. So you can use \code{method} argument. For details
 see documentation for \link{combine_functions}. }
@@ -425,7 +425,7 @@ mtcars \%>\%
     tab_stat_cpct(label = "Col \%") \%>\% 
     tab_pivot(stat_label = "outside")
     
-# example from 'cro_fun_df' - linear regression by groups with sorting 
+# example from 'cross_fun_df' - linear regression by groups with sorting 
 mtcars \%>\% 
     tab_cells(sheet(mpg, disp, hp, wt, qsec)) \%>\% 
     tab_cols(total(), am) \%>\% 
@@ -457,21 +457,22 @@ codeframe_likes = num_lab("
                           ")
 
 set.seed(1)
-product_test = compute(product_test, {
-    # recode age by groups
-    age_cat = recode(s2a, lo \%thru\% 25 ~ 1, lo \%thru\% hi ~ 2)
-    
-    var_lab(age_cat) = "Age"
-    val_lab(age_cat) = c("18 - 25" = 1, "26 - 35" = 2)
-    
-    var_lab(a1_1) = "Likes. VSX123"
-    var_lab(b1_1) = "Likes. SDF456"
-    val_lab(a1_1) = codeframe_likes
-    val_lab(b1_1) = codeframe_likes
-    
-    wgt = runif(.N, 0.25, 4)
-    wgt = wgt/sum(wgt)*.N
-})
+product_test = product_test \%>\% 
+    let(
+        # recode age by groups
+        age_cat = recode(s2a, lo \%thru\% 25 ~ 1, lo \%thru\% hi ~ 2),
+        wgt = runif(.N, 0.25, 4),
+        wgt = wgt/sum(wgt)*.N
+    ) \%>\% 
+    apply_labels(
+        age_cat = "Age",
+        age_cat = c("18 - 25" = 1, "26 - 35" = 2),
+        
+        a1_1 = "Likes. VSX123",
+        b1_1 = "Likes. SDF456",
+        a1_1 = codeframe_likes,
+        b1_1 = codeframe_likes
+    )
 
 product_test \%>\% 
     tab_cells(mrset(a1_1 \%to\% a1_6), mrset(b1_1 \%to\% b1_6)) \%>\% 
@@ -505,6 +506,6 @@ for(each in c("mpg", "disp", "hp", "qsec")){
 tables \%>\% tab_pivot()
 }
 \seealso{
-\link{fre}, \link{cro}, \link{cro_fun}, \link{tab_sort_asc},
+\link{fre}, \link{cross_cases}, \link{cross_fun}, \link{tab_sort_asc},
   \link{drop_empty_rows}, \link{significance}.
 }

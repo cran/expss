@@ -12,7 +12,7 @@
 #' \item{SUM }{\link{sum_row}}
 #' \item{MIN }{\link{min_row}}
 #' \item{MAX }{\link{max_row}}
-#' \item{VLOOKUP }{\link{vlookup}}
+#' \item{VLOOKUP }{\link[maditr]{vlookup}}
 #' \item{COUNTIF }{\link{count_if}}
 #' \item{AVERAGEIF }{\link{mean_row_if}}
 #' \item{SUMIF }{\link{sum_row_if}}
@@ -22,15 +22,12 @@
 #' \item{IFNA }{\link{if_na}}
 #' \item{MATCH }{\link{match_row}}
 #' \item{INDEX }{\link{index_row}}
-#' \item{PIVOT TABLES }{\link{tables}, \link{cro_fun}, \link{cro}}
+#' \item{PIVOT TABLES }{\link{tables}, \link{cross_fun}, \link{cross_cpct}}
 #' }
 #' @section SPSS:
 #' \itemize{
-#' \item{COMPUTE }{\link{compute}}
 #' \item{RECODE }{\link{recode}}
 #' \item{COUNT }{\link{count_row_if}}
-#' \item{DO IF }{\link{do_if}}
-#' \item{DO REPEAT }{\link{do_repeat}}
 #' \item{VARIABLE LABELS }{\link{var_lab}}
 #' \item{VALUE LABELS }{\link{val_lab}}
 #' \item{ANY }{\link{any_in_row}}
@@ -45,188 +42,17 @@
 NULL
 
 
-#' @import data.table
+#' @import maditr
 #' @import htmlTable 
-#' @import magrittr
-#' @import foreign stats utils matrixStats
+#' @import stats utils matrixStats
+#' @importFrom data.table data.table
 
-
-data.table = data.table::data.table
-as.data.table = data.table::as.data.table
-setkeyv = data.table::setkeyv
+data.table = maditr::data.table
+as.data.table = maditr::as.data.table
+setkeyv = maditr::setkeyv
 # fwrite = data.table::fwrite
 # fread = data.table::fread
 # '[.data.table' = data.table::`[.data.table`
-
-
-#' @export
-magrittr::`%>%`
-
-#' @export
-magrittr::`%<>%`
-
-#' @export
-magrittr::`%$%`
-
-#' @export
-data.table::data.table
-
-#' @export
-data.table::as.data.table
-
-#' @export
-data.table::is.data.table
-
-#' @export
-data.table::setDF
-
-#' @export
-data.table::setDT
-
-#' @export
-data.table::setkey
-
-#' @export
-data.table::setkeyv
-
-#' @export
-data.table::fread
-
-#' @export
-data.table::fwrite
-
-#' @export
-data.table::shift
-
-#' @export
-data.table::first
-
-#' @export
-data.table::last
-
-
-#' @export
-data.table::setorder
-
-#' @export
-data.table::setcolorder
-
-#' @export
-data.table::between
-
-#' @export
-data.table::chgroup
-
-#' @export
-data.table::chmatch
-
-#' @export
-data.table::chorder
-
-#' @export
-data.table::CJ
-
-#' @export
-data.table::fintersect
-
-#' @export
-data.table::foverlaps
-
-#' @export
-data.table::frank
-
-#' @export
-data.table::frankv
-
-#' @export
-data.table::fsetdiff
-
-#' @export
-data.table::fsetequal
-
-#' @export
-data.table::fsort
-
-#' @export
-data.table::funion
-
-#' @export
-data.table::getDTthreads
-
-
-#' @export
-data.table::haskey
-
-#' @export
-data.table::indices
-
-#' @export
-data.table::inrange
-
-#' @export
-data.table::key
-
-
-#' @export
-data.table::rbindlist
-
-#' @export
-data.table::rleid
-
-#' @export
-data.table::rleidv
-
-#' @export
-data.table::rowid
-
-#' @export
-data.table::rowidv
-
-#' @export
-data.table::set
-
-#' @export
-data.table::setattr
-
-#' @export
-data.table::setcolorder
-
-#' @export
-data.table::setDTthreads
-
-#' @export
-data.table::setindex
-
-#' @export
-data.table::setindexv
-
-#' @export
-data.table::setkey
-
-#' @export
-data.table::setkeyv
-
-#' @export
-data.table::setnames
-
-
-#' @export
-data.table::setorder
-
-#' @export
-data.table::setorderv
-
-#' @export
-data.table::SJ
-
-#' @export
-data.table::transpose
-
-#' @export
-data.table::tstrsplit
-
-#' @export
-data.table::uniqueN
 
 
 #' @export

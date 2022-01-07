@@ -5,9 +5,7 @@
 #' If \code{data} is list then \code{where} will be applied to each element of 
 #' the list. For other types (vector/matrix) there is no non-standard
 #' evaluation. There is a special constant \code{.N} which equals to number of
-#' rows in \code{data} for usage in \code{cond} expression. \code{.where} is
-#' version for working with default dataset. See \link{default_dataset}.
-#'  
+#' rows in \code{data} for usage in \code{cond} expression. 
 #' @param data data.frame/matrix/vector/list to be subsetted
 #' @param cond logical or numeric expression indicating elements or rows to 
 #'   keep: missing values (NA) are taken as FALSE. If \code{data} is data.frame
@@ -18,39 +16,25 @@
 #'
 #' @examples
 #' # leave only 'setosa'
-#' where(iris, Species == "setosa")
+#' rows(iris, Species == "setosa")
 #' # leave only first five rows
-#' where(iris, 1:5)
+#' rows(iris, 1:5)
 #' 
 #' 
 #' # example of .N usage. 
 #' set.seed(42)
-#' train = where(iris, sample(.N, 100))
+#' train = rows(iris, sample(.N, 100))
 #' str(train)
 #' 
 #' set.seed(42)
-#' test = where(iris, -sample(.N, 100))
+#' test = rows(iris, -sample(.N, 100))
 #' str(test)
 #' 
-#' # list example
-#' set.seed(123)
-#' rand_matr = matrix(sample(10, 60, replace = TRUE), ncol = 3)
-#' rand_vec = sample(10, 20, replace = TRUE)
-#' my_list = list(iris, rand_matr, rand_vec)
-#' # two random elements from the each list item
-#' where(my_list, sample(.N, 2))
 where = function (data, cond) {
+    .Deprecated(msg = "'where' is deprecated and will be removed in the next version. Please, use 'rows' from maditr package.")
     UseMethod("where")
 }
 
-
-#' @rdname where
-#' @export
-.where = function (cond) {
-    reference = suppressMessages(default_dataset())
-    ref(reference) = eval.parent(substitute(where(ref(reference), cond)))
-    invisible(data)
-}
 
 
 

@@ -65,30 +65,39 @@ expect_identical(add_rows(a, b), res)
 
 context("etable")
 data(mtcars)
-mtcars = modify(mtcars, {
-    var_lab(mpg) = "Miles/(US) gallon"
-    var_lab(vs) = "vs"
-    val_lab(vs) = c("V-engine" = 0, "Straight engine" = 1)
-    var_lab(am) = "am"
-    val_lab(am) = c("automatic transmission" = 1, "manual transmission" = 0)
-    var_lab(gear) = "gear"
-    var_lab(carb) = "carb"})
+mtcars = apply_labels(mtcars,
+                      mpg = "Miles/(US) gallon",
+                      cyl = "Number of cylinders",
+                      disp = "Displacement (cu.in.)",
+                      hp = "Gross horsepower",
+                      drat = "Rear axle ratio",
+                      wt = "Weight (lb/1000)",
+                      qsec = "1/4 mile time",
+                      vs = "Engine",
+                      vs = c("V-engine" = 0,
+                             "Straight engine" = 1),
+                      am = "Transmission",
+                      am = c("automatic transmission" = 1,
+                             "manual transmission"=0),
+                      gear = "Number of forward gears",
+                      carb = "Number of carburetors"
+)
+
 
 tab1 = with(mtcars, cro_mean(mpg, list(unvr(am), total())))
 tab2 = with(mtcars, cro_cpct(list(unvr(vs)), list(unvr(am), total())))
 tab3 = with(mtcars, cro_cpct(list(unvr(vs)), list(unvr(carb), total())))
 
 
-expect_known_value(tab1 %add_rows% tab2, "rds/add_rows7.rds",  update = FALSE)
-expect_identical(tab1 %add_rows% tab2, add_rows(tab1, tab2))
+expect_known_value(add_rows(tab1, tab2), "rds/add_rows7.rds",  update = FALSE)
+expect_identical(add_rows(tab1, tab2), add_rows(tab1, tab2))
 
-expect_known_value(tab1 %add_rows% tab3, "rds/add_rows8.rds",  update = FALSE)
-expect_identical(tab1 %add_rows% tab3, add_rows(tab1, tab3, nomatch_columns = "add"))
+expect_known_value(add_rows(tab1, tab3), "rds/add_rows8.rds",  update = FALSE)
+expect_identical(add_rows(tab1, tab3), add_rows(tab1, tab3, nomatch_columns = "add"))
 expect_known_value(add_rows(tab1, tab3, nomatch_columns = "drop"), "rds/add_rows9.rds",  update = FALSE)
 expect_error(add_rows(tab1, tab3, nomatch_columns = "stop"))
 
 
-expect_known_value(with(mtcars, fre(am) %add_rows% fre(vs)), "rds/add_rows10.rds",  update = FALSE)
 
 a = matrix(1:9, 3)
 expect_identical(add_rows(a, NA), rbind(a, NA))

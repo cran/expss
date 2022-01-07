@@ -100,8 +100,8 @@ if(isTRUE(getOption("covr"))){
                             "rds/htmlTable12single2.rds",  update = FALSE)
   
   new_am = mtcars$am
-  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-    cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total"))  %>% 
+    merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
   
   expect_equal_to_reference(htmlTable(mtcars_table) ,
                             "rds/htmlTable13.rds",  update = FALSE)
@@ -111,8 +111,8 @@ if(isTRUE(getOption("covr"))){
   
   var_lab(new_am) = "|"
   val_lab(new_am) = setNames(0:1, c("", " "))
-  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %merge%
-    cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total"))
+  mtcars_table = cro_cpct(list(mtcars$vs %nest% mtcars$am), list(mtcars$vs %nest% mtcars$am, "#Total")) %>% 
+    merge(cro_cpct(list(mtcars$vs %nest% mtcars$am), list(new_am, "#Total")))
   colnames(mtcars_table)[7] = ""
   
   expect_equal_to_reference(htmlTable(mtcars_table) ,
@@ -163,11 +163,11 @@ if(isTRUE(getOption("covr"))){
   expect_equal_to_reference(htmlTable(res), "rds/htmlTable15.rds",  update = FALSE)
   
   res = product_test %>%
-    compute({
-      total = 1
-      var_lab(total) = "Total"
-      val_lab(total) = setNames(1, " ")
-    }) %>% 
+    let(
+      total = 1,
+      total = set_var_lab(total, "Total"),
+      total = val_lab(total, setNames(1, " "))
+    ) %>% 
     tab_cols(total) %>%
     tab_cells(unvr(mrset(a1_1 %to% a1_6))) %>%
     tab_stat_cpct() %>%
