@@ -2,13 +2,19 @@ Package: expss
 Type: Package
 Title: Tables, Labels and Some Useful Functions from Spreadsheets and
         'SPSS' Statistics
-Version: 0.11.2
+Version: 0.11.4
 Maintainer: Gregory Demin <gdemin@gmail.com>
 Authors@R: c(
          person("Gregory", "Demin", email = "gdemin@gmail.com",
          role = c("aut", "cre")),
          person("Sebastian", "Jeworutzki", email="Sebastian.Jeworutzki@ruhr-uni-bochum.de", 
-         role = c("ctb"), comment = c(ORCID = "0000-0002-2671-5253"))
+         role = c("ctb"), comment = c(ORCID = "0000-0002-2671-5253")),
+         person("Dan", "Chaltiel",  
+         role = c("ctb")),
+         person("John", "Williams",  
+         role = c("ctb")),
+         person("Tom", "Elliott", 
+         role = c("ctb"))
          )
 URL: https://gdemin.github.io/expss/
 BugReports: https://github.com/gdemin/expss/issues
@@ -33,8 +39,11 @@ LazyData: yes
 License: GPL (>= 2)
 RoxygenNote: 7.2.1
 NeedsCompilation: no
-Packaged: 2022-10-16 01:07:17 UTC; gregory
+Packaged: 2022-11-05 21:35:14 UTC; gregory
 Author: Gregory Demin [aut, cre],
-  Sebastian Jeworutzki [ctb] (<https://orcid.org/0000-0002-2671-5253>)
+  Sebastian Jeworutzki [ctb] (<https://orcid.org/0000-0002-2671-5253>),
+  Dan Chaltiel [ctb],
+  John Williams [ctb],
+  Tom Elliott [ctb]
 Repository: CRAN
-Date/Publication: 2022-10-16 02:52:38 UTC
+Date/Publication: 2022-11-05 22:10:07 UTC

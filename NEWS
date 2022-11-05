@@ -1,3 +1,7 @@
+0.11.4 (03.11.2022)
+================
+* fix disastrous bug which prevent package installation for R version before 4.2 (many thanks to Tom Elliott)
+
 0.11.2 (15.10.2022)
 ================
 * fix for new R version
