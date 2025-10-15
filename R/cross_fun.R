@@ -1,14 +1,15 @@
 #' Cross-tabulation with custom summary function.
 #' 
+#' There are following functions for cross tables:
 #' \itemize{
-#' \item{\code{cross_mean}, \code{cross_sum}, \code{cross_median}}{ calculate 
-#' mean/sum/median by groups. NA's are always omitted.}
-#' \item{\code{cross_mean_sd_n}}{ calculates mean, standard deviation and N
-#' simultaneously. Mainly intended for usage with \link{significance_means}.}
-#' \item{\code{cross_pearson}, \code{cross_spearman}}{ calculate correlation of 
+#' \item \code{cross_mean}, \code{cross_sum}, \code{cross_median} calculate 
+#' mean/sum/median by groups. NA's are always omitted.
+#' \item \code{cross_mean_sd_n} calculates mean, standard deviation and N
+#' simultaneously. Mainly intended for usage with \link{significance_means}.
+#' \item \code{cross_pearson}, \code{cross_spearman} calculate correlation of 
 #' first variable in each data.frame in \code{cell_vars} with other variables. 
-#' NA's are removed pairwise.}
-#' \item{\code{cross_fun}, \code{cross_fun_df}}{ return table with custom summary 
+#' NA's are removed pairwise.
+#' \item \code{cross_fun}, \code{cross_fun_df} return table with custom summary 
 #' statistics defined by \code{fun} argument. NA's treatment depends on your 
 #' \code{fun} behavior. To use weight you should have formal \code{weight} 
 #' argument in \code{fun} and some logic for its processing inside. Several 
@@ -24,11 +25,11 @@
 #' labels of the table and column names/names of list will appear in the column 
 #' labels. If your \code{fun} returns data.frame/matrix/list with element named
 #' 'row_labels' then this element will be used as row labels. And it will have
-#' precedence over rownames.}
-#' \item{\code{cross_*}}{ are evaluate their arguments
-#' in the context of the first argument \code{data}.}
-#' \item{\code{cro_*}}{ functions use standard evaluation, e. g 'cro(mtcars$am, mtcars$vs)'.}
-#' \item{\code{combine_functions}}{ is auxiliary function for combining several 
+#' precedence over rownames.
+#' \item \code{cross_*} are evaluate their arguments
+#' in the context of the first argument \code{data}.
+#' \item \code{cro_*} functions use standard evaluation, e. g 'cro(mtcars$am, mtcars$vs)'.
+#' \item \code{combine_functions} is auxiliary function for combining several 
 #' functions into one function for usage with \code{cro_fun}/\code{cro_fun_df}.
 #' Names of arguments will be used as statistic labels. By default, results of
 #' each function are combined with \link{c}. But you can provide your own method
@@ -36,7 +37,7 @@
 #' \code{do.call(method, list_of_functions_results)}. Particular useful method
 #' is \code{list}. When it used then statistic labels will appear in the column
 #' labels. See examples. Also you may be interested in \code{data.frame}, 
-#' \code{rbind}, \code{cbind} methods.}}
+#' \code{rbind}, \code{cbind} methods.}
 #' 
 #' @param cell_vars vector/data.frame/list. Variables on which summary function
 #'   will be computed. 
@@ -500,7 +501,7 @@ elementary_cro_fun_df = function(cell_var,
 
     
     # statistics
-    by_string = "..row_var__,..col_var__"
+    by_string = c("..row_var__", "..col_var__")
     if(is.logical(use_lapply) && !use_lapply){
         if(is.null(weight)){
             dtable = raw_data[ , fun(.SD), by = by_string]

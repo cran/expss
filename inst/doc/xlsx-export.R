@@ -36,8 +36,8 @@ sh = addWorksheet(wb, "Tables")
 ## -----------------------------------------------------------------------------
 xl_write(mtcars_table, wb, sh)
 
-## ---- eval=FALSE--------------------------------------------------------------
-#  saveWorkbook(wb, "table1.xlsx", overwrite = TRUE)
+## ----eval=FALSE---------------------------------------------------------------
+# saveWorkbook(wb, "table1.xlsx", overwrite = TRUE)
 
 ## -----------------------------------------------------------------------------
 banner = with(mtcars, list(total(), am, vs))
@@ -68,6 +68,6 @@ xl_write(list_of_tables, wb, sh,
          other_cols_formats = list("#" = createStyle(textDecoration = "bold")),
          )
 
-## ---- eval = FALSE------------------------------------------------------------
-#  saveWorkbook(wb, "report.xlsx", overwrite = TRUE)
+## ----eval = FALSE-------------------------------------------------------------
+# saveWorkbook(wb, "report.xlsx", overwrite = TRUE)
 

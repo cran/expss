@@ -1,11 +1,11 @@
 #' Create vector of characters from unquoted strings (variable names)
 #' 
 #' \itemize{
-#' \item{\code{qc} }{It is often needed to address variables in the data.frame in the such 
+#' \item \code{qc} It is often needed to address variables in the data.frame in the such 
 #' manner: \code{dfs[ , c("var1", "var2", "var3")]}. \code{qc} ("quoted c") is a
 #' shortcut for the such cases to reduce keystrokes. With \code{qc} you can write:
-#' \code{dfs[ , qc(var1, var2, var3)]}.}
-#' \item{\code{qe} }{returns list of expression.}}
+#' \code{dfs[ , qc(var1, var2, var3)]}.
+#' \item \code{qe} returns list of expression.}
 #' @param ... unquoted names of variables in
 #'   \code{qc} or unquoted expressions in \code{qe}.
 #' @return Vector of characters or expressions

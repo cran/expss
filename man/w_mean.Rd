@@ -74,19 +74,19 @@ a numeric value of length one/correlation matrix
 }
 \description{
 \itemize{
-\item{{\code{w_mean}}{ weighted mean of a numeric vector}}
-\item{{\code{w_sd}}{ weighted sample standard deviation of a numeric vector}}
-\item{{\code{w_var}}{ weighted sample variance of a numeric vector}}
-\item{{\code{w_se}}{ weighted standard error of a numeric vector}}
-\item{{\code{w_median}}{ weighted median of a numeric vector}}
-\item{{\code{w_mad}}{ weighted mean absolute deviation from median of a numeric vector}}
-\item{{\code{w_sum}}{ weighted sum of a numeric vector}}
-\item{{\code{w_n}}{ weighted number of values of a numeric vector}}
-\item{{\code{w_cov}}{ weighted covariance matrix of a numeric matrix/data.frame}}
-\item{{\code{w_cor}}{ weighted Pearson correlation matrix of a numeric matrix/data.frame}}
-\item{{\code{w_pearson}}{ shortcut for \code{w_cor}. Weighted Pearson
-correlation matrix of a numeric matrix/data.frame}}
-\item{{\code{w_spearman}}{ weighted Spearman correlation matrix of a numeric matrix/data.frame}}
+\item \code{w_mean} weighted mean of a numeric vector
+\item \code{w_sd} weighted sample standard deviation of a numeric vector
+\item \code{w_var} weighted sample variance of a numeric vector
+\item \code{w_se} weighted standard error of a numeric vector
+\item \code{w_median} weighted median of a numeric vector
+\item \code{w_mad} weighted mean absolute deviation from median of a numeric vector
+\item \code{w_sum} weighted sum of a numeric vector
+\item \code{w_n} weighted number of values of a numeric vector
+\item \code{w_cov} weighted covariance matrix of a numeric matrix/data.frame
+\item \code{w_cor} weighted Pearson correlation matrix of a numeric matrix/data.frame
+\item \code{w_pearson} shortcut for \code{w_cor}. Weighted Pearson
+correlation matrix of a numeric matrix/data.frame
+\item \code{w_spearman} weighted Spearman correlation matrix of a numeric matrix/data.frame
 }
 }
 \details{

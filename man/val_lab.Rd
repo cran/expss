@@ -69,15 +69,15 @@ NULL} or \code{unvl(var)}. \code{make_labels} converts text from the form
 that usually used in questionnaires to named vector. For variable labels see
 \link{var_lab}. For working with entire data.frame see \link{apply_labels}.
 \itemize{
-\item{\code{val_lab}}{ returns value labels or NULL if labels doesn't 
-exist.} 
-\item{\code{val_lab<-}}{ set value labels.}
-\item{\code{set_val_lab}}{ returns variable with value labels.} 
-\item{\code{add_val_lab<-}}{ add value labels to already existing value labels.} 
-\item{\code{unvl}}{ drops value labels.}
-\item{\code{make_labels}}{ makes named vector from text for usage as value labels.}
-\item{\code{num_lab}, \code{lab_num} and  \code{autonum}}{ are shortcuts for \code{make_labels}
-with \code{code_postion} 'left', 'right' and 'autonum' accordingly.}
+\item \code{val_lab} returns value labels or NULL if labels doesn't 
+exist. 
+\item \code{val_lab<-} set value labels.
+\item \code{set_val_lab} returns variable with value labels. 
+\item \code{add_val_lab<-} add value labels to already existing value labels. 
+\item \code{unvl} drops value labels.
+\item \code{make_labels} makes named vector from text for usage as value labels.
+\item \code{num_lab}, \code{lab_num} and  \code{autonum} are shortcuts for \code{make_labels}
+with \code{code_postion} 'left', 'right' and 'autonum' accordingly.
 }
 }
 \details{

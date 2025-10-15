@@ -103,26 +103,26 @@ should be only logical and it doesn't operate on multicolumn objects.
 Input conditions - possible values for left-hand side (LHS) of formula or
 element of \code{from} list:
 \itemize{
-\item{vector/single value}{ All values in \code{x} which equal to elements of the
-vector in LHS will be replaced with RHS.}
-\item{function}{ Values for which function gives TRUE will be replaced with 
-RHS. There are some special functions for the convenience - see \link{criteria}}.
-\item{single logical value \code{TRUE}}{ It means all other unrecoded values
+\item vector/single value All values in \code{x} which equal to elements of the
+vector in LHS will be replaced with RHS.
+\item function Values for which function gives TRUE will be replaced with 
+RHS. There are some special functions for the convenience - see \link{criteria}.
+\item single logical value \code{TRUE} It means all other unrecoded values
 (ELSE in SPSS RECODE). All other unrecoded values will be changed to RHS of the
-formula or appropriate element of \code{to}.} 
+formula or appropriate element of \code{to}. 
 }
 Output values - possible values for right-hand side (RHS) of formula or
 element of \code{to} list:
 \itemize{
-\item{value}{ replace elements of \code{x}. This value will be
-recycled across rows and columns of \code{x}.}
-\item{vector}{ values of this vector will replace values in the corresponding
+\item value replace elements of \code{x}. This value will be
+recycled across rows and columns of \code{x}.
+\item vector values of this vector will replace values in the corresponding
 position in rows of \code{x}. Vector will be recycled across columns of
-\code{x}.}
-\item{function}{ This function will be applied to values of \code{x} which 
+\code{x}.
+\item function This function will be applied to values of \code{x} which 
 satisfy recoding condition. There is a special auxiliary function \code{copy} 
 which just returns its argument. So, in the \code{recode} it just copies old 
-value (COPY in SPSS RECODE).  See examples.}}
+value (COPY in SPSS RECODE).  See examples.}
 \code{\%into\%} tries to mimic SPSS 'INTO'. Values from left-hand side will 
 be assigned to right-hand side. You can use \code{\%to\%} expression in the 
 RHS of \code{\%into\%}. See examples. 

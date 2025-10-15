@@ -4,17 +4,17 @@
 #' value labels see \link{val_lab}. For working with entire data.frame see
 #' \link{apply_labels}.
 #' \itemize{
-#' \item{\code{var_lab}}{ returns variable label or NULL if label doesn't 
-#' exist.} 
-#' \item{\code{var_lab<-}}{ set variable label.} 
-#' \item{\code{set_var_lab}}{ returns variable with label.}
-#' \item{\code{unvr}}{ drops variable label.} 
-#' \item{\code{add_labelled_class}}{ Add missing 'labelled' class. This function
+#' \item \code{var_lab} returns variable label or NULL if label doesn't 
+#' exist. 
+#' \item \code{var_lab<-} set variable label. 
+#' \item \code{set_var_lab} returns variable with label.
+#' \item \code{unvr} drops variable label. 
+#' \item \code{add_labelled_class} Add missing 'labelled' class. This function
 #' is needed when you load SPSS data with packages which in some cases don't set
 #' 'labelled' class for variables with labels. For example, \code{haven} package
 #' doesn't set 'labelled' class for variables which have variable label but
 #' don't have value labels. Note that to use 'expss' with 'haven' you need to
-#' load 'expss' strictly after 'haven' to avoid conflicts.} }
+#' load 'expss' strictly after 'haven' to avoid conflicts.}
 #' @param x Variable. In the most cases it is numeric vector.
 #' @param value A character scalar - label for the variable x.
 #' @param default A character scalar. What we want to get from 'var_lab' if
@@ -200,15 +200,15 @@ add_labelled_class.data.frame = add_labelled_class.list
 #' that usually used in questionnaires to named vector. For variable labels see
 #' \link{var_lab}. For working with entire data.frame see \link{apply_labels}.
 #' \itemize{
-#' \item{\code{val_lab}}{ returns value labels or NULL if labels doesn't 
-#' exist.} 
-#' \item{\code{val_lab<-}}{ set value labels.}
-#' \item{\code{set_val_lab}}{ returns variable with value labels.} 
-#' \item{\code{add_val_lab<-}}{ add value labels to already existing value labels.} 
-#' \item{\code{unvl}}{ drops value labels.}
-#' \item{\code{make_labels}}{ makes named vector from text for usage as value labels.}
-#' \item{\code{num_lab}, \code{lab_num} and  \code{autonum}}{ are shortcuts for \code{make_labels}
-#' with \code{code_postion} 'left', 'right' and 'autonum' accordingly.}
+#' \item \code{val_lab} returns value labels or NULL if labels doesn't 
+#' exist. 
+#' \item \code{val_lab<-} set value labels.
+#' \item \code{set_val_lab} returns variable with value labels. 
+#' \item \code{add_val_lab<-} add value labels to already existing value labels. 
+#' \item \code{unvl} drops value labels.
+#' \item \code{make_labels} makes named vector from text for usage as value labels.
+#' \item \code{num_lab}, \code{lab_num} and  \code{autonum} are shortcuts for \code{make_labels}
+#' with \code{code_postion} 'left', 'right' and 'autonum' accordingly.
 #' }
 #' @param x Variable(s). Vector/data.frame/list.
 #' @param value Named vector. Names of vector are labels for the

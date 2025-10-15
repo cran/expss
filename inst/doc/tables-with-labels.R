@@ -1,4 +1,4 @@
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(expss)
 data(mtcars)
 mtcars = apply_labels(mtcars,
@@ -240,9 +240,9 @@ w %>%
     tab_pivot(stat_position = "inside_columns") 
 
 
-## ---- eval=FALSE--------------------------------------------------------------
-#  write_labelled_csv(w, file  filename = "product_test.csv")
+## ----eval=FALSE---------------------------------------------------------------
+# write_labelled_csv(w, file  filename = "product_test.csv")
 
-## ---- eval=FALSE--------------------------------------------------------------
-#  write_labelled_spss(w, file  filename = "product_test.csv")
+## ----eval=FALSE---------------------------------------------------------------
+# write_labelled_spss(w, file  filename = "product_test.csv")
 

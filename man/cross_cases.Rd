@@ -189,24 +189,24 @@ object of class 'etable'. Basically it's a data.frame but class
 }
 \description{
 \itemize{
-\item{\code{cross_cases}}{ build a contingency table of the counts.}
-\item{\code{cross_cpct}, \code{cross_cpct_responses}}{ build a contingency table 
+\item \code{cross_cases} build a contingency table of the counts.
+\item \code{cross_cpct}, \code{cross_cpct_responses} build a contingency table 
 of the column percent. These functions give different results only for 
 multiple response variables. For \code{cross_cpct} base of percent is number 
 of valid cases. Case is considered as valid if it has at least one non-NA 
 value. So for multiple response variables sum of percent may be greater than
 100. For \code{cross_cpct_responses} base of percent is number of valid 
 responses. Multiple response variables can have several responses for single 
-case. Sum of percent of \code{cross_cpct_responses} always equals to 100\%.}
-\item{\code{cross_rpct}}{ build a contingency table of the row percent. Base
-for percent is number of valid cases.}
-\item{\code{cross_tpct}}{ build a contingency table of the table percent. Base
-for percent is number of valid cases.}
-\item{\code{cross_*}}{ functions evaluate their arguments
-in the context of the first argument \code{data}.}
-\item{\code{cro_*}}{ functions use standard evaluation, e. g 'cro(mtcars$am, mtcars$vs)'.}
-\item{\code{total}}{ auxiliary function - creates variables with 1 for valid
-case of its argument \code{x} and NA in opposite case.}
+case. Sum of percent of \code{cross_cpct_responses} always equals to 100\%.
+\item \code{cross_rpct} build a contingency table of the row percent. Base
+for percent is number of valid cases.
+\item \code{cross_tpct} build a contingency table of the table percent. Base
+for percent is number of valid cases.
+\item \code{cross_*} functions evaluate their arguments
+in the context of the first argument \code{data}.
+\item \code{cro_*} functions use standard evaluation, e. g 'cro(mtcars$am, mtcars$vs)'.
+\item \code{total} auxiliary function - creates variables with 1 for valid
+case of its argument \code{x} and NA in opposite case.
 }
 You can combine tables with \link{add_rows} and \link{merge.etable}. For
 sorting table see \link{tab_sort_asc}. 

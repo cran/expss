@@ -9,46 +9,46 @@
 #' something like: \code{'greater(5) | equals(1)'}.
 #' List of functions:
 #' \itemize{
-#' \item{comparison criteria - \code{'equals'}, \code{'greater'} and etc.}{ return
-#' functions which compare its argument against value.}
-#' \item{\code{'thru'}}{ checks whether a value is inside interval.
-#' \code{'thru(0,1)'} is equivalent to \code{'x>=0 & x<=1'}}
-#' \item{\code{'\%thru\%'}}{ is infix version of \code{'thru'}, e. g. \code{'0
-#' \%thru\% 1'}}
-#' \item{\code{'is_max'} and \code{'is_min'}}{ return TRUE where vector value is
-#' equals to maximum or minimum.}
-#' \item{\code{'contains'}}{ searches for the pattern in the strings. By default,
+#' \item comparison criteria - \code{'equals'}, \code{'greater'} and etc. return
+#' functions which compare its argument against value.
+#' \item \code{'thru'} checks whether a value is inside interval.
+#' \code{'thru(0,1)'} is equivalent to \code{'x>=0 & x<=1'}
+#' \item \code{'\%thru\%'} is infix version of \code{'thru'}, e. g. \code{'0
+#' \%thru\% 1'}
+#' \item \code{'is_max'} and \code{'is_min'} return TRUE where vector value is
+#' equals to maximum or minimum.
+#' \item \code{'contains'} searches for the pattern in the strings. By default,
 #' it works with fixed patterns rather than regular expressions. For details
-#' about its arguments see \link[base:grep]{grepl}}
-#' \item{\code{'like'}}{ searches for the Excel-style pattern in the strings. You
+#' about its arguments see \link[base:grep]{grepl}
+#' \item \code{'like'} searches for the Excel-style pattern in the strings. You
 #' can use wildcards: '*' means any number of symbols, '?' means single symbol.
-#' Case insensitive.}
-#' \item{\code{'fixed'}}{ alias for contains.}
-#' \item{\code{'perl'}}{ such as \code{'contains'} but the pattern is perl-compatible
-#' regular expression (\code{'perl = TRUE'}). For details see \link[base:grep]{grepl}}
-#' \item{\code{'regex'}}{ use POSIX 1003.2 extended regular expressions
-#' (\code{'fixed = FALSE'}). For details see \link[base:grep]{grepl}}
-#' \item{\code{'has_label'}}{ searches values which have supplied label(-s).  We
-#' can used criteria as an argument for 'has_label'.}
-#' \item{\code{'to'}}{ returns function which gives TRUE for all elements of
-#' vector before the first occurrence of \code{'x'} and for  \code{'x'}.}
-#' \item{\code{'from'}}{ returns function which gives TRUE for all elements of 
-#' vector after the first occurrence of \code{'x'} and for \code{'x'}.}
-#' \item{\code{'not_na'}}{ returns TRUE for all non-NA vector elements.} 
-#' \item{\code{'other'}}{ returns TRUE for all vector elements. It is intended
-#' for usage with \code{'recode'}.}
-#' \item{\code{'items'}}{ returns TRUE for the vector elements with the given
-#' sequential numbers.}
-#' \item{\code{'and'}, \code{'or'}, \code{'not'}}{ are spreadsheet-style boolean functions.}
+#' Case insensitive.
+#' \item \code{'fixed'} alias for contains.
+#' \item \code{'perl'} such as \code{'contains'} but the pattern is perl-compatible
+#' regular expression (\code{'perl = TRUE'}). For details see \link[base:grep]{grepl}
+#' \item \code{'regex'} use POSIX 1003.2 extended regular expressions
+#' (\code{'fixed = FALSE'}). For details see \link[base:grep]{grepl}
+#' \item \code{'has_label'} searches values which have supplied label(-s).  We
+#' can used criteria as an argument for 'has_label'.
+#' \item \code{'to'} returns function which gives TRUE for all elements of
+#' vector before the first occurrence of \code{'x'} and for  \code{'x'}.
+#' \item \code{'from'} returns function which gives TRUE for all elements of 
+#' vector after the first occurrence of \code{'x'} and for \code{'x'}.
+#' \item \code{'not_na'} returns TRUE for all non-NA vector elements. 
+#' \item \code{'other'} returns TRUE for all vector elements. It is intended
+#' for usage with \code{'recode'}.
+#' \item \code{'items'} returns TRUE for the vector elements with the given
+#' sequential numbers.
+#' \item \code{'and'}, \code{'or'}, \code{'not'} are spreadsheet-style boolean functions.
 #' } 
 #' Shortcuts for comparison criteria:
 #' \itemize{
-#' \item{'equals'}{ - \code{'eq'}}
-#' \item{'not_equals'}{ - \code{'neq'}, \code{'ne'}}
-#' \item{'greater'}{ - \code{'gt'}}
-#' \item{'greater_or_equal'}{ - \code{'gte'}, \code{'ge'}}
-#' \item{'less'}{ - \code{'lt'}}
-#' \item{'less_or_equal'}{ - \code{'lte'}, \code{'le'}}
+#' \item 'equals' - \code{'eq'}
+#' \item 'not_equals' - \code{'neq'}, \code{'ne'}
+#' \item 'greater' - \code{'gt'}
+#' \item 'greater_or_equal' - \code{'gte'}, \code{'ge'}
+#' \item 'less' - \code{'lt'}
+#' \item 'less_or_equal' - \code{'lte'}, \code{'le'}
 #' }
 #' @param x vector 
 #' @param lower vector/single value - lower bound of interval 
@@ -471,6 +471,7 @@ build_compare = function(x, compare){
     
 }
 
+#' @exportS3Method
 build_compare.default = function(x, compare){
     force(x)
     force(compare)
@@ -481,6 +482,7 @@ build_compare.default = function(x, compare){
 }
 
 # to catch only numeric values
+#' @exportS3Method
 build_compare.numeric = function(x, compare){
     force(x)
     force(compare)

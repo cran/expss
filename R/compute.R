@@ -1,17 +1,17 @@
 #' Modify data.frame/modify subset of the data.frame
 #' 
 #' \itemize{
-#' \item{\code{compute}}{ evaluates expression \code{expr} in the context of data.frame 
-#' \code{data} and return original data possibly modified.}
-#' \item{\code{calculate}}{ evaluates expression \code{expr} in the context of 
+#' \item \code{compute} evaluates expression \code{expr} in the context of data.frame 
+#' \code{data} and return original data possibly modified.
+#' \item \code{calculate} evaluates expression \code{expr} in the context of 
 #' data.frame \code{data} and return value of the evaluated expression. Function \code{use_labels} is shortcut for \code{calculate} with
 #' argument \code{use_labels} set to \code{TRUE}. When \code{use_labels} is TRUE
-#' there is a special shortcut for entire data.frame - \code{..data}.}
-#' \item{\code{do_if}}{ modifies only rows for which \code{cond} equals to
+#' there is a special shortcut for entire data.frame - \code{..data}.
+#' \item \code{do_if} modifies only rows for which \code{cond} equals to
 #' TRUE. Other rows remain unchanged. Newly created variables also will have
 #' values only in rows for which \code{cond} have TRUE. There will be NA's in
 #' other rows. This function tries to mimic SPSS "DO IF(). ... END IF."
-#' statement.}
+#' statement.
 #' }
 #' Full-featured \code{\%to\%} is available in the expressions for addressing
 #' range of variables.

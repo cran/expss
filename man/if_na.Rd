@@ -54,17 +54,17 @@ object of the same form and class as \code{x}. \code{valid} returns logical vect
 }
 \description{
 \itemize{
-\item{\code{if_na}}{ replaces NA values in vector/data.frame/matrix/list with
+\item \code{if_na} replaces NA values in vector/data.frame/matrix/list with
 supplied value. For single value argument label can be provided with
 \code{label} argument. If replacement value is vector then \code{if_na} uses
-for replacement values from appropriate positions.  An opposite operation is \code{na_if}.}
-\item{\code{na_if}}{ replaces values with NA in
-vector/data.frame/matrix/list. Another alias for this is \code{mis_val}.}
-\item{\code{valid}}{ returns logical vector which indicate the presence of at
+for replacement values from appropriate positions.  An opposite operation is \code{na_if}.
+\item \code{na_if} replaces values with NA in
+vector/data.frame/matrix/list. Another alias for this is \code{mis_val}.
+\item \code{valid} returns logical vector which indicate the presence of at
 least one not-NA value in row.  For vector or single column data.frame result
 is the same as with \link[stats]{complete.cases}. There is a special case
 for data.frame of class \code{dichotomy}. In this case result indicate the
-presence of at least one 1 in a row.} }
+presence of at least one 1 in a row.}
 }
 \examples{
 # simple case

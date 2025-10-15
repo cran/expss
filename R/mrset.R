@@ -10,12 +10,12 @@
 #' have appropriate encoding. For conversation see \link{as.dichotomy} or 
 #' \link{as.category}. 
 #' \itemize{
-#' \item{\code{mrset_f} and \code{mdset_f} }{select variables by fixed pattern. Fixed
-#' pattern can be unquoted. For details see \link{..f}.}
-#' \item{\code{mrset_p} and \code{mdset_p} }{select variables for
-#' multiple-responses by perl-style regular expresssion. For details see \link{..p}.}
-#' \item{\code{mrset_t} and \code{mdset_t} }{select variables by expanding text
-#' arguments. For details see \link{..t} and \link{text_expand}.}
+#' \item \code{mrset_f} and \code{mdset_f} select variables by fixed pattern. Fixed
+#' pattern can be unquoted. For details see \link{..f}.
+#' \item \code{mrset_p} and \code{mdset_p} select variables for
+#' multiple-responses by perl-style regular expression. For details see \link{..p}.
+#' \item \code{mrset_t} and \code{mdset_t} select variables by expanding text
+#' arguments. For details see \link{..t} and \link[maditr]{text_expand}.
 #' }
 #' @param ... variables
 #' @param label character optional label for multiple response set

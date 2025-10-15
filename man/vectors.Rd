@@ -58,29 +58,29 @@ vector or data.frame, matrix, list for \code{\%n_d\%}, \code{\%n_i\%})
 All these functions except \code{\%n_d\%}, \code{\%n_i\%} preserve names of
 vectors and don't remove duplicates.
 \itemize{
-\item{\code{\%a\%}}{ a(ppends) second argument to the first argument. See also
-\link[base]{append}.}
-\item{\code{\%u\%} and \code{v_union}}{ u(nite) first and second arguments.
-Remove elements from the second argument which exist in the first argument. }
-\item{\code{\%d\%} and \code{v_diff}}{ d(iff) second argument from the first
+\item \code{\%a\%} a(ppends) second argument to the first argument. See also
+\link[base]{append}.
+\item \code{\%u\%} and \code{v_union} u(nite) first and second arguments.
+Remove elements from the second argument which exist in the first argument.
+\item \code{\%d\%} and \code{v_diff} d(iff) second argument from the first
 argument. Second argument could be a function which returns logical value. In
-this case elements of the first argument which give TRUE will be removed. }
-\item{\code{\%i\%} and \code{v_intersect}}{ i(ntersect) first argument and
+this case elements of the first argument which give TRUE will be removed.
+\item \code{\%i\%} and \code{v_intersect} i(ntersect) first argument and
 second argument. Second argument could be a function which returns logical
 value. In this case elements of the first argument which give FALSE will be
-removed. }
-\item{\code{\%e\%} and \code{v_xor}}{ e(xclusive OR). Returns elements that
-contained only in one of arguments.}
-\item{\code{\%r\%} }{ r(epeats) first argument second argument times. See
-also \link[base]{rep}.}
-\item{\code{\%n_d\%} and \code{n_diff}}{ n(ames) d(iff) - diff second argument
+removed.
+\item \code{\%e\%} and \code{v_xor} e(xclusive OR). Returns elements that
+contained only in one of arguments.
+\item \code{\%r\%}  r(epeats) first argument second argument times. See
+also \link[base]{rep}.
+\item \code{\%n_d\%} and \code{n_diff} n(ames) d(iff) - diff second argument
 from names of first argument. Second argument could be a function which
 returns logical value. In this case elements of the first argument which names
-give TRUE will be removed. }
-\item{\code{\%n_i\%} and \code{n_intersect}}{ n(ames) i(ntersect) - intersect
+give TRUE will be removed.
+\item \code{\%n_i\%} and \code{n_intersect} n(ames) i(ntersect) - intersect
 names of the first argument with the second argument. Second argument could be a
 function which returns logical value. In this case elements of the first argument
-which names give FALSE will be removed. }
+which names give FALSE will be removed.
 } 
 For \code{\%d\%}, \code{\%i\%}, \code{\%n_d\%}, \code{\%n_i\%} one can use
 criteria functions. See \link{criteria} for details.

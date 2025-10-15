@@ -46,17 +46,17 @@ These functions set/get/drop variable labels. For
 value labels see \link{val_lab}. For working with entire data.frame see
 \link{apply_labels}.
 \itemize{
-\item{\code{var_lab}}{ returns variable label or NULL if label doesn't 
-exist.} 
-\item{\code{var_lab<-}}{ set variable label.} 
-\item{\code{set_var_lab}}{ returns variable with label.}
-\item{\code{unvr}}{ drops variable label.} 
-\item{\code{add_labelled_class}}{ Add missing 'labelled' class. This function
+\item \code{var_lab} returns variable label or NULL if label doesn't 
+exist. 
+\item \code{var_lab<-} set variable label. 
+\item \code{set_var_lab} returns variable with label.
+\item \code{unvr} drops variable label. 
+\item \code{add_labelled_class} Add missing 'labelled' class. This function
 is needed when you load SPSS data with packages which in some cases don't set
 'labelled' class for variables with labels. For example, \code{haven} package
 doesn't set 'labelled' class for variables which have variable label but
 don't have value labels. Note that to use 'expss' with 'haven' you need to
-load 'expss' strictly after 'haven' to avoid conflicts.} }
+load 'expss' strictly after 'haven' to avoid conflicts.}
 }
 \details{
 Variable label is stored in attribute "label" (\code{attr(x,"label")}). For

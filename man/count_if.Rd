@@ -118,13 +118,13 @@ works on each column.
 \details{
 Possible type for criterion argument:
 \itemize{
-\item{vector/single value}{ All values in \code{...} which equal to the
+\item vector/single value All values in \code{...} which equal to the
 elements of vector in the criteria will be used as function \code{fun}
-argument.}
-\item{function}{ Values for which function gives TRUE will be used as
+argument.
+\item function Values for which function gives TRUE will be used as
 function \code{fun} argument. There are some special functions for
 convenience (e. g. \code{gt(5)} is equivalent ">5" in spreadsheet) - see
-\link{criteria}.}}
+\link{criteria}.}
 
 \code{count*} and \code{\%in*\%} never returns NA's. Other functions remove
 NA's before calculations (as \code{na.rm = TRUE} in base R functions).

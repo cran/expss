@@ -4,21 +4,21 @@
 #' with special functions (see below). You can get value of option with
 #' \code{getOption("option.name").}
 #' \itemize{
-#' \item{\code{expss.digits} }{ Number of digits after decimal separator which
+#' \item \code{expss.digits} Number of digits after decimal separator which
 #' will be shown for tables. This parameter is supported in the
 #' \link[expss]{as.datatable_widget}, \link[expss]{htmlTable.etable} and \code{print}
 #' methods. \code{NULL} is default and means one digit. \code{NA} means no
 #' rounding. There is a convenience function for this option:
-#' \code{expss_digits}.}
-#' \item{\code{expss.round_half_to_even} }{ Determines which rounding we will use.
+#' \code{expss_digits}.
+#' \item \code{expss.round_half_to_even} Determines which rounding we will use.
 #'  Default rounding is as with R \code{round}: "half to even". For rounding "half to largest" 
 #'  set this option to FALSE. This parameter is supported in the \link[expss]{as.datatable_widget},
 #'  \link[expss]{htmlTable.etable}, \code{print} and in significance testing
 #' methods. \code{NULL} is default and means R default rounding. \code{NA} means no
 #' rounding. Parameter does not affect calculations, only table representation. 
 #' There is a convenience function for this option:
-#' \code{expss_round_half_to_even}.}
-#' \item{\code{expss.enable_value_labels_support} }{By default, all labelled
+#' \code{expss_round_half_to_even}.
+#' \item \code{expss.enable_value_labels_support} By default, all labelled
 #' variables will use labels as labels for factor levels when \link{factor} is
 #' called. So, any function which calls \link{factor}/\link{as.factor} will use
 #' value labels. In details this option changes behavior of two methods for
@@ -33,8 +33,8 @@
 #' will be added to unique values.  There are shortcuts for these options:
 #' \code{expss_enable_value_labels_support()},
 #' \code{expss_enable_value_labels_support_extreme()} and
-#' \code{expss_disable_value_labels_support()}.}
-#' \item{\code{expss.output} }{ By default tables are printed in the console.
+#' \code{expss_disable_value_labels_support()}.
+#' \item \code{expss.output} By default tables are printed in the console.
 #' You can change this behavior by setting this option. There are five possible
 #' values: \code{'rnotebook'}, \code{'viewer'}, \code{'commented'},
 #' \code{'raw'} or \code{'huxtable'}. First option is useful when you run your code in the R Notebook
@@ -48,10 +48,10 @@
 #' Shortcuts for options: \code{expss_output_default()},
 #' \code{expss_output_raw()}, \code{expss_output_viewer()},
 #' \code{expss_output_commented()}, \code{expss_output_rnotebook()} and
-#' \code{expss_output_huxtable()}.}
-#' \item{\code{expss_fix_encoding_on}/\code{expss_fix_encoding_off} }{ If you
+#' \code{expss_output_huxtable()}.
+#' \item \code{expss_fix_encoding_on}/\code{expss_fix_encoding_off} If you
 #' expreience problems with character encoding in RStudio Viewer/RNotebooks under Windows
-#' try \code{expss_fix_encoding_on()}. In some cases, it can help.}
+#' try \code{expss_fix_encoding_on()}. In some cases, it can help.
 #' }
 #'
 #' @param digits integer. Number of digits after decimal point. \code{NULL} is

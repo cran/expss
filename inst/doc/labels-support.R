@@ -1,4 +1,4 @@
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(expss)
 data(mtcars)
 mtcars = apply_labels(mtcars,
@@ -53,7 +53,7 @@ unlab(nps)
 drop_unused_labels(nps)
 prepend_values(nps)
 
-## ---- fig.height=6, fig.width=7-----------------------------------------------
+## ----fig.height=6, fig.width=7------------------------------------------------
 with(mtcars, table(am, vs))
 with(mtcars, 
      barplot(
@@ -72,7 +72,7 @@ use_labels(mtcars, lm(mpg ~ wt + hp + qsec)) %>% summary
 # boxplot with variable labels
 use_labels(mtcars, boxplot(mpg ~ am))
 
-## ---- fig.height=6, fig.width=7-----------------------------------------------
+## ----fig.height=6, fig.width=7------------------------------------------------
 library(ggplot2, warn.conflicts = FALSE)
 
 use_labels(mtcars, {
@@ -123,11 +123,11 @@ mtcars_subset = mtcars[1:10, ]
 ## -----------------------------------------------------------------------------
 str(mtcars_subset)
 
-## ---- eval = FALSE------------------------------------------------------------
-#  # we need to load packages strictly in this order to avoid conflicts
-#  library(haven)
-#  library(expss)
-#  spss_data = haven::read_spss("spss_file.sav")
-#  # add missing 'labelled' class
-#  spss_data = add_labelled_class(spss_data)
+## ----eval = FALSE-------------------------------------------------------------
+# # we need to load packages strictly in this order to avoid conflicts
+# library(haven)
+# library(expss)
+# spss_data = haven::read_spss("spss_file.sav")
+# # add missing 'labelled' class
+# spss_data = add_labelled_class(spss_data)
 

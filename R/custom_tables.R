@@ -34,34 +34,34 @@ SIGNIFICANCE_OPTIONS = "significance_options"
 #' 
 #' @details 
 #' \itemize{
-#' \item{\code{tab_cells}}{ variables on which percentage/cases/summary
+#' \item \code{tab_cells} variables on which percentage/cases/summary
 #' functions will be computed. Use \link{mrset}/\link{mdset} for
-#' multiple-response variables.}
-#' \item{\code{tab_cols}}{ optional variables which breaks table by
+#' multiple-response variables. 
+#' \item \code{tab_cols} optional variables which breaks table by
 #'   columns. Use \link{mrset}/\link{mdset} for
-#' multiple-response variables.}
-#' \item{\code{tab_rows}}{ optional variables which breaks table by rows. Use
-#' \link{mrset}/\link{mdset} for multiple-response variables.}
-#' \item{\code{tab_weight}}{ optional weight for the statistic.}
-#' \item{\code{tab_mis_val}}{ optional missing values for the statistic. It will
+#' multiple-response variables. 
+#' \item \code{tab_rows} optional variables which breaks table by rows. Use
+#' \link{mrset}/\link{mdset} for multiple-response variables. 
+#' \item \code{tab_weight} optional weight for the statistic. 
+#' \item \code{tab_mis_val} optional missing values for the statistic. It will
 #' be applied on variables specified by \code{tab_cells}. It works in the same
-#' manner as \link{na_if}.}
-#' \item{\code{tab_subgroup}}{ optional logical vector/expression which specify
-#' subset of data for table.}
-#' \item{\code{tab_row_label}}{ Add to table empty row with specified row
-#' labels. It is usefull for making section headings and etc.}
-#' \item{\code{tab_total_row_position}}{ Default value for
+#' manner as \link{na_if}. 
+#' \item \code{tab_subgroup} optional logical vector/expression which specify
+#' subset of data for table. 
+#' \item \code{tab_row_label} Add to table empty row with specified row
+#' labels. It is usefull for making section headings and etc. 
+#' \item \code{tab_total_row_position} Default value for
 #' \code{total_row_position} argument in \code{tab_stat_cases} and etc. Can be
-#' one of "below", "above", "none".}
-#' \item{\code{tab_total_label}}{ Default value for \code{total_label} argument
+#' one of "below", "above", "none". 
+#' \item \code{tab_total_label} Default value for \code{total_label} argument
 #' in \code{tab_stat_cases} and etc. You can provide several names - each name
-#' for each total statistics.}
-#' \item{\code{tab_total_statistic}}{ Default value for \code{total_statistic}
+#' for each total statistics. 
+#' \item \code{tab_total_statistic} Default value for \code{total_statistic}
 #' argument in \code{tab_stat_cases} and etc. You can provide several values.
 #' Possible values are "u_cases", "u_responses", "u_cpct", "u_rpct", "u_tpct", 
 #' "w_cases", "w_responses", "w_cpct", "w_rpct", "w_tpct". "u_" means unweighted
-#' statistics and "w_" means weighted statistics.}
-#' \item{\code{tab_stat_fun}, \code{tab_stat_fun_df}}{ \code{tab_stat_fun} 
+#' statistics and "w_" means weighted statistics. 
+#' \item \code{tab_stat_fun}, \code{tab_stat_fun_df} \code{tab_stat_fun} 
 #' applies function on each variable in cells separately, \code{tab_stat_fun_df}
 #' gives to function each data.frame in cells as a whole 
 #' \link[data.table]{data.table} with all names converted to variable labels (if
@@ -69,30 +69,30 @@ SIGNIFICANCE_OPTIONS = "significance_options"
 #' in your \code{fun}. For details see \link{cross_fun}. You can provide several
 #' functions as arguments. They will be combined as with
 #' \link{combine_functions}. So you can use \code{method} argument. For details
-#' see documentation for \link{combine_functions}. }
-#' \item{\code{tab_stat_cases}}{ calculate counts.}
-#' \item{\code{tab_stat_cpct}, \code{tab_stat_cpct_responses}}{ calculate column
+#' see documentation for \link{combine_functions}.  
+#' \item \code{tab_stat_cases} calculate counts. 
+#' \item \code{tab_stat_cpct}, \code{tab_stat_cpct_responses} calculate column
 #' percent. These functions give different results only for multiple response
 #' variables. For \code{tab_stat_cpct} base of percent is number of valid cases.
 #' Case is considered as valid if it has at least one non-NA value. So for
 #' multiple response variables sum of percent may be greater than 100. For 
 #' \code{tab_stat_cpct_responses} base of percent is number of valid responses. 
 #' Multiple response variables can have several responses for single case. Sum 
-#' of percent of \code{tab_stat_cpct_responses} always equals to 100\%.}
-#' \item{\code{tab_stat_rpct}}{ calculate row percent. Base
-#' for percent is number of valid cases.}
-#' \item{\code{tab_stat_tpct}}{ calculate table percent. Base
-#' for percent is number of valid cases.}
-#' \item{\code{tab_stat_mean}, \code{tab_stat_median}, \code{tab_stat_se},
+#' of percent of \code{tab_stat_cpct_responses} always equals to 100\%. 
+#' \item \code{tab_stat_rpct} calculate row percent. Base
+#' for percent is number of valid cases. 
+#' \item \code{tab_stat_tpct} calculate table percent. Base
+#' for percent is number of valid cases. 
+#' \item \code{tab_stat_mean}, \code{tab_stat_median}, \code{tab_stat_se},
 #' \code{tab_stat_sum}, \code{tab_stat_min}, \code{tab_stat_max},
 #' \code{tab_stat_sd}, \code{tab_stat_valid_n}, 
-#' \code{tab_stat_unweighted_valid_n}}{ different summary statistics. NA's are
-#' always omitted.}
-#' \item{\code{tab_pivot}}{ finalize table creation and define how different
-#' \code{tab_stat_*} will be combined}
-#' \item{\code{tab_caption}}{ set caption on the table. Should be used after the \code{tab_pivot}.}
-#' \item{\code{tab_transpose}}{ transpose final table after \code{tab_pivot} or last
-#' statistic.}}
+#' \code{tab_stat_unweighted_valid_n} different summary statistics. NA's are
+#' always omitted. 
+#' \item \code{tab_pivot} finalize table creation and define how different
+#' \code{tab_stat_*} will be combined 
+#' \item \code{tab_caption} set caption on the table. Should be used after the \code{tab_pivot}. 
+#' \item \code{tab_transpose} transpose final table after \code{tab_pivot} or last
+#' statistic.}
 #' @param data data.frame/intermediate_table  
 #' @param ... vector/data.frame/list. Variables for tables. Use
 #'   \link{mrset}/\link{mdset} for multiple-response variables.

@@ -6,17 +6,19 @@ KEEP_STAT = c("percent", "cases", "means", "bases", "sd", "none")
 
 #' Mark significant differences between columns in the table
 #' 
+#' There are following types of significance tests:
+#' 
 #' \itemize{
-#' \item{\code{significance_cpct}}{ conducts z-tests between column percent in
+#' \item \code{significance_cpct} conducts z-tests between column percent in
 #' the result of \link{cross_cpct}. Results are calculated with the same formula 
-#' as in \link[stats]{prop.test} without continuity correction.}
-#' \item{\code{significance_means}}{ conducts t-tests between column means in
+#' as in \link[stats]{prop.test} without continuity correction.
+#' \item \code{significance_means} conducts t-tests between column means in
 #' the result of \link{cross_mean_sd_n}. Results are calculated with the same formula 
-#' as in \link[stats]{t.test}.}
-#' \item{\code{significance_cases}}{ conducts chi-squared tests on the subtable of
+#' as in \link[stats]{t.test}.
+#' \item \code{significance_cases} conducts chi-squared tests on the subtable of
 #' table with counts in the result of \link{cross_cases}. Results are calculated
-#' with the same formula as in \link[stats]{chisq.test}.}
-#' \item{\code{significance_cell_chisq}}{ compute cell chi-square test on table
+#' with the same formula as in \link[stats]{chisq.test}.
+#' \item \code{significance_cell_chisq} compute cell chi-square test on table
 #' with column percent. The cell chi-square test looks at each table cell and
 #' tests whether it is significantly different from its expected value in the
 #' overall table. For example, if it is thought that variations in political
@@ -28,44 +30,43 @@ KEEP_STAT = c("percent", "cases", "means", "bases", "sd", "none")
 #' chi-square test is accurate for any given cell, the cell tests cannot be used
 #' instead of the chi-square test carried out on the overall table. Their
 #' purpose is simply to point to the parts of the table where dependencies
-#' between row and column categories may exist.}}
+#' between row and column categories may exist.}
 #' For \code{significance_cpct} and \code{significance_means} there are three
 #' type of comparisons which can be conducted simultaneously (argument
 #' \code{compare_type}):
 #' \itemize{
-#' \item{\code{subtable}}{ provide comparisons between all columns inside each
-#' subtable.}
-#' \item{\code{previous_column}}{ is a comparison of each column of the subtable
+#' \item \code{subtable} provide comparisons between all columns inside each
+#' subtable.
+#' \item \code{previous_column} is a comparison of each column of the subtable
 #' with the previous column. It is useful if columns are periods or survey
-#' waves.}
-#' \item{\code{first_column}}{ provides comparison the table first column with
+#' waves.
+#' \item \code{first_column} provides comparison the table first column with
 #' all other columns in the table. \code{adjusted_first_column} is also
 #' comparison with the first column but with adjustment for common base. It is
 #' useful if the first column is total column and other columns are subgroups of
 #' this total. Adjustments are made according to algorithm in IBM SPSS
 #' Statistics Algorithms v20, p. 263. Note that with these adjustments t-tests
 #' between means are made with equal variance assumed (as with \code{var_equal =
-#' TRUE}).}}
+#' TRUE}).}
 #' By now there are no adjustments for multiple-response variables (results of 
 #' \link{mrset}) in the table columns so significance tests are rather 
 #' approximate for such cases.
 #' Also, there are functions for the significance testing in the sequence of
 #' custom tables calculations (see \link{tables}):
 #' \itemize{
-#' \item{\code{tab_last_sig_cpct}, \code{tab_last_sig_means} and 
-#' \code{tab_last_sig_cpct}}{ make the same tests as their analogs mentioned 
+#' \item \code{tab_last_sig_cpct}, \code{tab_last_sig_means} and 
+#' \code{tab_last_sig_cpct} make the same tests as their analogs mentioned 
 #' above. It is recommended to use them after appropriate statistic function: 
 #' \link{tab_stat_cpct}, \link{tab_stat_mean_sd_n} and \link{tab_stat_cases}.
-#' }
-#' \item{\code{tab_significance_options}}{ With this function we can set
-#' significance options for the entire custom table creation sequence.}
-#' \item{\code{tab_last_add_sig_labels}}{ This function applies 
+#' \item \code{tab_significance_options} With this function we can set
+#' significance options for the entire custom table creation sequence.
+#' \item \code{tab_last_add_sig_labels} This function applies 
 #' \code{add_sig_labels}  to the last calculated table - it adds labels (letters
 #' by default) for significance to columns header. It may be useful if you want
-#' to combine a table with significance with table without it.}
-#' \item{\code{tab_last_round}}{ This function rounds numeric columns in the
+#' to combine a table with significance with table without it.
+#' \item \code{tab_last_round} This function rounds numeric columns in the
 #' last calculated table to specified number of digits. It is sometimes
-#' needed if you want to combine table with significance with table without it.}
+#' needed if you want to combine table with significance with table without it.
 #' }
 #' @param x table (class \code{etable}): result of \link{cross_cpct} with 
 #'   proportions and bases for \code{significance_cpct}, result of 

@@ -119,7 +119,7 @@ sd_col=function(..., na.rm = TRUE){
 
 ################################################
 
-# @export
+#' @exportS3Method
 median.data.frame = function(x, ...) stats::median(as.matrix(x), ...)
 
 #' @export

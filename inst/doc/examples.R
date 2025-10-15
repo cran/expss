@@ -1,4 +1,4 @@
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 library(expss)
 data(mtcars)
 mtcars = apply_labels(mtcars,
@@ -20,7 +20,7 @@ mtcars = apply_labels(mtcars,
 )
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(vs) %>% 
@@ -29,7 +29,7 @@ mtcars %>%
     tab_caption("Simple column percent")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(vs) %>% 
@@ -39,7 +39,7 @@ mtcars %>%
     tab_caption("Split by columns and rows")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), vs, am) %>% 
@@ -49,7 +49,7 @@ mtcars %>%
     tab_caption("Multiple banners, table is sorted by total")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), vs %nest% am) %>% 
@@ -58,7 +58,7 @@ mtcars %>%
     tab_caption("Nested banners")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(carb) %>% 
     tab_cols(total(), list(cyl, vs) %nest% am) %>% 
@@ -67,7 +67,7 @@ mtcars %>%
     tab_caption("Multiple nested banners")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg, disp, hp, wt, qsec) %>%
     tab_cols(total(), am) %>% 
@@ -75,7 +75,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Multiple variable and multiple summary statistics")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg, disp, hp, wt, qsec) %>%
     tab_cols(total(), am) %>% 
@@ -83,7 +83,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Multiple variable and multiple summary statistics - statistic lables in columns")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_subgroup(am == 0) %>% 
     tab_cells(cyl) %>% 
@@ -93,7 +93,7 @@ mtcars %>%
     drop_empty_columns() %>%
     tab_caption("Filter dataset and exclude empty columns")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), vs) %>% 
@@ -104,7 +104,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Total at the top of the table")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>%
     tab_cells(am) %>%
     tab_cols(total(), vs) %>%
@@ -115,7 +115,7 @@ mtcars %>%
     tab_pivot(stat_position = "inside_rows") %>% 
     tab_caption("Three different statistics in each cell - stat. labels in rows")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>%
     tab_cells(am) %>%
     tab_cols(total(), vs) %>%
@@ -126,7 +126,7 @@ mtcars %>%
     tab_pivot(stat_position = "inside_columns") %>% 
     tab_caption("Three different statistics in each cell - stat. labels in columns")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), am) %>% 
@@ -138,7 +138,7 @@ mtcars %>%
     tab_caption("Stacked statistics")
 
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), am) %>% 
@@ -151,7 +151,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Stacked statistics with section headings")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cols(total(), am) %>% 
     tab_cells(mpg, hp, qsec) %>% 
@@ -161,7 +161,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Stacked statistics - different statistics for different variables")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(sheet(mpg, disp, hp, wt, qsec)) %>% 
     tab_cols(total(), am) %>% 
@@ -177,7 +177,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Linear regression by groups")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg) %>% 
     tab_cols(total(), vs) %>% 
@@ -186,7 +186,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Subtotals in rows")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg, qsec) %>% 
     tab_cols(total(), vs) %>% 
@@ -195,7 +195,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Subtotals at the bottom of the table")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg) %>% 
     tab_cols(total(), vs) %>% 
@@ -204,7 +204,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Nets in rows, custom prefix")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(net(mpg, "Low mpg" = less(mean(mpg)), "High mpg" = greater_or_equal(mean(mpg)))) %>% 
     tab_cols(total(), am) %>% 
@@ -212,7 +212,7 @@ mtcars %>%
     tab_pivot() %>% 
     tab_caption("Nets with complex grouping")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(cyl) %>% 
     tab_cols(total(), vs) %>% 
@@ -221,7 +221,7 @@ mtcars %>%
     significance_cpct(compare_type = c("first_column", "subtable"), sig_level = 0.05) %>% 
     tab_caption("Significance testing on column percent")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 mtcars %>% 
     tab_cells(mpg, disp, hp, wt, qsec) %>%
     tab_cols(total(), am) %>% 
@@ -230,7 +230,7 @@ mtcars %>%
     significance_means(compare_type = c("first_column", "subtable")) %>% 
     tab_caption("Significance testing on means")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 
 data(product_test)
 codeframe_likes = num_lab("
@@ -272,7 +272,7 @@ product_test %>%
     tab_pivot() %>% 
     tab_caption("Multiple-response variables with weighting")
 
-## ---- message=FALSE, warning=FALSE--------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 product_test %>% 
     tab_cols(total(), age_cat) %>% 
     tab_weight(wgt) %>% 
@@ -284,7 +284,7 @@ product_test %>%
     tab_pivot(stat_position = "inside_columns") %>% 
     tab_caption("Side-by-side variables comparison")
 
-## ---- message=FALSE, warning=FALSE, results='asis'----------------------------
+## ----message=FALSE, warning=FALSE, results='asis'-----------------------------
 
 # here we specify dataset and banner
 banner = mtcars %>%

@@ -91,11 +91,11 @@ variable (vector/matrix/data.frame) with category encoding into
 data.frame/matrix with dichotomy encoding (0/1) suited for most statistical
 analysis, e. g. clustering, factor analysis, linear regression and so on.
 \itemize{ 
-\item{\code{as.dichotomy}}{ returns data.frame of class 'dichotomy' with 0, 1
-and possibly NA.}
-\item{\code{dummy}}{ returns matrix of class 'dichotomy' with 0, 1 and possibly NA.}
-\item{\code{dummy1}}{ drops last column in dichotomy matrix. It is useful in many cases
-because any column of such matrix usually is linear combinations of other columns.}
+\item \code{as.dichotomy} returns data.frame of class 'dichotomy' with 0, 1
+and possibly NA.
+\item \code{dummy} returns matrix of class 'dichotomy' with 0, 1 and possibly NA.
+\item \code{dummy1} drops last column in dichotomy matrix. It is useful in many cases
+because any column of such matrix usually is linear combinations of other columns.
 }
 }
 \examples{

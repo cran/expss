@@ -1,45 +1,44 @@
 #' Write labelled data to file or export file to SPSS syntax.
 #' 
 #' \itemize{
-#' \item{\code{write_labelled_csv} and \code{read_labelled_csv}}{ writes csv
+#' \item \code{write_labelled_csv} and \code{read_labelled_csv} writes csv
 #' file with labels. By default labels are stored in the commented lines at the
 #' beginning of the file before the data part. \code{*_csv2} write and read data
 #' with a semicolon separator and comma as decimal delimiter. \code{*_tab/*_tab2}
-#' write and read data with 'tab' separator and "."/"," as decimal delimiter. }
-#' \item{\code{write_labelled_xlsx} and \code{read_labelled_xlsx}}{ write and
+#' write and read data with 'tab' separator and "."/"," as decimal delimiter.
+#' \item \code{write_labelled_xlsx} and \code{read_labelled_xlsx} write and
 #' read labelled 'xlsx' format. It is a simple Excel file with data and labels on
 #' separate sheets. It can help you with labelled data exchange in the
-#' corporate environment.}
-#' \item{\code{write_labelled_fst} and \code{read_labelled_fst}}{ write and read
+#' corporate environment.
+#' \item \code{write_labelled_fst} and \code{read_labelled_fst} write and read
 #' labelled data in the 'fst' format. See \href{https://www.fstpackage.org/}{Fst Package}.
 #' Data and labels are stored in the separate files. With 'fst' format you can
-#' read and write a huge amount of data very quickly.}
-#' \item{write_labelled_spss}{ write 'csv' file with SPSS syntax for reading it.
-#' You can use it for the data exchange with SPSS.}
-#' \item{\code{create_dictionary} and \code{apply_dictionary}}{ make data.frame
+#' read and write a huge amount of data very quickly.
+#' \item write_labelled_spss write 'csv' file with SPSS syntax for reading it.
+#' You can use it for the data exchange with SPSS.
+#' \item \code{create_dictionary} and \code{apply_dictionary} make data.frame
 #' with dictionary, e. g. variable and value labels for each variable. See
-#' format description in the 'Details' section.}
-#' \item{\code{write_labels} and \code{write_labels_spss}}{ Write R code and
+#' format description in the 'Details' section.
+#' \item \code{write_labels} and \code{write_labels_spss} Write R code and
 #' SPSS syntax for labelling data. It allows to extract labels from *.sav files
-#' that come without accompanying syntax. }
-#' \item{\code{old_write_labelled_csv} and \code{old_read_labelled_csv}}{ Read
+#' that come without accompanying syntax. 
+#' \item \code{old_write_labelled_csv} and \code{old_read_labelled_csv} Read
 #' and write labelled 'csv' in format of the 'expss' version before 0.9.0.
-#' }
 #' }
 #' 
 #' @details Dictionary is a data.frame with the following columns:
 #' \itemize{
-#' \item{variable}{ variable name in the data set. It can be omitted
-#' (\code{NA}). In this case name from the previous row will be taken.}
-#' \item{value}{ code for label in the column \code{'label'}.}
-#' \item{label}{ in most cases it is value label but its meaning can be changed
-#' by the column \code{'meta'}.}
-#' \item{meta}{ if it is NA then we have value label in the \code{'label'}
+#' \item variable variable name in the data set. It can be omitted
+#' (\code{NA}). In this case name from the previous row will be taken.
+#' \item value code for label in the column \code{'label'}.
+#' \item label in most cases it is value label but its meaning can be changed
+#' by the column \code{'meta'}.
+#' \item meta if it is NA then we have value label in the \code{'label'}
 #' column. If it is \code{'varlab'}, then there is a variable label in the
 #' \code{'label'} column and column \code{'value'} is ignored. If it is
 #' \code{'reference'}, then there is a variable name in the \code{'label'}
 #' column and we use value labels from this variable, column \code{'value'} is
-#' ignored.}
+#' ignored.
 #' }
 #' 
 #' @param x data.frame to be written/data.frame whose labels to be written
